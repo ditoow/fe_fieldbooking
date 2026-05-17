@@ -73,7 +73,12 @@ export default function LaporanPage() {
   const [showPDF, setShowPDF] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState({
+  const [activeFilters, setActiveFilters] = useState({
+    menunggu: true,
+    berhasil: true,
+    gagal: true
+  });
+  const [pendingFilters, setPendingFilters] = useState({
     menunggu: true,
     berhasil: true,
     gagal: true
@@ -88,14 +93,18 @@ export default function LaporanPage() {
                             trx.fasilitas.toLowerCase().includes(searchLower);
       
       // Filter by status
-      let matchesStatus = false;
-      if (filters.menunggu && trx.status === 'MENUNGGU') matchesStatus = true;
-      if (filters.berhasil && trx.status === 'BERHASIL') matchesStatus = true;
-      if (filters.gagal && trx.status === 'GAGAL') matchesStatus = true;
+      const noFilterSelected = !activeFilters.menunggu && !activeFilters.berhasil && !activeFilters.gagal;
+      let matchesStatus = noFilterSelected;
+      
+      if (!noFilterSelected) {
+        if (activeFilters.menunggu && trx.status === 'MENUNGGU') matchesStatus = true;
+        if (activeFilters.berhasil && trx.status === 'BERHASIL') matchesStatus = true;
+        if (activeFilters.gagal && trx.status === 'GAGAL') matchesStatus = true;
+      }
       
       return matchesSearch && matchesStatus;
     });
-  }, [searchQuery, filters]);
+  }, [searchQuery, activeFilters]);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -258,7 +267,10 @@ export default function LaporanPage() {
                   <div className="absolute right-0 top-12 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 p-5 z-20">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="font-bold text-lg">Filter</h3>
-                      <button onClick={() => setShowFilter(false)} className="text-gray-400 hover:text-gray-600">×</button>
+                      <button onClick={() => {
+                        setShowFilter(false);
+                        setPendingFilters(activeFilters);
+                      }} className="text-gray-400 hover:text-gray-600">×</button>
                     </div>
                     
                     <div className="mb-5">
@@ -267,8 +279,8 @@ export default function LaporanPage() {
                         <label className="flex items-center gap-3 cursor-pointer">
                           <input 
                             type="checkbox" 
-                            checked={filters.menunggu}
-                            onChange={(e) => setFilters({...filters, menunggu: e.target.checked})}
+                            checked={pendingFilters.menunggu}
+                            onChange={(e) => setPendingFilters({...pendingFilters, menunggu: e.target.checked})}
                             className="w-4 h-4 accent-[#D4A574] rounded" 
                           />
                           <span className="text-sm font-medium">Menunggu</span>
@@ -276,8 +288,8 @@ export default function LaporanPage() {
                         <label className="flex items-center gap-3 cursor-pointer">
                           <input 
                             type="checkbox" 
-                            checked={filters.berhasil}
-                            onChange={(e) => setFilters({...filters, berhasil: e.target.checked})}
+                            checked={pendingFilters.berhasil}
+                            onChange={(e) => setPendingFilters({...pendingFilters, berhasil: e.target.checked})}
                             className="w-4 h-4 accent-[#D4A574] rounded" 
                           />
                           <span className="text-sm font-medium">Berhasil</span>
@@ -285,8 +297,8 @@ export default function LaporanPage() {
                         <label className="flex items-center gap-3 cursor-pointer">
                           <input 
                             type="checkbox" 
-                            checked={filters.gagal}
-                            onChange={(e) => setFilters({...filters, gagal: e.target.checked})}
+                            checked={pendingFilters.gagal}
+                            onChange={(e) => setPendingFilters({...pendingFilters, gagal: e.target.checked})}
                             className="w-4 h-4 accent-[#D4A574] rounded" 
                           />
                           <span className="text-sm font-medium">Gagal</span>
@@ -298,13 +310,20 @@ export default function LaporanPage() {
                     
                     <div className="flex justify-between items-center">
                       <button 
-                        onClick={() => setFilters({menunggu: true, berhasil: true, gagal: true})}
+                        onClick={() => {
+                          const reset = {menunggu: true, berhasil: true, gagal: true};
+                          setPendingFilters(reset);
+                          setActiveFilters(reset);
+                        }}
                         className="text-sm text-[#1C2B1E] font-medium hover:text-[#D4A574] hover:underline transition-colors"
                       >
                         Atur Ulang
                       </button>
                       <button 
-                        onClick={() => setShowFilter(false)}
+                        onClick={() => {
+                          setActiveFilters(pendingFilters);
+                          setShowFilter(false);
+                        }}
                         className="px-5 py-2 bg-[#D4A574] hover:bg-[#c39564] text-white rounded-full text-sm font-bold transition-colors"
                       >
                         Terapkan Filter

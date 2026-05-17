@@ -1,16 +1,91 @@
 "use client";
 
 import { Search, Filter, Check, X, Paperclip, Download, ArrowLeft } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+
+const verifications = [
+  {
+    id: '#U-1024',
+    initials: 'AS',
+    avatarColor: 'bg-[#2D4A30]',
+    name: 'Aditya Saputra',
+    email: 'aditya.s@university.id',
+    kategori: 'MAHASISWA',
+    kategoriBadgeClass: 'bg-green-100 text-green-800',
+    dokumen: 'KTM_Verify.pdf',
+    status: 'Menunggu',
+  },
+  {
+    id: '#U-1025',
+    initials: 'RM',
+    avatarColor: 'bg-[#D4A574]',
+    name: 'Rina Melati',
+    email: 'rina.melati@gmail.com',
+    kategori: 'UMUM',
+    kategoriBadgeClass: 'bg-gray-100 text-gray-700',
+    dokumen: 'KTP_Final.jpg',
+    status: 'Disetujui',
+  },
+  {
+    id: '#U-1026',
+    initials: 'FK',
+    avatarColor: 'bg-[#2D6A4F]',
+    name: 'Farhan Kurnia',
+    email: 'farhan_k@edu.com',
+    kategori: 'MAHASISWA',
+    kategoriBadgeClass: 'bg-green-100 text-green-800',
+    dokumen: 'KTM_Draft.pdf',
+    status: 'Ditolak',
+  },
+  {
+    id: '#U-1027',
+    initials: 'BL',
+    avatarColor: 'bg-blue-600',
+    name: 'Budi Laksono',
+    email: 'budi_laksono@outlook.com',
+    kategori: 'UMUM',
+    kategoriBadgeClass: 'bg-gray-100 text-gray-700',
+    dokumen: 'Identity_Card.png',
+    status: 'Menunggu',
+  }
+];
 
 export default function VerifikasiUserPage() {
   const [showFilter, setShowFilter] = useState(false);
-  const [filters, setFilters] = useState({
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilters, setActiveFilters] = useState({
     menunggu: true,
-    disetujui: false,
-    ditolak: false
+    disetujui: true,
+    ditolak: true
+  });
+  const [pendingFilters, setPendingFilters] = useState({
+    menunggu: true,
+    disetujui: true,
+    ditolak: true
   });
   const [showPDF, setShowPDF] = useState(false);
+
+  const filteredVerifications = useMemo(() => {
+    return verifications.filter(v => {
+      // Filter by search
+      const searchLower = searchQuery.toLowerCase();
+      const matchesSearch = v.name.toLowerCase().includes(searchLower) || 
+                            v.id.toLowerCase().includes(searchLower) ||
+                            v.email.toLowerCase().includes(searchLower);
+      
+      // Filter by status
+      const noFilterSelected = !activeFilters.menunggu && !activeFilters.disetujui && !activeFilters.ditolak;
+      let matchesStatus = noFilterSelected;
+      
+      if (!noFilterSelected) {
+        if (activeFilters.menunggu && v.status === 'Menunggu') matchesStatus = true;
+        if (activeFilters.disetujui && v.status === 'Disetujui') matchesStatus = true;
+        if (activeFilters.ditolak && v.status === 'Ditolak') matchesStatus = true;
+      }
+      
+      return matchesSearch && matchesStatus;
+    });
+  }, [searchQuery, activeFilters]);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -63,6 +138,8 @@ export default function VerifikasiUserPage() {
               <input 
                 type="text" 
                 placeholder="Cari ID, nama, atau email..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/20"
               />
             </div>
@@ -79,7 +156,10 @@ export default function VerifikasiUserPage() {
               <div className="absolute right-0 top-12 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 p-5 z-20">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="font-bold text-lg">Filter</h3>
-                  <button onClick={() => setShowFilter(false)} className="text-gray-400 hover:text-gray-600">×</button>
+                  <button onClick={() => {
+                    setShowFilter(false);
+                    setPendingFilters(activeFilters);
+                  }} className="text-gray-400 hover:text-gray-600">×</button>
                 </div>
                 <div className="mb-5">
                   <p className="text-[10px] uppercase font-bold text-ugo-sidebar mb-3 tracking-wider">Status</p>
@@ -87,8 +167,8 @@ export default function VerifikasiUserPage() {
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input 
                         type="checkbox" 
-                        checked={filters.menunggu}
-                        onChange={(e) => setFilters({...filters, menunggu: e.target.checked})}
+                        checked={pendingFilters.menunggu}
+                        onChange={(e) => setPendingFilters({...pendingFilters, menunggu: e.target.checked})}
                         className="w-4 h-4 accent-ugo-primary rounded" 
                       />
                       <span className="text-sm font-medium">Menunggu</span>
@@ -96,8 +176,8 @@ export default function VerifikasiUserPage() {
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input 
                         type="checkbox" 
-                        checked={filters.disetujui}
-                        onChange={(e) => setFilters({...filters, disetujui: e.target.checked})}
+                        checked={pendingFilters.disetujui}
+                        onChange={(e) => setPendingFilters({...pendingFilters, disetujui: e.target.checked})}
                         className="w-4 h-4 accent-ugo-primary rounded" 
                       />
                       <span className="text-sm font-medium">Disetujui</span>
@@ -105,8 +185,8 @@ export default function VerifikasiUserPage() {
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input 
                         type="checkbox" 
-                        checked={filters.ditolak}
-                        onChange={(e) => setFilters({...filters, ditolak: e.target.checked})}
+                        checked={pendingFilters.ditolak}
+                        onChange={(e) => setPendingFilters({...pendingFilters, ditolak: e.target.checked})}
                         className="w-4 h-4 accent-ugo-primary rounded" 
                       />
                       <span className="text-sm font-medium">Ditolak</span>
@@ -118,13 +198,20 @@ export default function VerifikasiUserPage() {
                 
                 <div className="flex justify-between items-center">
                   <button 
-                    onClick={() => setFilters({menunggu: false, disetujui: false, ditolak: false})}
+                    onClick={() => {
+                      const reset = {menunggu: true, disetujui: true, ditolak: true};
+                      setPendingFilters(reset);
+                      setActiveFilters(reset);
+                    }}
                     className="text-sm text-ugo-sidebar font-medium hover:text-ugo-primary hover:underline transition-colors"
                   >
                     Atur Ulang
                   </button>
                   <button 
-                    onClick={() => setShowFilter(false)}
+                    onClick={() => {
+                      setActiveFilters(pendingFilters);
+                      setShowFilter(false);
+                    }}
                     className="px-5 py-2 bg-ugo-primary hover:bg-ugo-primary/90 text-white rounded-full text-sm font-bold transition-colors"
                   >
                     Terapkan Filter
@@ -148,135 +235,56 @@ export default function VerifikasiUserPage() {
               </tr>
             </thead>
             <tbody>
-              {/* Row 1 */}
-              <tr className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                <td className="py-4 px-6 font-semibold text-sm text-ugo-sidebar">#U-1024</td>
-                <td className="py-4 px-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#2D4A30] text-white font-bold flex items-center justify-center text-sm">AS</div>
-                    <div>
-                      <p className="font-bold text-sm text-ugo-sidebar">Aditya Saputra</p>
-                      <p className="text-xs text-gray-500">aditya.s@university.id</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="py-4 px-6">
-                  <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold inline-flex">MAHASISWA</span>
-                </td>
-                <td className="py-4 px-6">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Paperclip className="w-4 h-4 text-gray-400" />
-                    <span className="underline decoration-gray-300 underline-offset-2">KTM_Verify.pdf</span>
-                  </div>
-                </td>
-                <td className="py-4 px-6">
-                  <span className="bg-ugo-status-menunggu-bg text-ugo-status-menunggu-text px-3 py-1 rounded-full text-xs font-bold inline-flex">Menunggu</span>
-                </td>
-                <td className="py-4 px-6">
-                  <div className="flex gap-2 justify-center">
-                    <button className="w-8 h-8 rounded-lg bg-ugo-status-disetujui-bg text-ugo-status-disetujui-text flex items-center justify-center hover:bg-green-200 transition-colors">
-                      <Check className="w-4 h-4" />
-                    </button>
-                    <button className="w-8 h-8 rounded-lg bg-ugo-status-ditolak-bg text-ugo-status-ditolak-text flex items-center justify-center hover:bg-red-200 transition-colors">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              
-              {/* Row 2 */}
-              <tr className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                <td className="py-4 px-6 font-semibold text-sm text-ugo-sidebar">#U-1025</td>
-                <td className="py-4 px-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#D4A574] text-white font-bold flex items-center justify-center text-sm">RM</div>
-                    <div>
-                      <p className="font-bold text-sm text-ugo-sidebar">Rina Melati</p>
-                      <p className="text-xs text-gray-500">rina.melati@gmail.com</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="py-4 px-6">
-                  <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-bold inline-flex">UMUM</span>
-                </td>
-                <td className="py-4 px-6">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Paperclip className="w-4 h-4 text-gray-400" />
-                    <span className="underline decoration-gray-300 underline-offset-2">KTP_Final.jpg</span>
-                  </div>
-                </td>
-                <td className="py-4 px-6">
-                  <span className="bg-ugo-status-disetujui-bg text-ugo-status-disetujui-text px-3 py-1 rounded-full text-xs font-bold inline-flex">Disetujui</span>
-                </td>
-                <td className="py-4 px-6 text-center">
-                  <span className="text-xs font-medium text-gray-400 italic">Sudah Diproses</span>
-                </td>
-              </tr>
-
-              {/* Row 3 */}
-              <tr className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                <td className="py-4 px-6 font-semibold text-sm text-ugo-sidebar">#U-1026</td>
-                <td className="py-4 px-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#2D6A4F] text-white font-bold flex items-center justify-center text-sm">FK</div>
-                    <div>
-                      <p className="font-bold text-sm text-ugo-sidebar">Farhan Kurnia</p>
-                      <p className="text-xs text-gray-500">farhan_k@edu.com</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="py-4 px-6">
-                  <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold inline-flex">MAHASISWA</span>
-                </td>
-                <td className="py-4 px-6">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Paperclip className="w-4 h-4 text-gray-400" />
-                    <span className="underline decoration-gray-300 underline-offset-2">KTM_Draft.pdf</span>
-                  </div>
-                </td>
-                <td className="py-4 px-6">
-                  <span className="bg-ugo-status-ditolak-bg text-ugo-status-ditolak-text px-3 py-1 rounded-full text-xs font-bold inline-flex">DITOLAK</span>
-                </td>
-                <td className="py-4 px-6 text-center">
-                  <span className="text-xs font-medium text-gray-400 italic">Sudah Diproses</span>
-                </td>
-              </tr>
-
-              {/* Row 4 */}
-              <tr className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                <td className="py-4 px-6 font-semibold text-sm text-ugo-sidebar">#U-1027</td>
-                <td className="py-4 px-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-600 text-white font-bold flex items-center justify-center text-sm">BL</div>
-                    <div>
-                      <p className="font-bold text-sm text-ugo-sidebar">Budi Laksono</p>
-                      <p className="text-xs text-gray-500">budi_laksono@outlook.com</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="py-4 px-6">
-                  <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-bold inline-flex">UMUM</span>
-                </td>
-                <td className="py-4 px-6">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Paperclip className="w-4 h-4 text-gray-400" />
-                    <span className="underline decoration-gray-300 underline-offset-2">Identity_Card.png</span>
-                  </div>
-                </td>
-                <td className="py-4 px-6">
-                  <span className="bg-ugo-status-menunggu-bg text-ugo-status-menunggu-text px-3 py-1 rounded-full text-xs font-bold inline-flex">Menunggu</span>
-                </td>
-                <td className="py-4 px-6">
-                  <div className="flex gap-2 justify-center">
-                    <button className="w-8 h-8 rounded-lg bg-ugo-status-disetujui-bg text-ugo-status-disetujui-text flex items-center justify-center hover:bg-green-200 transition-colors">
-                      <Check className="w-4 h-4" />
-                    </button>
-                    <button className="w-8 h-8 rounded-lg bg-ugo-status-ditolak-bg text-ugo-status-ditolak-text flex items-center justify-center hover:bg-red-200 transition-colors">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
+              {filteredVerifications.length > 0 ? (
+                filteredVerifications.map((v) => (
+                  <tr key={v.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                    <td className="py-4 px-6 font-semibold text-sm text-ugo-sidebar">{v.id}</td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-xl ${v.avatarColor} text-white font-bold flex items-center justify-center text-sm`}>
+                          {v.initials}
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm text-ugo-sidebar">{v.name}</p>
+                          <p className="text-xs text-gray-500">{v.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className={`${v.kategoriBadgeClass} px-3 py-1 rounded-full text-xs font-bold inline-flex`}>{v.kategori}</span>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Paperclip className="w-4 h-4 text-gray-400" />
+                        <span className="underline decoration-gray-300 underline-offset-2">{v.dokumen}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      {v.status === 'Menunggu' && <span className="bg-ugo-status-menunggu-bg text-ugo-status-menunggu-text px-3 py-1 rounded-full text-xs font-bold inline-flex">Menunggu</span>}
+                      {v.status === 'Disetujui' && <span className="bg-ugo-status-disetujui-bg text-ugo-status-disetujui-text px-3 py-1 rounded-full text-xs font-bold inline-flex">Disetujui</span>}
+                      {v.status === 'Ditolak' && <span className="bg-ugo-status-ditolak-bg text-ugo-status-ditolak-text px-3 py-1 rounded-full text-xs font-bold inline-flex uppercase">Ditolak</span>}
+                    </td>
+                    <td className="py-4 px-6 text-center">
+                      {v.status === 'Menunggu' ? (
+                        <div className="flex gap-2 justify-center">
+                          <button className="w-8 h-8 rounded-lg bg-ugo-status-disetujui-bg text-ugo-status-disetujui-text flex items-center justify-center hover:bg-green-200 transition-colors">
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button className="w-8 h-8 rounded-lg bg-ugo-status-ditolak-bg text-ugo-status-ditolak-text flex items-center justify-center hover:bg-red-200 transition-colors">
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-xs font-medium text-gray-400 italic">Sudah Diproses</span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-gray-500 font-medium">Tidak ada pengguna yang sesuai.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

@@ -87,7 +87,12 @@ export default function DashboardPage() {
   const [showFilter, setShowFilter] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState({
+  const [activeFilters, setActiveFilters] = useState({
+    menunggu: true,
+    disetujui: true,
+    ditolak: true
+  });
+  const [pendingFilters, setPendingFilters] = useState({
     menunggu: true,
     disetujui: true,
     ditolak: true
@@ -100,14 +105,18 @@ export default function DashboardPage() {
                             booking.id.toLowerCase().includes(searchQuery.toLowerCase());
       
       // Filter by status
-      let matchesStatus = false;
-      if (filters.menunggu && booking.status === 'Menunggu') matchesStatus = true;
-      if (filters.disetujui && booking.status === 'Disetujui') matchesStatus = true;
-      if (filters.ditolak && booking.status === 'Ditolak') matchesStatus = true;
+      const noFilterSelected = !activeFilters.menunggu && !activeFilters.disetujui && !activeFilters.ditolak;
+      let matchesStatus = noFilterSelected;
+      
+      if (!noFilterSelected) {
+        if (activeFilters.menunggu && booking.status === 'Menunggu') matchesStatus = true;
+        if (activeFilters.disetujui && booking.status === 'Disetujui') matchesStatus = true;
+        if (activeFilters.ditolak && booking.status === 'Ditolak') matchesStatus = true;
+      }
       
       return matchesSearch && matchesStatus;
     });
-  }, [searchQuery, filters]);
+  }, [searchQuery, activeFilters]);
 
   const itemsPerPage = 4;
   const totalPages = Math.max(1, Math.ceil(filteredBookings.length / itemsPerPage));
@@ -243,7 +252,10 @@ export default function DashboardPage() {
               <div className="absolute right-6 top-20 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 p-5 z-20">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="font-bold text-lg">Filter</h3>
-                  <button onClick={() => setShowFilter(false)} className="text-gray-400 hover:text-gray-600">×</button>
+                  <button onClick={() => {
+                    setShowFilter(false);
+                    setPendingFilters(activeFilters);
+                  }} className="text-gray-400 hover:text-gray-600">×</button>
                 </div>
                 
                 <div className="mb-5">
@@ -252,10 +264,9 @@ export default function DashboardPage() {
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input 
                         type="checkbox" 
-                        checked={filters.menunggu}
+                        checked={pendingFilters.menunggu}
                         onChange={(e) => {
-                          setFilters({...filters, menunggu: e.target.checked});
-                          setCurrentPage(1);
+                          setPendingFilters({...pendingFilters, menunggu: e.target.checked});
                         }}
                         className="w-4 h-4 accent-ugo-primary rounded" 
                       />
@@ -264,10 +275,9 @@ export default function DashboardPage() {
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input 
                         type="checkbox" 
-                        checked={filters.disetujui}
+                        checked={pendingFilters.disetujui}
                         onChange={(e) => {
-                          setFilters({...filters, disetujui: e.target.checked});
-                          setCurrentPage(1);
+                          setPendingFilters({...pendingFilters, disetujui: e.target.checked});
                         }}
                         className="w-4 h-4 accent-ugo-primary rounded" 
                       />
@@ -276,10 +286,9 @@ export default function DashboardPage() {
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input 
                         type="checkbox" 
-                        checked={filters.ditolak}
+                        checked={pendingFilters.ditolak}
                         onChange={(e) => {
-                          setFilters({...filters, ditolak: e.target.checked});
-                          setCurrentPage(1);
+                          setPendingFilters({...pendingFilters, ditolak: e.target.checked});
                         }}
                         className="w-4 h-4 accent-ugo-primary rounded" 
                       />
@@ -293,7 +302,9 @@ export default function DashboardPage() {
                 <div className="flex justify-between items-center">
                   <button 
                     onClick={() => {
-                      setFilters({menunggu: true, disetujui: true, ditolak: true});
+                      const reset = {menunggu: true, disetujui: true, ditolak: true};
+                      setPendingFilters(reset);
+                      setActiveFilters(reset);
                       setCurrentPage(1);
                     }}
                     className="text-sm text-ugo-sidebar font-medium hover:text-ugo-primary hover:underline transition-colors"
@@ -301,7 +312,11 @@ export default function DashboardPage() {
                     Atur Ulang
                   </button>
                   <button 
-                    onClick={() => setShowFilter(false)}
+                    onClick={() => {
+                      setActiveFilters(pendingFilters);
+                      setCurrentPage(1);
+                      setShowFilter(false);
+                    }}
                     className="px-5 py-2 bg-ugo-primary hover:bg-ugo-primary/90 text-white rounded-full text-sm font-bold transition-colors"
                   >
                     Terapkan Filter
