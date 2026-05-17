@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import ScheduleCalendar from "@/components/User/ScheduleCalendar";
+import ScheduleCalendar from "@/app/(user)/components/User/ScheduleCalendar";
 
 export default async function BookingDetailPage({
     params,
