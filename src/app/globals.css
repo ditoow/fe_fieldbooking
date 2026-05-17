@@ -46,6 +46,23 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* MyUGO Admin Custom Colors */
+  --color-ugo-sidebar: #1C2B1E;
+  --color-ugo-primary: #D4A574;
+  --color-ugo-bg: #F5F0EB;
+  --color-ugo-card: #FFFFFF;
+  --color-ugo-status-menunggu-bg: #FDE8D8;
+  --color-ugo-status-menunggu-text: #C4622D;
+  --color-ugo-status-disetujui-bg: #D4EDDA;
+  --color-ugo-status-disetujui-text: #2D6A4F;
+  --color-ugo-status-ditolak-bg: #FFEEEE;
+  --color-ugo-status-ditolak-text: #C0392B;
+  --color-ugo-status-aktif-bg: #1C2B1E;
+  --color-ugo-status-aktif-text: #FFFFFF;
+  --color-ugo-status-maintenance-bg: #FDE8D8;
+  --color-ugo-status-maintenance-text: #C4622D;
+  --color-ugo-icon-bg: #2D4A30;
 }
 
 :root {
@@ -126,5 +143,14 @@
   }
   html {
     @apply font-sans;
+  }
+  button, 
+  [role="button"],
+  a {
+    cursor: pointer;
+  }
+  button:disabled,
+  [disabled] {
+    cursor: not-allowed;
   }
 }
