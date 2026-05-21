@@ -93,27 +93,27 @@ export default function VerifikasiUserPage() {
         <div className="flex flex-col gap-6 fade-in animate-in">
           {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-ugo-sidebar mb-2">Verifikasi User</h1>
+        <h1 className="text-[30px] font-bold text-ugo-sidebar leading-tight mb-2">Verifikasi User</h1>
         <p className="text-gray-500 text-sm">
           Kelola dan tinjau permintaan verifikasi dari pengguna baru. Pastikan dokumen identitas valid sebelum menyetujui akses ke sistem pemesanan.
         </p>
       </div>
 
       {/* Banner */}
-      <div className="bg-ugo-sidebar rounded-2xl p-6 text-white flex justify-between items-end shadow-lg">
-        <div className="flex flex-col gap-5">
+      <div className="bg-ugo-sidebar rounded-2xl p-6 text-white flex flex-col md:flex-row justify-between items-start md:items-end shadow-lg gap-6 md:gap-0">
+        <div className="flex flex-col gap-5 w-full md:w-auto">
           <h2 className="text-xl font-bold text-white tracking-wide">Status Verifikasi Hari Ini</h2>
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-4 sm:gap-8 flex-wrap sm:flex-nowrap">
             <div>
               <p className="text-[11px] text-[#D4A574] uppercase tracking-widest font-bold mb-1">TOTAL REQUEST</p>
               <p className="text-3xl font-bold text-white">124</p>
             </div>
-            <div className="w-[1px] h-10 bg-white/10"></div>
+            <div className="hidden sm:block w-[1px] h-10 bg-white/10"></div>
             <div>
               <p className="text-[11px] text-[#D4A574] uppercase tracking-widest font-bold mb-1">APPROVED</p>
               <p className="text-3xl font-bold text-white">98</p>
             </div>
-            <div className="w-[1px] h-10 bg-white/10"></div>
+            <div className="hidden sm:block w-[1px] h-10 bg-white/10"></div>
             <div>
               <p className="text-[11px] text-[#D4A574] uppercase tracking-widest font-bold mb-1">PENDING</p>
               <p className="text-3xl font-bold text-white">12</p>
@@ -122,7 +122,7 @@ export default function VerifikasiUserPage() {
         </div>
         <button 
           onClick={() => setShowPDF(true)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-[#F5E6D8] hover:bg-[#ebd5c1] text-[#1C2B1E] rounded-lg text-sm font-bold shadow-sm transition-colors mb-1"
+          className="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-[#F5E6D8] hover:bg-[#ebd5c1] text-[#1C2B1E] rounded-lg text-sm font-bold shadow-sm transition-colors mb-1"
         >
           Eksport Laporan Harian
           <Download className="w-4 h-4" />

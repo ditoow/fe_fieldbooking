@@ -1,23 +1,32 @@
 "use client";
 
-import { Bell, Box } from 'lucide-react';
+import { Bell, Box, Menu } from 'lucide-react';
 import { useState } from 'react';
+import Link from 'next/link';
 
-export function Topbar() {
+export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
 
   return (
     <header className="h-[70px] bg-ugo-sidebar w-full fixed top-0 left-0 z-30 flex items-center justify-between px-8 border-b-[3px] border-[#0EA5E9]">
-      {/* Left: Logo */}
+      {/* Left: Logo & Mobile Menu */}
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 bg-ugo-primary rounded flex items-center justify-center">
-          <Box className="w-5 h-5 text-white" />
-        </div>
-        <div>
-          <h1 className="text-white font-bold text-lg leading-tight">MyUGO Admin</h1>
-          <p className="text-white/60 text-[10px] uppercase font-semibold tracking-wider">Facility Management</p>
-        </div>
+        <button 
+          className="md:hidden p-1 -ml-2 text-white hover:bg-white/10 rounded-md"
+          onClick={onMenuClick}
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+        <Link href="/admin-dashboard" className="flex items-center gap-3 group">
+          <div className="w-8 h-8 bg-ugo-primary rounded flex items-center justify-center hidden sm:flex group-hover:bg-ugo-primary/90 transition-colors">
+            <Box className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-white font-bold text-lg leading-tight group-hover:text-gray-200 transition-colors">MyUGO Admin</h1>
+            <p className="text-white/60 text-[10px] uppercase font-semibold tracking-wider group-hover:text-white/80 transition-colors">Facility Management</p>
+          </div>
+        </Link>
       </div>
 
       {/* Right: Actions */}
@@ -102,7 +111,7 @@ export function Topbar() {
                 </div>
               </div>
               <hr className="my-2 border-gray-100" />
-              <button className="w-full text-left px-2 py-2 text-sm hover:bg-gray-50 rounded-md">Settings</button>
+              <Link href="/admin-profile" onClick={() => setShowProfile(false)} className="block w-full text-left px-2 py-2 text-sm hover:bg-gray-50 rounded-md">Settings</Link>
               <button className="w-full text-left px-2 py-2 text-sm hover:bg-gray-50 rounded-md text-ugo-status-ditolak-text">Logout</button>
             </div>
           )}

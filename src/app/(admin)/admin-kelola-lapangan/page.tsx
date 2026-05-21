@@ -95,7 +95,7 @@ export default function KelolaLapanganPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-ugo-sidebar mb-2">Kelola Lapangan</h1>
+          <h1 className="text-[30px] font-bold text-ugo-sidebar leading-tight mb-2">Kelola Lapangan</h1>
           <p className="text-gray-500 text-sm">
             Manajemen unit fasilitas, harga sewa, dan status ketersediaan.
           </p>
