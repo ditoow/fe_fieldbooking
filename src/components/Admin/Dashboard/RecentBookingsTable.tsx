@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, Filter, MoreVertical } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,7 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const recentBookings = [
+const initialBookings = [
   {
     id: '#UGO-2940',
     initials: 'BS',
@@ -74,6 +74,7 @@ const recentBookings = [
 ];
 
 export function RecentBookingsTable() {
+  const [recentBookings, setRecentBookings] = useState(initialBookings);
   const [showFilter, setShowFilter] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
@@ -87,6 +88,60 @@ export function RecentBookingsTable() {
     disetujui: true,
     ditolak: true
   });
+
+  // Ambil data transaksi dari localStorage "booking_history" 
+  // (hasil dari halaman /pembayaran & /invoice) agar masuk ke tabel admin
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const historyStr = localStorage.getItem('booking_history');
+      if (historyStr) {
+        try {
+          const historyArr = JSON.parse(historyStr);
+          const mappedHistory = historyArr.map((b: any, index: number) => {
+            // Pemetaan status dari frontend user ke admin
+            let status = 'Menunggu';
+            if (b.status === 'TERTUNDA' || b.status === 'DIPROSES') status = 'Menunggu';
+            if (b.status === 'DISETUJUI' || b.status === 'BERHASIL') status = 'Disetujui';
+            if (b.status === 'DITOLAK') status = 'Ditolak';
+
+            // Generate inisial dummy (ambil user dari session jika ada)
+            const sessionStr = localStorage.getItem("user_session");
+            let name = "Nuralif Maulana";
+            let initials = "NM";
+            if (sessionStr) {
+              const session = JSON.parse(sessionStr);
+              name = session.nama || name;
+              const parts = name.split(" ");
+              initials = (parts[0][0] + (parts[1] ? parts[1][0] : "")).toUpperCase();
+            }
+
+            // Warna acak
+            const colors = [
+              'bg-blue-100 text-blue-700', 'bg-pink-100 text-pink-700', 
+              'bg-green-100 text-green-700', 'bg-purple-100 text-purple-700', 'bg-yellow-100 text-yellow-700'
+            ];
+            
+            return {
+              id: `#${b.id}`,
+              initials: initials,
+              name: name,
+              colorClass: colors[index % colors.length],
+              lapangan: b.title,
+              tanggal: b.date.substring(0, 11), // misal: "Senin, 11 Nov"
+              jam: b.time,
+              status: status,
+            };
+          });
+
+          // Gabungkan data baru dengan data dummy lama
+          setRecentBookings([...mappedHistory, ...initialBookings]);
+        } catch (e) {
+          console.error("Failed to parse booking_history", e);
+        }
+      }
+    }
+  }, []);
 
   const filteredBookings = useMemo(() => {
     return recentBookings.filter(booking => {
