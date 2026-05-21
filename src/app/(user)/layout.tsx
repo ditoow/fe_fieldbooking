@@ -1,6 +1,6 @@
-import NavbarUser from "@/components/User/NavbarUser";
-import FooterUser from "@/components/User/FooterUser";
-import AuthGuard from "@/components/User/AuthGuard"; // Import satpamnya
+import NavbarUser from "@/app/(user)/components/User/NavbarUser";
+import FooterUser from "@/app/(user)/components/User/FooterUser";
+import AuthGuard from "@/app/(user)/components/User/AuthGuard"; // Import satpamnya
 
 export default function UserLayout({
     children,
