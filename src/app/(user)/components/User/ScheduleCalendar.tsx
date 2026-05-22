@@ -1,26 +1,45 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
 import ConfirmModal from "./ConfirmModal";
 import BookingSummary from "./BookingSummary";
 
-export default function ScheduleCalendar({ lapangan }: { lapangan: any }) {
+interface LapanganProps {
+    id: number;
+    nama: string;
+    lokasi: string;
+    harga: number;
+    image: string;
+}
+
+interface ScheduleCalendarProps {
+    lapangan: LapanganProps;
+}
+
+interface DateItem {
+    id: number;
+    dayName: string;
+    dateNum: number;
+    monthName: string;
+    fullDate: string;
+    isPast: boolean;
+}
+
+export default function ScheduleCalendar({ lapangan }: ScheduleCalendarProps) {
     const [weekOffset, setWeekOffset] = useState<number>(0);
     const [selectedDate, setSelectedDate] = useState<number>(0);
-
-    // REVISI: Menggunakan Array untuk menampung banyak jam
     const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
-
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const hargaPerJam = lapangan.harga;
-
-    // REVISI: Menghitung total harga dikali jumlah jam yang dipilih
     const totalHarga = selectedTimes.length * hargaPerJam;
 
-    const generateDates = () => {
-        const datesList = [];
+    const generateDatesByOffset = (offset: number): DateItem[] => {
+        // FIX: Mendeklarasikan tipe array DateItem secara eksplisit agar bebas error 'any[]'
+        const datesList: DateItem[] = [];
         const now = new Date();
         now.setHours(0, 0, 0, 0);
 
@@ -31,13 +50,14 @@ export default function ScheduleCalendar({ lapangan }: { lapangan: any }) {
         startOfThisWeek.setDate(now.getDate() - distanceToMonday);
 
         const startDate = new Date(startOfThisWeek);
-        startDate.setDate(startOfThisWeek.getDate() + (weekOffset * 7));
+        startDate.setDate(startOfThisWeek.getDate() + (offset * 7));
 
         for (let i = 0; i < 7; i++) {
             const date = new Date(startDate);
             date.setDate(startDate.getDate() + i);
             const isPast = date.getTime() < now.getTime();
 
+            // FIX: Menghapus typo dari 'datesListList' menjadi 'datesList' yang benar
             datesList.push({
                 id: i,
                 dayName: date.toLocaleDateString('id-ID', { weekday: 'short' }),
@@ -50,12 +70,29 @@ export default function ScheduleCalendar({ lapangan }: { lapangan: any }) {
         return datesList;
     };
 
-    const dates = generateDates();
+    const dates = generateDatesByOffset(weekOffset);
 
-    useEffect(() => {
-        const validDate = dates.find(d => !d.isPast);
+    const handlePrevWeek = () => {
+        if (weekOffset > 0) {
+            const nextOffset = weekOffset - 1;
+            setWeekOffset(nextOffset);
+            setSelectedTimes([]);
+            
+            const nextDates = generateDatesByOffset(nextOffset);
+            const validDate = nextDates.find(d => !d.isPast);
+            if (validDate) setSelectedDate(validDate.id);
+        }
+    };
+
+    const handleNextWeek = () => {
+        const nextOffset = weekOffset + 1;
+        setWeekOffset(nextOffset);
+        setSelectedTimes([]);
+        
+        const nextDates = generateDatesByOffset(nextOffset);
+        const validDate = nextDates.find(d => !d.isPast);
         if (validDate) setSelectedDate(validDate.id);
-    }, [weekOffset]);
+    };
 
     const timeSlots = [
         { time: "08:00", status: "BOOKED" }, { time: "09:00", status: "AVAILABLE" },
@@ -75,20 +112,26 @@ export default function ScheduleCalendar({ lapangan }: { lapangan: any }) {
         return `${dates[0].dateNum} ${dates[0].monthName} — ${dates[6].dateNum} ${dates[6].monthName} 2026`;
     };
 
-    // FUNGSI BARU: Untuk menambah/menghapus jam (Multi-select)
     const toggleTimeSlot = (time: string) => {
         if (selectedTimes.includes(time)) {
-            setSelectedTimes(selectedTimes.filter(t => t !== time)); // Hapus jika sudah ada
+            setSelectedTimes(selectedTimes.filter(t => t !== time));
         } else {
-            setSelectedTimes([...selectedTimes, time].sort()); // Tambah dan urutkan
+            setSelectedTimes([...selectedTimes, time].sort());
         }
     };
 
     return (
         <div className="space-y-8 relative">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center bg-transparent">
-                <div className="md:col-span-7 h-64 md:h-80 w-full overflow-hidden rounded-2xl shadow-sm">
-                    <img src={lapangan.image} alt={lapangan.nama} className="w-full h-full object-cover" />
+                <div className="md:col-span-7 h-64 md:h-80 w-full overflow-hidden rounded-2xl shadow-sm relative">
+                    <Image 
+                        src={lapangan.image} 
+                        alt={lapangan.nama} 
+                        fill
+                        priority
+                        className="object-cover"
+                        sizes="(max-w-768px) 100vw, 50vw"
+                    />
                 </div>
                 <div className="md:col-span-5 space-y-4">
                     <p className="text-xs font-bold text-[#c29867] uppercase tracking-widest">VENUE EXCELLENCE</p>
@@ -112,44 +155,73 @@ export default function ScheduleCalendar({ lapangan }: { lapangan: any }) {
                             <p className="text-[10px] text-gray-400 font-bold uppercase mt-0.5">{labelPeriodeMinggu()}</p>
                         </div>
                         <div className="flex gap-1">
-                            <button onClick={() => { if (weekOffset > 0) { setWeekOffset(p => p - 1); setSelectedTimes([]); } }} disabled={weekOffset === 0} className="p-1.5 rounded-md border border-gray-100 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"><ChevronLeft className="w-3.5 h-3.5 text-gray-500" /></button>
-                            <button onClick={() => { setWeekOffset(p => p + 1); setSelectedTimes([]); }} className="p-1.5 rounded-md border border-gray-100 hover:bg-gray-50"><ChevronRight className="w-3.5 h-3.5 text-gray-500" /></button>
+                            <Button 
+                                variant="outline"
+                                size="icon"
+                                onClick={handlePrevWeek} 
+                                disabled={weekOffset === 0} 
+                                className="h-8 w-8 rounded-md border-gray-100 text-gray-500"
+                            >
+                                <ChevronLeft className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button 
+                                variant="outline"
+                                size="icon"
+                                onClick={handleNextWeek} 
+                                className="h-8 w-8 rounded-md border-gray-100 text-gray-500"
+                            >
+                                <ChevronRight className="w-3.5 h-3.5" />
+                            </Button>
                         </div>
                     </div>
 
                     <div className="flex gap-2 justify-between border-b border-gray-50 pb-6 mb-6 overflow-x-auto [&::-webkit-scrollbar]:hidden">
                         {dates.map((item) => (
-                            <button
+                            <Button
                                 key={item.id}
                                 disabled={item.isPast}
-                                // Reset jam yang dipilih saat pindah hari
+                                variant={selectedDate === item.id ? "default" : "ghost"}
                                 onClick={() => { setSelectedDate(item.id); setSelectedTimes([]); }}
-                                className={`flex flex-col items-center justify-center py-3 w-14 rounded-xl transition-all shrink-0 ${item.isPast ? "bg-gray-100 text-gray-300 cursor-not-allowed opacity-50" : selectedDate === item.id ? "bg-[#1B3627] text-white font-bold" : "bg-white text-gray-400 hover:bg-gray-50"}`}
+                                className={`flex flex-col items-center justify-center py-3 w-14 h-auto rounded-xl transition-all shrink-0 ${
+                                    item.isPast 
+                                        ? "bg-gray-100 text-gray-300 opacity-50 cursor-not-allowed" 
+                                        : selectedDate === item.id 
+                                            ? "bg-[#1B3627] text-white font-bold hover:bg-[#132A1D]" 
+                                            : "bg-white text-gray-400 hover:bg-gray-50 hover:text-gray-600"
+                                }`}
                             >
                                 <span className="text-[9px] uppercase font-bold tracking-wider mb-1">{item.dayName}</span>
                                 <span className="text-lg font-black">{item.dateNum}</span>
-                            </button>
+                            </Button>
                         ))}
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         {timeSlots.map((slot, index) => {
-                            const isSelected = selectedTimes.includes(slot.time); // Cek array
+                            const isSelected = selectedTimes.includes(slot.time);
                             const isBooked = slot.status === "BOOKED";
                             const weakness = slot.status === "FULL";
                             return (
-                                <button
+                                <Button
                                     key={index}
                                     disabled={isBooked || weakness}
-                                    onClick={() => toggleTimeSlot(slot.time)} // Pakai fungsi toggle
-                                    className={`p-4 rounded-xl flex flex-col items-start justify-between border text-left h-[76px] transition-all relative ${isBooked ? "bg-[#EFEFEF]/60 border-transparent cursor-not-allowed" : weakness ? "bg-[#F5F2E9] border-transparent cursor-not-allowed" : isSelected ? "bg-[#8b5a2b] border-[#8b5a2b] text-white" : "bg-white border-gray-100 hover:border-gray-300"}`}
+                                    variant="outline"
+                                    onClick={() => toggleTimeSlot(slot.time)}
+                                    className={`p-4 rounded-xl flex flex-col items-start justify-between border text-left h-19 transition-all relative ${
+                                        isBooked 
+                                            ? "bg-[#EFEFEF]/60 border-transparent opacity-100 cursor-not-allowed hover:bg-[#EFEFEF]/60" 
+                                            : weakness 
+                                                ? "bg-[#F5F2E9] border-transparent opacity-100 cursor-not-allowed hover:bg-[#F5F2E9]" 
+                                                : isSelected 
+                                                    ? "bg-[#8b5a2b] border-[#8b5a2b] text-white hover:bg-[#724a23] hover:text-white" 
+                                                    : "bg-white border-gray-100 text-gray-800 hover:border-gray-300 hover:bg-white"
+                                    }`}
                                 >
                                     <span className={`text-xs font-bold ${isBooked ? "text-gray-400" : isSelected ? "text-white" : "text-gray-800"}`}>{slot.time}</span>
-                                    <span className={`text-[8px] font-black tracking-widest uppercase rounded px-1.5 py-0.5 ${isBooked ? "bg-[#1B3627] text-white" : weakness ? "bg-gray-300 text-gray-600" : isSelected ? "bg-white/20 text-white" : "text-gray-400"}`}>
+                                    <span className={`text-[8px] font-black tracking-widest uppercase rounded px-1.5 py-0.5 ${isBooked ? "bg-[#1B3627] text-white" : weakness ? "bg-gray-300 text-gray-600" : isSelected ? "bg-white/20 text-white" : "text-gray-400 bg-gray-50"}`}>
                                         {isBooked ? "BOOKED" : weakness ? "FULL" : isSelected ? "SELECTED" : "AVAILABLE"}
                                     </span>
-                                    {isSelected && <div className="absolute inset-0 border-2 border-[#8b5a2b] rounded-xl pointer-events-none" />}
-                                </button>
+                                </Button>
                             );
                         })}
                     </div>
@@ -158,9 +230,9 @@ export default function ScheduleCalendar({ lapangan }: { lapangan: any }) {
                 <BookingSummary
                     dates={dates}
                     selectedDate={selectedDate}
-                    selectedTimes={selectedTimes} // Oper prop baru
+                    selectedTimes={selectedTimes}
                     formatRupiah={formatRupiah}
-                    totalHarga={totalHarga}       // Oper total harga
+                    totalHarga={totalHarga}
                     onConfirmClick={() => setIsModalOpen(true)}
                 />
             </div>
@@ -171,9 +243,9 @@ export default function ScheduleCalendar({ lapangan }: { lapangan: any }) {
                 lapangan={lapangan}
                 dates={dates}
                 selectedDate={selectedDate}
-                selectedTimes={selectedTimes} // Oper prop baru
+                selectedTimes={selectedTimes}
                 formatRupiah={formatRupiah}
-                totalHarga={totalHarga}       // Oper total harga
+                totalHarga={totalHarga}
             />
         </div>
     );
