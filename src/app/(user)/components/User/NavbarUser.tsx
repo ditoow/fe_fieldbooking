@@ -8,19 +8,19 @@ import {
     Settings, LogOut, CheckCircle2,
     Info, AlertTriangle, ChevronRight
 } from "lucide-react";
+import { logout } from "@/lib/api/auth";
 
-// 1. SOLUSI TS ANY: Membuat interface yang spesifik untuk data user
+// Sesuaikan interface dengan struktur response BE Laravel + Spatie
 interface UserSessionData {
-    nama: string;
+    id: string;
+    name: string;       
     email: string;
-    role: string;
-    nim?: string;
     phone?: string;
+    nim?: string;
+    roles: { id: number; name: string }[]; // Spatie return array of roles
 }
 
-// 2. SOLUSI STATIC-COMPONENTS: Pindahkan komponen keluar agar tidak re-create saat render
 const NotificationPopup = () => {
-    // Pindahkan data mock notifikasi ke sini karena hanya dipakai oleh komponen ini
     const notifications = [
         {
             id: 1,
@@ -77,9 +77,7 @@ const NotificationPopup = () => {
     );
 };
 
-
 export default function NavbarUser() {
-    // Gunakan interface yang baru dibuat
     const [userData, setUserData] = useState<UserSessionData | null>(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [showNotif, setShowNotif] = useState(false);
@@ -93,14 +91,12 @@ export default function NavbarUser() {
     const router = useRouter();
 
     useEffect(() => {
-        // 3. SOLUSI SET-STATE-IN-EFFECT: Bungkus dengan kondisi yang aman agar performa mulus
         const checkSession = () => {
-             const session = localStorage.getItem("user_session");
-             if (session) {
-                 setUserData(JSON.parse(session) as UserSessionData);
-             }
+            const session = localStorage.getItem("user_session");
+            if (session) {
+                setUserData(JSON.parse(session) as UserSessionData);
+            }
         };
-        // Menjalankan sekali saat mount (aman dari peringatan ESLint)
         checkSession();
 
         const handleClickOutside = (event: MouseEvent) => {
@@ -126,10 +122,20 @@ export default function NavbarUser() {
         { name: "Riwayat", href: "/riwayat" },
     ];
 
-    const handleLogout = () => {
-        localStorage.removeItem("user_session");
-        router.push("/login");
+    const handleLogout = async () => {
+        try {
+            // Beritahu BE supaya JWT token di-blacklist
+            await logout();
+        } finally {
+            // Apapun hasilnya, bersihkan semua data auth di browser
+            localStorage.removeItem("jwt_token");
+            localStorage.removeItem("user_session");
+            router.push("/login");
+        }
     };
+
+    // Helper: ambil role pertama dari array roles Spatie
+    const userRole = userData?.roles?.[0]?.name || "Umum";
 
     return (
         <nav className="sticky top-0 z-50 bg-[#1B3627] text-white shadow-md font-sans">
@@ -145,7 +151,11 @@ export default function NavbarUser() {
                     {/* Nav Links - Desktop */}
                     <div className="hidden md:flex items-center gap-8">
                         {navLinks.map((link) => (
-                            <Link key={link.name} href={link.href} className={`text-sm font-medium transition-all hover:text-[#E5C3A6] ${pathname === link.href ? "text-[#E5C3A6] border-b-2 border-[#E5C3A6] pb-1" : "text-gray-300"}`}>
+                            <Link
+                                key={link.name}
+                                href={link.href}
+                                className={`text-sm font-medium transition-all hover:text-[#E5C3A6] ${pathname === link.href ? "text-[#E5C3A6] border-b-2 border-[#E5C3A6] pb-1" : "text-gray-300"}`}
+                            >
                                 {link.name}
                             </Link>
                         ))}
@@ -162,7 +172,6 @@ export default function NavbarUser() {
                                 <Bell className="w-5 h-5" />
                                 <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[#1B3627]"></span>
                             </button>
-                            {/* Memanggil Komponen Luar */}
                             {showNotif && <NotificationPopup />}
                         </div>
 
@@ -173,7 +182,7 @@ export default function NavbarUser() {
                                 className="flex items-center gap-3 pl-4 border-l border-white/10 group"
                             >
                                 <p className="text-xs font-bold uppercase tracking-tighter group-hover:text-[#E5C3A6] transition">
-                                    {userData?.nama || "User MyUGO"}
+                                    {userData?.name || "User MyUGO"}
                                 </p>
                                 <div className={`w-8 h-8 rounded-full bg-[#E5C3A6] flex items-center justify-center text-[#1B3627] font-bold border-2 transition-all ${showProfile ? "border-white" : "border-[#1B3627]"}`}>
                                     <User className="w-5 h-5" />
@@ -184,13 +193,12 @@ export default function NavbarUser() {
                                 <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100 animate-in fade-in zoom-in duration-200 text-[#1B3627] z-50">
                                     <div className="p-5 bg-[#FDFBF5] border-b border-gray-100">
                                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Akun Saya</p>
-                                        <p className="font-bold text-sm truncate">{userData?.nama || "Nuralif Maulana"}</p>
+                                        <p className="font-bold text-sm truncate">{userData?.name || "User MyUGO"}</p>
                                         <p className="text-[10px] text-[#8CB954] font-bold uppercase">
-                                            {userData?.role || "Mahasiswa"} {userData?.nim && `• ${userData.nim}`}
+                                            {userRole}
                                         </p>
                                     </div>
                                     <div className="p-2">
-                                        {/* SUDAH DIUBAH JADI /profile */}
                                         <Link href="/profile" className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition group">
                                             <div className="flex items-center gap-3">
                                                 <User className="w-4 h-4 text-gray-400 group-hover:text-[#1B3627]" />
@@ -220,13 +228,11 @@ export default function NavbarUser() {
 
                     {/* Mobile Menu Button & Notif */}
                     <div className="md:hidden flex items-center gap-1">
-                        {/* Bell Icon Mobile */}
                         <div className="relative" ref={mobileNotifRef}>
                             <button onClick={() => { setShowNotif(!showNotif); setIsMenuOpen(false); }} className={`p-2 rounded-full transition-colors ${showNotif ? "bg-white/10 text-[#E5C3A6]" : "text-gray-300"}`}>
                                 <Bell className="w-5 h-5" />
                                 <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[#1B3627]"></span>
                             </button>
-                            {/* Memanggil Komponen Luar */}
                             {showNotif && <NotificationPopup />}
                         </div>
 
@@ -252,7 +258,7 @@ export default function NavbarUser() {
                             </Link>
                         ))}
                     </div>
-                    
+
                     {/* Profil Mobile */}
                     <div className="pt-6 mt-6 border-t border-white/10">
                         <div className="flex items-center gap-3 mb-6">
@@ -260,20 +266,19 @@ export default function NavbarUser() {
                                 <User className="w-6 h-6" />
                             </div>
                             <div>
-                                <p className="text-sm font-bold uppercase text-white">{userData?.nama || "User MyUGO"}</p>
-                                <p className="text-[10px] text-[#8CB954] font-bold uppercase tracking-wider">{userData?.role || "Mahasiswa"} {userData?.nim && `• ${userData.nim}`}</p>
+                                <p className="text-sm font-bold uppercase text-white">{userData?.name || "User MyUGO"}</p>
+                                <p className="text-[10px] text-[#8CB954] font-bold uppercase tracking-wider">{userRole}</p>
                             </div>
                         </div>
                         <div className="flex flex-col gap-5 pl-2">
-                            {/* SUDAH DIUBAH JADI /profile */}
                             <Link href="/profile" onClick={() => setIsMenuOpen(false)} className="text-sm font-medium text-gray-300 hover:text-white flex items-center gap-3">
-                                <User className="w-4 h-4"/> Profil Saya
+                                <User className="w-4 h-4" /> Profil Saya
                             </Link>
                             <Link href="/user/settings" onClick={() => setIsMenuOpen(false)} className="text-sm font-medium text-gray-300 hover:text-white flex items-center gap-3">
-                                <Settings className="w-4 h-4"/> Pengaturan
+                                <Settings className="w-4 h-4" /> Pengaturan
                             </Link>
                             <button onClick={handleLogout} className="text-sm font-bold text-red-400 hover:text-red-300 flex items-center gap-3 text-left w-full">
-                                <LogOut className="w-4 h-4"/> Keluar Akun
+                                <LogOut className="w-4 h-4" /> Keluar Akun
                             </button>
                         </div>
                     </div>
