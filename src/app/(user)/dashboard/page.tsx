@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, CheckCircle, XCircle, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { Search, CheckCircle, XCircle, ChevronLeft, ChevronRight, Loader2, Star } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { getAllFields, Field } from "@/lib/api/field";
 import axios from "axios";
 
@@ -35,9 +36,9 @@ export default function UserDashboard() {
         fetchFields();
     }, []);
 
-    // Pakai nama_lapangan sesuai field BE
+    // Sekarang pakai 'name' sesuai field BE yang baru
     const filteredFields = fields.filter((item) =>
-        item.nama_lapangan.toLowerCase().includes(searchQuery.toLowerCase())
+        item.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const totalPages = Math.ceil(filteredFields.length / itemsPerPage);
@@ -125,39 +126,68 @@ export default function UserDashboard() {
                         {currentItems.map((item) => (
                             <div key={item.id} className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group">
 
-                                {/* Image Area — disembunyiin dulu karena BE belum return */}
+                                {/* Image Area */}
                                 <div className="h-48 bg-[#F5F2E9] relative flex items-center justify-center overflow-hidden">
+                                    {item.image_url ? (
+                                        <Image
+                                            src={item.image_url}
+                                            alt={item.name}
+                                            fill
+                                            className="object-cover"
+                                        />
+                                    ) : (
+                                        <span className="text-gray-400 font-medium text-sm">No Image</span>
+                                    )}
+                                    {/* Tag kategori */}
                                     <div className="absolute top-4 right-4 bg-[#E5C3A6] text-[#1B3627] text-xs font-bold px-3 py-1 rounded-full shadow-sm z-10">
-                                        {item.kategori_lapangan}
+                                        {item.category}
                                     </div>
-                                    <span className="text-gray-400 font-medium text-sm">No Image</span>
                                     <div className="absolute inset-0 bg-[#1B3627]/0 group-hover:bg-[#1B3627]/5 transition-colors duration-300"></div>
                                 </div>
 
                                 <div className="p-6 flex flex-col grow">
-                                    <h3 className="font-bold text-lg text-[#1B3627] mb-4 group-hover:text-[#8CB954] transition-colors">
-                                        {item.nama_lapangan}
+                                    {/* Nama */}
+                                    <h3 className="font-bold text-lg text-[#1B3627] mb-2 group-hover:text-[#8CB954] transition-colors">
+                                        {item.name}
                                     </h3>
 
-                                    {/* Deskripsi */}
-                                    <p className="text-sm text-gray-500 mb-4 line-clamp-2">{item.deskripsi}</p>
-
-                                    <div className="space-y-3 mb-6">
-                                        {/* Status — BE pakai "tersedia" bukan "available" */}
-                                        <div className={`flex items-center text-sm font-medium ${item.status === "tersedia" ? "text-green-600" : "text-red-500"}`}>
-                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 shrink-0 ${item.status === "tersedia" ? "bg-green-50" : "bg-red-50"}`}>
-                                                {item.status === "tersedia"
-                                                    ? <CheckCircle className="w-4 h-4 text-green-500" />
-                                                    : <XCircle className="w-4 h-4 text-red-500" />
-                                                }
-                                            </div>
-                                            {item.status === "tersedia" ? "Tersedia" : "Maintenance"}
-                                        </div>
+                                    {/* Rating */}
+                                    <div className="flex items-center gap-1 mb-3">
+                                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                                        <span className="text-sm font-semibold text-gray-700">{item.rating}</span>
+                                        <span className="text-xs text-gray-400">· {item.surface_type}</span>
                                     </div>
 
+                                    {/* Deskripsi */}
+                                    <p className="text-sm text-gray-500 mb-4 line-clamp-2">{item.description}</p>
+
+                                    {/* Status */}
+                                    <div className={`flex items-center text-sm font-medium mb-4 ${item.status === "available" ? "text-green-600" : "text-red-500"}`}>
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 shrink-0 ${item.status === "available" ? "bg-green-50" : "bg-red-50"}`}>
+                                            {item.status === "available"
+                                                ? <CheckCircle className="w-4 h-4 text-green-500" />
+                                                : <XCircle className="w-4 h-4 text-red-500" />
+                                            }
+                                        </div>
+                                        {item.status === "available" ? "Tersedia" : "Maintenance"}
+                                    </div>
+
+                                    {/* Harga & Booking */}
                                     <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-5">
-                                        {/* Harga disembunyiin dulu — BE belum return */}
-                                        <p className="text-xs text-gray-400 italic">Harga belum tersedia</p>
+                                        <div>
+                                            <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-1">Harga Sewa</p>
+                                            {item.price_min ? (
+                                                <p className="font-bold text-lg text-[#1B3627]">
+                                                    Rp {item.price_min}
+                                                    {item.price_max && item.price_max !== item.price_min && (
+                                                        <span className="text-sm font-medium text-gray-400"> - {item.price_max}</span>
+                                                    )}
+                                                    <span className="font-medium text-sm text-gray-400"> /jam</span>
+                                                </p>
+                                            ) : (
+                                                <p className="text-xs text-gray-400 italic">Harga belum tersedia</p>
+                                            )}
+                                        </div>
                                         <Link
                                             href={`/booking/${item.id}`}
                                             className="bg-[#E5C3A6] hover:bg-[#d5b090] text-[#1B3627] text-sm font-bold px-6 py-2.5 rounded-xl transition-colors"
