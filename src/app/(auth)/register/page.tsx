@@ -3,46 +3,60 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Eye, EyeOff, Leaf } from "lucide-react";
+import { Eye, EyeOff, Leaf, AlertCircle } from "lucide-react";
+import { register } from "@/lib/api/auth";
+import axios from "axios";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
-
-  // State untuk form
   const [nama, setNama] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
-    // 1. Ambil data user yang sudah ada di localStorage (jika ada)
-    const existingUsers = JSON.parse(localStorage.getItem("local_users") || "[]");
+    try {
+      await register({
+        name: nama,
+        email,
+        phone: "+62" + phone,
+        password,
+        password_confirmation: password,
+      });
 
-    // 2. Buat objek user baru (Role default: Umum sesuai SRS [cite: 165])
-    const newUser = {
-      nama,
-      email,
-      phone: "+62" + phone,
-      password,
-      role: "Umum", // User baru didaftarkan sebagai Umum
-      nim: null
-    };
+      // BE hanya return { message, user }, tidak ada token
+      // jadi redirect ke login, user login manual
+      router.push("/login");
 
-    // 3. Simpan ke array dan masukkan kembali ke localStorage
-    existingUsers.push(newUser);
-    localStorage.setItem("local_users", JSON.stringify(existingUsers));
-
-    alert("Registrasi Berhasil! Silakan Login.");
-    router.push("/login");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        const beErrors = err.response?.data?.errors;
+        if (beErrors) {
+          // Laravel return errors per-field, ambil pesan pertamanya
+          const firstError = Object.values(beErrors)[0] as string[];
+          setError(firstError[0]);
+        } else {
+          setError(err.response?.data?.message || "Registrasi gagal, coba lagi.");
+        }
+      } else {
+        setError("Registrasi gagal, coba lagi.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex w-full font-sans">
-      {/* KIRI: Branding (Tetap Sama) */}
-      <div className="hidden md:flex md:w-5/12 bg-gradient-to-b from-[#2B2317] to-[#132A1D] text-white p-12 flex-col justify-between relative overflow-hidden">
+      {/* KIRI */}
+      <div className="hidden md:flex md:w-5/12 bg-linear-to-b from-[#2B2317] to-[#132A1D] text-white p-12 flex-col justify-between relative overflow-hidden">
         <Link href="/" className="flex items-center gap-2 z-10 hover:opacity-80 transition w-fit">
           <Leaf className="w-5 h-5 text-[#8CB954]" />
           <span className="font-bold text-lg tracking-wide">MyUGO</span>
@@ -53,23 +67,46 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* KANAN: Form Register */}
+      {/* KANAN */}
       <div className="w-full md:w-7/12 bg-[#FDFBF5] p-8 md:p-16 flex flex-col justify-center relative overflow-hidden">
         <div className="max-w-md w-full mx-auto relative z-10">
           <div className="mb-10">
             <h2 className="text-3xl font-bold text-[#1B3627] mb-2">Buat Akun Baru</h2>
-            <p className="text-sm text-gray-500">Sudah memiliki akun? <Link href="/login" className="text-[#1B3627] font-semibold hover:underline">Masuk di sini</Link></p>
+            <p className="text-sm text-gray-500">
+              Sudah memiliki akun?{" "}
+              <Link href="/login" className="text-[#1B3627] font-semibold hover:underline">Masuk di sini</Link>
+            </p>
           </div>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 text-red-600 text-sm rounded-md flex items-center gap-2">
+              <AlertCircle className="w-4 h-4" />{error}
+            </div>
+          )}
 
           <form className="space-y-5" onSubmit={handleRegister}>
             <div>
               <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Nama Lengkap</label>
-              <input type="text" value={nama} onChange={(e) => setNama(e.target.value)} placeholder="John Doe" required className="w-full bg-[#F5F2E9] border-none rounded-md px-4 py-3 text-sm focus:ring-2 focus:ring-[#EAD0B3] outline-none text-[#1B3627]" />
+              <input
+                type="text"
+                value={nama}
+                onChange={(e) => setNama(e.target.value)}
+                placeholder="John Doe"
+                required
+                className="w-full bg-[#F5F2E9] border-none rounded-md px-4 py-3 text-sm focus:ring-2 focus:ring-[#EAD0B3] outline-none text-[#1B3627]"
+              />
             </div>
 
             <div>
               <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Alamat Email</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nama@email.com" required className="w-full bg-[#F5F2E9] border-none rounded-md px-4 py-3 text-sm focus:ring-2 focus:ring-[#EAD0B3] outline-none text-[#1B3627]" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="nama@email.com"
+                required
+                className="w-full bg-[#F5F2E9] border-none rounded-md px-4 py-3 text-sm focus:ring-2 focus:ring-[#EAD0B3] outline-none text-[#1B3627]"
+              />
             </div>
 
             <div>
@@ -79,7 +116,7 @@ export default function RegisterPage() {
                 <input
                   type="text"
                   value={phone}
-                  onInput={(e) => e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, '')} // Hanya angka
+                  onInput={(e) => e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, "")}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="81234567890"
                   required
@@ -91,14 +128,31 @@ export default function RegisterPage() {
             <div>
               <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Password</label>
               <div className="relative flex items-center">
-                <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required className="w-full bg-[#F5F2E9] border-none rounded-md px-4 py-3 text-sm focus:ring-2 focus:ring-[#EAD0B3] outline-none text-[#1B3627]" />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 text-gray-400 hover:text-gray-600">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="w-full bg-[#F5F2E9] border-none rounded-md px-4 py-3 text-sm focus:ring-2 focus:ring-[#EAD0B3] outline-none text-[#1B3627]"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 text-gray-400 hover:text-gray-600"
+                >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            <button type="submit" className="w-full bg-[#E5C3A6] hover:bg-[#d5b090] text-[#1B3627] font-semibold py-3.5 rounded-md transition duration-200 mt-4">Buat Akun</button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-[#E5C3A6] hover:bg-[#d5b090] disabled:opacity-60 disabled:cursor-not-allowed text-[#1B3627] font-semibold py-3.5 rounded-md transition duration-200 mt-4"
+            >
+              {isLoading ? "Membuat akun..." : "Buat Akun"}
+            </button>
           </form>
         </div>
       </div>

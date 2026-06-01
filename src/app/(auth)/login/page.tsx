@@ -3,13 +3,9 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Eye, EyeOff, Leaf, AlertCircle } from "lucide-react";
-
-// Data Akun Bawaan (Hardcoded)
-const STATIC_DUMMY_USERS = [
-    { email: "alif@mahasiswa.dinus.ac.id", password: "password15936", nama: "NURALIFMAULANASYAFRUDIN", role: "Mahasiswa", nim: "15936" },
-    { email: "budi@email.com", password: "budi123", nama: "Budi Santoso", role: "Umum", nim: null }
-];
+import { Eye, EyeOff, Leaf, AlertCircle } from "lucide-react";
+import { login } from "@/lib/api/auth";
+import axios from "axios";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -17,32 +13,46 @@ export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
+        setIsLoading(true);
 
-        // 1. Ambil data user dari localStorage (hasil register baru)
-        const localUsers = JSON.parse(localStorage.getItem("local_users") || "[]");
+        try {
+            const result = await login({ email, password });
+            console.log('result login:', result); // tambah ini
+            console.log('user:', result.user);    // tambah ini
+            console.log('roles:', result.user?.roles); // tambah ini
 
-        // 2. Gabungkan data statis dan data lokal
-        const allUsers = [...STATIC_DUMMY_USERS, ...localUsers];
+            // Simpan data user ke localStorage supaya bisa diakses di halaman lain
+            localStorage.setItem("user_session", JSON.stringify(result.user));
 
-        // 3. Cari user yang cocok
-        const user = allUsers.find((u) => u.email === email && u.password === password);
+            // Redirect berdasarkan role dari Spatie Permission
+            const role = result.user?.roles?.[0]?.name;
+            if (role === "admin") {
+                router.push("/admin-dashboard");
+            } else {
+                router.push("/dashboard");
+            }
 
-        if (user) {
-            localStorage.setItem("user_session", JSON.stringify(user));
-            router.push("/dashboard");
-        } else {
-            setError("Email atau password salah.");
+        } catch (err) {
+            if (axios.isAxiosError(err)) {
+                setError(err.response?.data?.message || "Email atau password salah.");
+            } else {
+                setError("Email atau password salah.");
+            }
+        } finally {
+            // Apapun hasilnya, matiin loading state
+            setIsLoading(false);
         }
     };
 
     return (
         <div className="min-h-screen flex w-full font-sans">
-            {/* SISI KIRI (Tetap Sama) */}
-            <div className="hidden md:flex md:w-5/12 bg-gradient-to-b from-[#2B2317] to-[#132A1D] text-white p-12 flex-col justify-between relative overflow-hidden">
+            {/* SISI KIRI */}
+            <div className="hidden md:flex md:w-5/12 bg-linear-to-b from-[#2B2317] to-[#132A1D] text-white p-12 flex-col justify-between relative overflow-hidden">
                 <Link href="/" className="flex items-center gap-2 z-10 hover:opacity-80 transition w-fit">
                     <Leaf className="w-5 h-5 text-[#8CB954]" />
                     <span className="font-bold text-lg tracking-wide">MyUGO</span>
@@ -53,36 +63,73 @@ export default function LoginPage() {
                 </div>
             </div>
 
-            {/* SISI KANAN: Form Login */}
+            {/* SISI KANAN */}
             <div className="w-full md:w-7/12 bg-[#FDFBF5] p-8 md:p-16 flex flex-col justify-center relative overflow-hidden">
                 <div className="max-w-md w-full mx-auto relative z-10">
                     <div className="mb-10">
                         <h2 className="text-3xl font-bold text-[#1B3627] mb-2">Masuk Akun</h2>
-                        <p className="text-sm text-gray-500">Belum memiliki akun? <Link href="/register" className="text-[#1B3627] font-semibold hover:underline">Daftar di sini</Link></p>
+                        <p className="text-sm text-gray-500">
+                            Belum memiliki akun?{" "}
+                            <Link href="/register" className="text-[#1B3627] font-semibold hover:underline">Daftar di sini</Link>
+                        </p>
                     </div>
 
-                    {error && <div className="mb-6 p-4 bg-red-50 text-red-600 text-sm rounded-md flex items-center gap-2"><AlertCircle className="w-4 h-4" />{error}</div>}
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-50 text-red-600 text-sm rounded-md flex items-center gap-2">
+                            <AlertCircle className="w-4 h-4" />{error}
+                        </div>
+                    )}
 
                     <form className="space-y-5" onSubmit={handleLogin}>
                         <div>
-                            <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Alamat Email</label>
-                            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nama@email.com" required className="w-full bg-[#F5F2E9] border-none rounded-md px-4 py-3 text-sm focus:ring-2 focus:ring-[#EAD0B3] outline-none text-[#1B3627]" />
+                            <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+                                Alamat Email
+                            </label>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="nama@email.com"
+                                required
+                                className="w-full bg-[#F5F2E9] border-none rounded-md px-4 py-3 text-sm focus:ring-2 focus:ring-[#EAD0B3] outline-none text-[#1B3627]"
+                            />
                         </div>
 
                         <div>
                             <div className="flex justify-between items-center mb-2">
-                                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">Password</label>
-                                <Link href="#" className="text-[10px] font-bold text-[#1B3627] hover:underline">Lupa Password?</Link>
+                                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                                    Password
+                                </label>
+                                <Link href="#" className="text-[10px] font-bold text-[#1B3627] hover:underline">
+                                    Lupa Password?
+                                </Link>
                             </div>
                             <div className="relative flex items-center">
-                                <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required className="w-full bg-[#F5F2E9] border-none rounded-md px-4 py-3 text-sm focus:ring-2 focus:ring-[#EAD0B3] outline-none text-[#1B3627]" />
-                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 text-gray-400 hover:text-gray-600">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="••••••••"
+                                    required
+                                    className="w-full bg-[#F5F2E9] border-none rounded-md px-4 py-3 text-sm focus:ring-2 focus:ring-[#EAD0B3] outline-none text-[#1B3627]"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 text-gray-400 hover:text-gray-600"
+                                >
                                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                 </button>
                             </div>
                         </div>
 
-                        <button type="submit" className="w-full bg-[#E5C3A6] hover:bg-[#d5b090] text-[#1B3627] font-semibold py-3.5 rounded-md transition duration-200 mt-8">Masuk</button>
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full bg-[#E5C3A6] hover:bg-[#d5b090] disabled:opacity-60 disabled:cursor-not-allowed text-[#1B3627] font-semibold py-3.5 rounded-md transition duration-200 mt-8"
+                        >
+                            {isLoading ? "Sedang masuk..." : "Masuk"}
+                        </button>
                     </form>
                 </div>
             </div>
