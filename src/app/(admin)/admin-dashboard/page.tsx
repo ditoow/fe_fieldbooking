@@ -1,6 +1,7 @@
 import { StatCards } from '@/components/Admin/Dashboard/StatCards';
 import { RevenueChart } from '@/components/Admin/Dashboard/RevenueChart';
 import { RecentBookingsTable } from '@/components/Admin/Dashboard/RecentBookingsTable';
+import { ActivityLog } from '@/components/Admin/Dashboard/ActivityLog';
 
 export default function DashboardPage() {
   return (
@@ -12,7 +13,14 @@ export default function DashboardPage() {
         </p>
       </div>
       <StatCards />
-      <RevenueChart />
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="lg:col-span-3">
+          <RevenueChart />
+        </div>
+        <div className="lg:col-span-1">
+          <ActivityLog />
+        </div>
+      </div>
       <RecentBookingsTable />
     </div>
   );

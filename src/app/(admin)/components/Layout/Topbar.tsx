@@ -3,16 +3,24 @@
 import { Bell, Box, Menu } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { logout } from '@/lib/api/auth/logout';
 
 export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/login');
+  };
 
   return (
     <header className="h-[70px] bg-ugo-sidebar w-full fixed top-0 left-0 z-30 flex items-center justify-between px-8 border-b-[3px] border-[#0EA5E9]">
       {/* Left: Logo & Mobile Menu */}
       <div className="flex items-center gap-3">
-        <button 
+        <button
           className="md:hidden p-1 -ml-2 text-white hover:bg-white/10 rounded-md"
           onClick={onMenuClick}
         >
@@ -33,7 +41,7 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
       <div className="flex items-center gap-6 relative">
         {/* Notification Bell */}
         <div className="relative">
-          <button 
+          <button
             onClick={() => setShowNotifications(!showNotifications)}
             className="p-2 rounded-full hover:bg-white/10 transition-colors relative"
           >
@@ -86,18 +94,18 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
 
         {/* Avatar */}
         <div className="relative">
-          <button 
+          <button
             onClick={() => setShowProfile(!showProfile)}
             className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-sm"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img 
-              src="https://api.dicebear.com/7.x/notionists/svg?seed=Julian" 
-              alt="Avatar" 
+            <img
+              src="https://api.dicebear.com/7.x/notionists/svg?seed=Julian"
+              alt="Avatar"
               className="w-full h-full object-cover bg-gray-100"
             />
           </button>
-          
+
           {/* Simple Profile Dropdown */}
           {showProfile && (
             <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 p-4 text-gray-800">
@@ -112,7 +120,7 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
               </div>
               <hr className="my-2 border-gray-100" />
               <Link href="/admin-profile" onClick={() => setShowProfile(false)} className="block w-full text-left px-2 py-2 text-sm hover:bg-gray-50 rounded-md">Settings</Link>
-              <button className="w-full text-left px-2 py-2 text-sm hover:bg-gray-50 rounded-md text-ugo-status-ditolak-text">Logout</button>
+              <button onClick={handleLogout} className="w-full text-left px-2 py-2 text-sm hover:bg-gray-50 rounded-md text-ugo-status-ditolak-text">Logout</button>
             </div>
           )}
         </div>

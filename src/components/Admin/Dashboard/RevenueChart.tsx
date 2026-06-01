@@ -39,13 +39,13 @@ const chartConfig = {
 
 export function RevenueChart() {
   return (
-    <Card className="shadow-sm border-gray-100 border-none sm:border-solid">
+    <Card className="shadow-sm border-gray-100 border-none sm:border-solid h-full flex flex-col">
       <CardHeader>
         <CardTitle className="font-bold text-lg text-ugo-sidebar">Tren Pendapatan & Utilisasi</CardTitle>
         <CardDescription>Statistik performa lapangan bulan ini</CardDescription>
       </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig} className="h-[300px] w-full">
+      <CardContent className="flex-1 flex flex-col justify-end">
+        <ChartContainer config={chartConfig} className="h-[300px] w-full mt-auto">
           <LineChart
             accessibilityLayer
             data={chartData}

@@ -93,8 +93,12 @@ export default function NavbarUser() {
     useEffect(() => {
         const checkSession = () => {
             const session = localStorage.getItem("user_session");
-            if (session) {
-                setUserData(JSON.parse(session) as UserSessionData);
+            if (session && session !== "undefined") {
+                try {
+                    setUserData(JSON.parse(session) as UserSessionData);
+                } catch (error) {
+                    console.error("Error parsing user session:", error);
+                }
             }
         };
         checkSession();
