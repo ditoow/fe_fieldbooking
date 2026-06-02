@@ -57,7 +57,7 @@ export default function ConfirmModal({
             // DEBUG — lihat response dari BE
             console.log('result booking:', result);
 
-            router.push(`/invoice?booking_id=${result.data.id}`);
+            router.push(`/pembayaran?booking_id=${result.data.id}`);
         } catch (err) {
             if (axios.isAxiosError(err)) {
                 // DEBUG — lihat detail error dari BE
@@ -134,8 +134,8 @@ export default function ConfirmModal({
                             onClick={handleBooking}
                             disabled={!isAgreed || isLoading}
                             className={`w-full flex items-center justify-center py-3.5 rounded-md font-bold text-xs transition shadow-lg ${isAgreed && !isLoading
-                                    ? "bg-[#1B3627] hover:bg-[#132A1D] text-white shadow-green-900/20"
-                                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                ? "bg-[#1B3627] hover:bg-[#132A1D] text-white shadow-green-900/20"
+                                : "bg-gray-200 text-gray-400 cursor-not-allowed"
                                 }`}
                         >
                             {isLoading ? (
