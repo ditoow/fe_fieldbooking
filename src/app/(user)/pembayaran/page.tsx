@@ -2,61 +2,74 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import Link from "next/link";
 import BiodataForm from "../components/Pembayaran/BiodataForm";
 import PaymentMethod from "../components/Pembayaran/PaymentMethod";
 import OrderSummary from "../components/Pembayaran/OrderSummary";
+import { getBookingById, uploadBookingFile, BookingDetail } from "@/lib/api/booking";
+import axios from "axios";
+
+interface FormDataTypes {
+    nama: string;
+    phone: string;
+    email: string;
+}
 
 function PembayaranContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const bookingId = parseInt(searchParams.get("booking_id") || "0");
 
-    const idParam = searchParams.get("id") || "1";
-    const dateParam = searchParams.get("date") || "Senin, 11 Nov 2026";
-    const timeParam = searchParams.get("time") || "";
-
-    const idLapangan = parseInt(idParam) || 1;
-    const isOdd = idLapangan % 2 !== 0;
-
-    const namaLapangan = isOdd ? "Lapangan Futsal Internasional" : "Arena Basket Indoor B";
-    const lokasiLapangan = isOdd ? "Gedung Olahraga Utama, Semarang" : "Student Center Lt. 3, Semarang";
-    const hargaPerJam = isOdd ? 75000 : 60000;
-    const imageLapangan = isOdd
-        ? "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?q=80&w=1000"
-        : "https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=1000";
-
-    const selectedTimesArray = timeParam ? timeParam.split(",") : [];
-    const jumlahJam = selectedTimesArray.length || 1;
-
-    const [role, setRole] = useState<"user" | "mahasiswa">("mahasiswa");
+    const [booking, setBooking] = useState<BookingDetail | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState("");
+    const [role, setRole] = useState<string>("umum");
     const [suratFile, setSuratFile] = useState<File | null>(null);
-
-    const totalHarga = role === "mahasiswa" ? 0 : (hargaPerJam * jumlahJam);
-
     const [paymentMethod, setPaymentMethod] = useState<"bank" | "qris">("qris");
-    const [formData, setFormData] = useState({ nama: "", phone: "", email: "" });
+    const [formData, setFormData] = useState<FormDataTypes>({
+        nama: "", phone: "", email: ""
+    });
 
     useEffect(() => {
+        const fetchData = async () => {
+            if (!bookingId) {
+                setError("Booking ID tidak ditemukan.");
+                setIsLoading(false);
+                return;
+            }
+
+            try {
+                const data = await getBookingById(bookingId);
+                setBooking(data);
+            } catch (err) {
+                if (axios.isAxiosError(err)) {
+                    setError(err.response?.data?.message || "Gagal memuat data booking.");
+                } else {
+                    setError("Terjadi kesalahan.");
+                }
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        // Ambil data user dari localStorage
         const session = localStorage.getItem("user_session");
         if (session) {
             const user = JSON.parse(session);
             setFormData({
-                nama: user.nama || "NURALIFMAULANASYAFRUDIN",
-                phone: user.phone || "+62 812 3456 7890",
-                email: user.email || "alif@dinus.ac.id"
+                nama: user.name || "",
+                phone: user.phone || "",
+                email: user.email || "",
             });
-            if (user.role) setRole(user.role);
-        } else {
-            setFormData({
-                nama: "NURALIFMAULANASYAFRUDIN",
-                phone: "+62 812 3456 7890",
-                email: "alif@dinus.ac.id"
-            });
+            // Ambil role dari Spatie roles array
+            const userRole = user.roles?.[0]?.name || "umum";
+            setRole(userRole);
         }
-    }, []);
 
-    const formatRupiah = (angka: number) => {
-        return new Intl.NumberFormat("id-ID", { minimumFractionDigits: 0 }).format(angka);
-    };
+        fetchData();
+    }, [bookingId]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -64,50 +77,74 @@ function PembayaranContent() {
         }
     };
 
-    const handleProses = () => {
-        if (role === "mahasiswa" && !suratFile) {
-            alert("Harap unggah Surat Pengantar TU terlebih dahulu!");
-            return;
-        }
+    const handleProses = async () => {
+        if (!booking) return;
+        setIsSubmitting(true);
+        setError("");
 
-        const existingHistory = JSON.parse(localStorage.getItem('booking_history') || '[]');
-
-        const newBooking = {
-            id: "BK-" + Math.floor(1000 + Math.random() * 9000),
-            title: namaLapangan,
-            category: isOdd ? "Futsal" : "Basket",
-            price: totalHarga,
-            date: dateParam,
-            time: selectedTimesArray.join(", ") + ` (${jumlahJam} Jam)`,
-            status: "TERTUNDA",
-            image: imageLapangan,
-            note: role === "mahasiswa" ? "*Menunggu verifikasi Surat Pengantar TU oleh Admin." : "*Menunggu pembayaran",
-            createdAt: new Date().getTime(),
-            facilityId: idLapangan
-        };
-
-        localStorage.setItem('booking_history', JSON.stringify([newBooking, ...existingHistory]));
-
-        if (role === "mahasiswa") {
-            alert("Berhasil! Pengajuan peminjaman sedang diverifikasi Admin.");
-            router.push("/riwayat");
-        } else {
-            router.push(`/invoice?total=${totalHarga}`);
+        try {
+            if (role === "mahasiswa") {
+                // Mahasiswa harus upload surat dulu
+                if (!suratFile) {
+                    setError("Harap unggah Surat Pengantar TU terlebih dahulu!");
+                    setIsSubmitting(false);
+                    return;
+                }
+                await uploadBookingFile(booking.id, suratFile);
+                router.push("/riwayat");
+            } else {
+                // Umum langsung ke invoice
+                router.push(`/invoice?booking_id=${booking.id}&method=${paymentMethod}`);
+            }
+        } catch (err) {
+            if (axios.isAxiosError(err)) {
+                setError(err.response?.data?.message || "Gagal memproses, coba lagi.");
+            } else {
+                setError("Terjadi kesalahan.");
+            }
+        } finally {
+            setIsSubmitting(false);
         }
     };
+
+    const formatRupiah = (angka: number) =>
+        new Intl.NumberFormat("id-ID").format(angka);
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20">
+                <Loader2 className="w-10 h-10 text-[#8CB954] animate-spin mb-4" />
+                <p className="text-[#1B3627] font-semibold text-sm">Memuat data pembayaran...</p>
+            </div>
+        );
+    }
+
+    if (error && !booking) {
+        return (
+            <div className="text-center py-20">
+                <p className="text-lg font-bold text-red-500">{error}</p>
+                <Link href="/dashboard" className="text-sm text-[#1B3627] underline mt-4 inline-block">
+                    Kembali ke Dashboard
+                </Link>
+            </div>
+        );
+    }
+
+    if (!booking) return null;
+
+    // Hitung jumlah jam dari schedules
+    const jumlahJam = booking.schedules?.length || 1;
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
             <div className="lg:col-span-7 xl:col-span-8 space-y-12">
-                <div className="bg-amber-100/50 border border-amber-200 p-4 rounded-xl flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-amber-800 uppercase tracking-widest">Simulasi Role:</span>
+
+                {/* Error banner */}
+                {error && (
+                    <div className="bg-red-50 border border-red-200 p-4 rounded-xl">
+                        <p className="text-xs font-bold text-red-600">{error}</p>
                     </div>
-                    <div className="flex bg-white rounded-lg p-1 border border-amber-200 shadow-sm">
-                        <button onClick={() => setRole("user")} className={`px-4 py-1.5 text-xs font-bold rounded-md transition ${role === "user" ? "bg-[#1B3627] text-white" : "text-gray-500 hover:bg-gray-50"}`}>Umum</button>
-                        <button onClick={() => setRole("mahasiswa")} className={`px-4 py-1.5 text-xs font-bold rounded-md transition ${role === "mahasiswa" ? "bg-[#1B3627] text-white" : "text-gray-500 hover:bg-gray-50"}`}>Mahasiswa</button>
-                    </div>
-                </div>
+                )}
 
                 <BiodataForm formData={formData} setFormData={setFormData} />
 
@@ -121,16 +158,17 @@ function PembayaranContent() {
             </div>
 
             <OrderSummary
-                namaLapangan={namaLapangan}
-                dateParam={dateParam}
-                selectedTimesArray={selectedTimesArray}
+                namaLapangan={booking.field_name}
+                dateParam={booking.formatted_date}
+                selectedTimesArray={[booking.formatted_time]}
                 jumlahJam={jumlahJam}
-                lokasiLapangan={lokasiLapangan}
+                lokasiLapangan={booking.field_name}
                 role={role}
-                totalHarga={totalHarga}
+                totalHarga={booking.total_price}
                 formatRupiah={formatRupiah}
                 handleProses={handleProses}
-                imageLapangan={imageLapangan}
+                isSubmitting={isSubmitting}
+                imageLapangan={"https://images.unsplash.com/photo-1575361204480-aadea25e6e68?q=80&w=1000"}
             />
         </div>
     );

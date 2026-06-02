@@ -77,22 +77,10 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
             try {
                 const start_date = dates[0].fullDateISO;
                 const end_date = dates[6].fullDateISO;
-
-                // DEBUG
-                console.log('field_id:', field.id);
-                console.log('start_date:', start_date);
-                console.log('end_date:', end_date);
-
                 const data = await getSchedules(field.id, start_date, end_date);
-
-                // DEBUG
-                console.log('schedules response:', data);
-                console.log('jumlah schedules:', data.length);
-
                 setSchedules(data);
             } catch (err) {
                 if (axios.isAxiosError(err)) {
-                    console.log('schedule error:', err.response?.data); // DEBUG
                     setScheduleError(err.response?.data?.message || "Gagal memuat jadwal.");
                 } else {
                     setScheduleError("Terjadi kesalahan.");
@@ -106,14 +94,24 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
     }, [weekOffset, field.id]);
 
     const selectedDateISO = dates[selectedDate]?.fullDateISO;
-
-    // DEBUG
-    console.log('selectedDateISO:', selectedDateISO);
-    console.log('schedules state:', schedules);
-
     const currentSlots = schedules.find(s => s.date === selectedDateISO)?.slots ?? [];
-
     const totalHarga = selectedSlots.reduce((acc, slot) => acc + Number(slot.price), 0);
+
+    // Cek apakah slot sudah lewat jam sekarang (hanya berlaku untuk hari ini)
+    const isSlotPast = (slot: Slot): boolean => {
+        const today = new Date();
+        const todayISO = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+        // Kalau bukan hari ini, semua slot valid
+        if (selectedDateISO !== todayISO) return false;
+
+        // Kalau hari ini, cek apakah jam slot sudah lewat
+        const currentHour = today.getHours();
+        const currentMinute = today.getMinutes();
+        const [slotHour, slotMinute] = slot.start_time.split(':').map(Number);
+
+        return slotHour < currentHour || (slotHour === currentHour && slotMinute <= currentMinute);
+    };
 
     const handlePrevWeek = () => {
         if (weekOffset > 0) {
@@ -153,6 +151,7 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
 
     return (
         <div className="space-y-8 relative">
+            {/* Info Lapangan */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center bg-transparent">
                 <div className="md:col-span-7 h-64 md:h-80 w-full overflow-hidden rounded-2xl shadow-sm relative">
                     {field.image_url ? (
@@ -179,7 +178,8 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
                     <div className="pt-2">
                         {hargaTampil ? (
                             <p className="text-2xl font-black text-[#1B3627]">
-                                Rp {formatRupiah(hargaTampil)} <span className="text-xs font-normal text-gray-400">/ hour</span>
+                                Rp {formatRupiah(hargaTampil)}{" "}
+                                <span className="text-xs font-normal text-gray-400">/ hour</span>
                             </p>
                         ) : (
                             <p className="text-sm text-gray-400 italic">Harga belum tersedia</p>
@@ -190,6 +190,7 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 <div className="lg:col-span-8 bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                    {/* Header kalender */}
                     <div className="flex justify-between items-center mb-6">
                         <div>
                             <h3 className="text-base font-extrabold text-[#1B3627]">Field Availability</h3>
@@ -214,6 +215,7 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
                         </div>
                     </div>
 
+                    {/* Pilih tanggal */}
                     <div className="flex gap-2 justify-between border-b border-gray-50 pb-6 mb-6 overflow-x-auto [&::-webkit-scrollbar]:hidden">
                         {dates.map((item) => (
                             <Button
@@ -222,10 +224,10 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
                                 variant={selectedDate === item.id ? "default" : "ghost"}
                                 onClick={() => { setSelectedDate(item.id); setSelectedSlots([]); }}
                                 className={`flex flex-col items-center justify-center py-3 w-14 h-auto rounded-xl transition-all shrink-0 ${item.isPast
-                                    ? "bg-gray-100 text-gray-300 opacity-50 cursor-not-allowed"
-                                    : selectedDate === item.id
-                                        ? "bg-[#1B3627] text-white font-bold hover:bg-[#132A1D]"
-                                        : "bg-white text-gray-400 hover:bg-gray-50 hover:text-gray-600"
+                                        ? "bg-gray-100 text-gray-300 opacity-50 cursor-not-allowed"
+                                        : selectedDate === item.id
+                                            ? "bg-[#1B3627] text-white font-bold hover:bg-[#132A1D]"
+                                            : "bg-white text-gray-400 hover:bg-gray-50 hover:text-gray-600"
                                     }`}
                             >
                                 <span className="text-[9px] uppercase font-bold tracking-wider mb-1">{item.dayName}</span>
@@ -234,6 +236,27 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
                         ))}
                     </div>
 
+                    {/* Legend */}
+                    <div className="flex gap-4 mb-4 flex-wrap">
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-3 h-3 rounded-sm bg-white border border-gray-200"></div>
+                            <span className="text-[9px] text-gray-400 font-bold uppercase">Available</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-3 h-3 rounded-sm bg-[#EFEFEF]"></div>
+                            <span className="text-[9px] text-gray-400 font-bold uppercase">Booked</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-3 h-3 rounded-sm bg-[#F5F2E9] opacity-50"></div>
+                            <span className="text-[9px] text-gray-400 font-bold uppercase">Past</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-3 h-3 rounded-sm bg-[#8b5a2b]"></div>
+                            <span className="text-[9px] text-gray-400 font-bold uppercase">Selected</span>
+                        </div>
+                    </div>
+
+                    {/* Time Slots */}
                     {isLoadingSchedule ? (
                         <div className="flex flex-col items-center justify-center py-10">
                             <Loader2 className="w-8 h-8 text-[#8CB954] animate-spin mb-2" />
@@ -252,25 +275,36 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
                             {currentSlots.map((slot) => {
                                 const isSelected = selectedSlots.some(s => s.id === slot.id);
                                 const isBooked = slot.status === "booked";
+                                const isPast = isSlotPast(slot);
+
                                 return (
                                     <Button
                                         key={slot.id}
-                                        disabled={isBooked}
+                                        disabled={isBooked || isPast}
                                         variant="outline"
                                         onClick={() => toggleSlot(slot)}
                                         className={`p-4 rounded-xl flex flex-col items-start justify-between border text-left h-19 transition-all relative ${isBooked
-                                            ? "bg-[#EFEFEF]/60 border-transparent opacity-100 cursor-not-allowed hover:bg-[#EFEFEF]/60"
-                                            : isSelected
-                                                ? "bg-[#8b5a2b] border-[#8b5a2b] text-white hover:bg-[#724a23] hover:text-white"
-                                                : "bg-white border-gray-100 text-gray-800 hover:border-gray-300 hover:bg-white"
+                                                ? "bg-[#EFEFEF]/60 border-transparent opacity-100 cursor-not-allowed hover:bg-[#EFEFEF]/60"
+                                                : isPast
+                                                    ? "bg-[#F5F2E9] border-transparent opacity-50 cursor-not-allowed hover:bg-[#F5F2E9]"
+                                                    : isSelected
+                                                        ? "bg-[#8b5a2b] border-[#8b5a2b] text-white hover:bg-[#724a23] hover:text-white"
+                                                        : "bg-white border-gray-100 text-gray-800 hover:border-gray-300 hover:bg-white"
                                             }`}
                                     >
-                                        <span className={`text-xs font-bold ${isBooked ? "text-gray-400" : isSelected ? "text-white" : "text-gray-800"}`}>
+                                        <span className={`text-xs font-bold ${isBooked || isPast ? "text-gray-400" : isSelected ? "text-white" : "text-gray-800"
+                                            }`}>
                                             {slot.start_time}
                                         </span>
-                                        <span className={`text-[8px] font-black tracking-widest uppercase rounded px-1.5 py-0.5 ${isBooked ? "bg-[#1B3627] text-white" : isSelected ? "bg-white/20 text-white" : "text-gray-400 bg-gray-50"
+                                        <span className={`text-[8px] font-black tracking-widest uppercase rounded px-1.5 py-0.5 ${isBooked
+                                                ? "bg-[#1B3627] text-white"
+                                                : isPast
+                                                    ? "bg-gray-200 text-gray-500"
+                                                    : isSelected
+                                                        ? "bg-white/20 text-white"
+                                                        : "text-gray-400 bg-gray-50"
                                             }`}>
-                                            {isBooked ? "BOOKED" : isSelected ? "SELECTED" : "AVAILABLE"}
+                                            {isBooked ? "BOOKED" : isPast ? "PAST" : isSelected ? "SELECTED" : "AVAILABLE"}
                                         </span>
                                     </Button>
                                 );
