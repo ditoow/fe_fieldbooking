@@ -1,72 +1,58 @@
 "use client";
 
-import { useState } from 'react';
-import { Plus, MoreVertical, PlusCircle, Edit2, Trash2, X, UploadCloud, Image as ImageIcon } from 'lucide-react';
-
-const facilities = [
-  {
-    id: 1,
-    type: 'INDOOR FACILITY',
-    name: 'Lapangan Futsal A',
-    price: '150.000',
-    status: 'AKTIF',
-    image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=600&auto=format&fit=crop'
-  },
-  {
-    id: 2,
-    type: 'STANDARD PRO',
-    name: 'Lapangan Basket Pro',
-    price: '200.000',
-    status: 'MAINTENANCE',
-    image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=600&auto=format&fit=crop'
-  },
-  {
-    id: 3,
-    type: 'STANDARD MAT',
-    name: 'Badminton Arena',
-    price: '75.000',
-    status: 'AKTIF',
-    image: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=600&auto=format&fit=crop'
-  },
-  {
-    id: 4,
-    type: 'CLAY COURT',
-    name: 'Lapangan Tennis 1',
-    price: '120.000',
-    status: 'AKTIF',
-    image: 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=600&auto=format&fit=crop'
-  },
-  {
-    id: 5,
-    type: 'OLYMPIC STANDARD',
-    name: 'Olympic Pool',
-    price: '350.000',
-    status: 'AKTIF',
-    image: 'https://images.unsplash.com/photo-1519315901367-f34f915de35c?q=80&w=600&auto=format&fit=crop'
-  }
-];
+import { useState, useEffect } from 'react';
+import { Plus, MoreVertical, PlusCircle, Edit2, Trash2, X, UploadCloud, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { getAllFields, Field } from '@/lib/api/field/getAll';
+import { createField, updateField, deleteField } from '@/lib/api/admin/field';
+import axios from 'axios';
 
 export default function KelolaLapanganPage() {
+  const [fields, setFields] = useState<Field[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
-  const [editingFacility, setEditingFacility] = useState<any | null>(null);
+  const [editingFacility, setEditingFacility] = useState<Field | null>(null);
   const [isAddingFacility, setIsAddingFacility] = useState(false);
 
-  // Form state untuk simulasi edit
+  // Form state
   const [editForm, setEditForm] = useState({
     name: '',
-    price: '',
-    status: '',
-    image: ''
+    description: '',
+    category: '',
+    surface_type: 'vinyl',
+    status: 'available',
+    image: '',
+    imageFile: null as File | null,
   });
 
-  const handleEditClick = (facility: any) => {
+  const fetchFields = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getAllFields();
+      setFields(data);
+    } catch (error) {
+      console.error("Failed to fetch fields", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFields();
+  }, []);
+
+  const handleEditClick = (facility: Field) => {
     setEditingFacility(facility);
     setIsAddingFacility(false);
     setEditForm({
-      name: facility.name,
-      price: facility.price,
-      status: facility.status,
-      image: facility.image
+      name: facility.name || '',
+      description: facility.description || '',
+      category: facility.category || '',
+      surface_type: facility.surface_type || 'vinyl',
+      status: facility.status || 'available',
+      image: facility.image_url || '',
+      imageFile: null,
     });
     setOpenDropdownId(null);
   };
@@ -76,9 +62,12 @@ export default function KelolaLapanganPage() {
     setEditingFacility(null);
     setEditForm({
       name: '',
-      price: '',
-      status: 'AKTIF',
-      image: ''
+      description: '',
+      category: '',
+      surface_type: 'vinyl',
+      status: 'available',
+      image: '',
+      imageFile: null,
     });
   };
 
@@ -86,7 +75,63 @@ export default function KelolaLapanganPage() {
     const file = e.target.files?.[0];
     if (file) {
       const url = URL.createObjectURL(file);
-      setEditForm({ ...editForm, image: url });
+      setEditForm({ ...editForm, image: url, imageFile: file });
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("Yakin ingin menghapus lapangan ini?")) return;
+    
+    try {
+      setOpenDropdownId(null);
+      await deleteField(id);
+      await fetchFields();
+      alert("Lapangan berhasil dihapus.");
+    } catch (error) {
+      console.error("Gagal menghapus:", error);
+      alert("Gagal menghapus lapangan.");
+    }
+  };
+
+  const handleSave = async () => {
+    if (!editForm.name || !editForm.description || !editForm.category) {
+      alert("Harap lengkapi semua field yang wajib.");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      const formData = new FormData();
+      formData.append('name', editForm.name);
+      formData.append('description', editForm.description);
+      formData.append('category', editForm.category);
+      formData.append('surface_type', editForm.surface_type);
+      formData.append('status', editForm.status);
+      
+      if (editForm.imageFile) {
+        formData.append('image_file', editForm.imageFile);
+      }
+
+      if (isAddingFacility) {
+        await createField(formData);
+        alert("Lapangan berhasil ditambahkan!");
+      } else if (editingFacility) {
+        await updateField(editingFacility.id, formData);
+        alert("Lapangan berhasil diupdate!");
+      }
+
+      setEditingFacility(null);
+      setIsAddingFacility(false);
+      await fetchFields();
+    } catch (error) {
+      console.error("Gagal menyimpan:", error);
+      if (axios.isAxiosError(error)) {
+        alert(error.response?.data?.message || "Gagal menyimpan data.");
+      } else {
+        alert("Terjadi kesalahan.");
+      }
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -97,7 +142,7 @@ export default function KelolaLapanganPage() {
         <div>
           <h1 className="text-[30px] font-bold text-ugo-sidebar leading-tight mb-2">Kelola Lapangan</h1>
           <p className="text-gray-500 text-sm">
-            Manajemen unit fasilitas, harga sewa, dan status ketersediaan.
+            Manajemen unit fasilitas, deskripsi, dan status ketersediaan.
           </p>
         </div>
         <button 
@@ -110,20 +155,28 @@ export default function KelolaLapanganPage() {
       </div>
 
       {/* Grid Layout */}
+      {isLoading ? (
+        <div className="flex justify-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-ugo-primary" />
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {facilities.map((facility) => (
+        {fields.map((facility) => (
           <div key={facility.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group">
             {/* Image Container */}
             <div className="h-[180px] w-full relative bg-gray-100">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img 
-                src={facility.image} 
+                src={facility.image_url || 'https://via.placeholder.com/600x400?text=No+Image'} 
                 alt={facility.name}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=No+Image';
+                }}
               />
               {/* Badges */}
-              <div className="absolute top-4 left-4">
-                {facility.status === 'AKTIF' ? (
+              <div className="absolute top-4 left-4 flex gap-2 flex-wrap">
+                {facility.status === 'available' ? (
                   <span className="bg-ugo-status-aktif-bg text-ugo-status-aktif-text px-3 py-1 rounded-full text-xs font-bold shadow-md">
                     AKTIF
                   </span>
@@ -154,7 +207,7 @@ export default function KelolaLapanganPage() {
                       Edit Data
                     </button>
                     <button 
-                      onClick={() => setOpenDropdownId(null)}
+                      onClick={() => handleDelete(facility.id)}
                       className="w-full px-4 py-2.5 text-sm font-medium text-left text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -167,12 +220,13 @@ export default function KelolaLapanganPage() {
             
             {/* Content */}
             <div className="p-5">
-              <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">{facility.type}</p>
-              <h3 className="font-bold text-lg text-ugo-sidebar mb-4">{facility.name}</h3>
+              <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">{facility.category}</p>
+              <h3 className="font-bold text-lg text-ugo-sidebar mb-2">{facility.name}</h3>
+              <p className="text-xs text-gray-500 font-medium mb-4 line-clamp-2">{facility.description}</p>
               
               <div className="flex justify-between items-end">
-                <p className="text-xs text-gray-500 font-medium">Price/Hour</p>
-                <p className="font-bold text-lg text-ugo-primary">Rp {facility.price}</p>
+                <p className="text-xs text-gray-500 font-medium">Permukaan</p>
+                <p className="font-bold text-sm text-ugo-primary uppercase">{facility.surface_type}</p>
               </div>
             </div>
           </div>
@@ -192,6 +246,7 @@ export default function KelolaLapanganPage() {
           <p className="text-sm text-gray-500 max-w-[250px] leading-relaxed">Klik untuk menambahkan fasilitas atau lapangan baru ke dalam sistem.</p>
         </div>
       </div>
+      )}
 
       {/* ========================================== */}
       {/* ADD/EDIT MODAL DIALOG */}
@@ -237,6 +292,9 @@ export default function KelolaLapanganPage() {
                         src={editForm.image} 
                         alt="Preview" 
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=No+Image';
+                        }}
                       />
                       <label htmlFor="facility-image-upload" className="absolute inset-0 bg-ugo-sidebar/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
                         <div className="bg-white text-ugo-sidebar px-4 py-2 rounded-lg text-sm font-bold shadow-lg flex items-center gap-2 hover:bg-ugo-primary hover:text-white transition-colors">
@@ -257,25 +315,50 @@ export default function KelolaLapanganPage() {
               {/* Form Fields */}
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-bold text-gray-700 block mb-1.5">Nama Lapangan</label>
+                  <label className="text-sm font-bold text-gray-700 block mb-1.5">Nama Lapangan *</label>
                   <input 
                     type="text" 
                     value={editForm.name}
                     onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                    placeholder="Contoh: Lapangan Futsal A"
                     className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-bold text-gray-700 block mb-1.5">Harga Sewa per Jam</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm">Rp</span>
+                  <label className="text-sm font-bold text-gray-700 block mb-1.5">Deskripsi *</label>
+                  <textarea 
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                    rows={3}
+                    placeholder="Deskripsi fasilitas lapangan..."
+                    className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
+                  ></textarea>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 block mb-1.5">Kategori *</label>
                     <input 
                       type="text" 
-                      value={editForm.price}
-                      onChange={(e) => setEditForm({...editForm, price: e.target.value})}
-                      className="w-full pl-10 pr-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
+                      value={editForm.category}
+                      onChange={(e) => setEditForm({...editForm, category: e.target.value})}
+                      placeholder="Contoh: Futsal"
+                      className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
                     />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 block mb-1.5">Tipe Permukaan</label>
+                    <select 
+                      value={editForm.surface_type}
+                      onChange={(e) => setEditForm({...editForm, surface_type: e.target.value})}
+                      className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
+                    >
+                      <option value="vinyl">Vinyl</option>
+                      <option value="parket">Parket</option>
+                      <option value="semen">Semen</option>
+                    </select>
                   </div>
                 </div>
 
@@ -284,21 +367,21 @@ export default function KelolaLapanganPage() {
                   <div className="flex gap-3">
                     <label 
                       className={`flex-1 cursor-pointer rounded-xl border-2 px-4 py-3 text-center transition-all ${
-                        editForm.status === 'AKTIF' 
+                        editForm.status === 'available' 
                           ? 'border-ugo-sidebar bg-ugo-sidebar text-white shadow-md' 
                           : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
                       }`}
-                      onClick={() => setEditForm({...editForm, status: 'AKTIF'})}
+                      onClick={() => setEditForm({...editForm, status: 'available'})}
                     >
                       <span className="text-sm font-bold">AKTIF</span>
                     </label>
                     <label 
                       className={`flex-1 cursor-pointer rounded-xl border-2 px-4 py-3 text-center transition-all ${
-                        editForm.status === 'MAINTENANCE' 
+                        editForm.status === 'maintenance' 
                           ? 'border-ugo-status-menunggu-text bg-ugo-status-menunggu-bg text-ugo-status-menunggu-text shadow-md' 
                           : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
                       }`}
-                      onClick={() => setEditForm({...editForm, status: 'MAINTENANCE'})}
+                      onClick={() => setEditForm({...editForm, status: 'maintenance'})}
                     >
                       <span className="text-sm font-bold">MAINTENANCE</span>
                     </label>
@@ -315,19 +398,21 @@ export default function KelolaLapanganPage() {
                   setEditingFacility(null);
                   setIsAddingFacility(false);
                 }}
+                disabled={isSaving}
                 className="px-5 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
               >
                 Batal
               </button>
               <button 
-                onClick={() => {
-                  // Simulate save
-                  setEditingFacility(null);
-                  setIsAddingFacility(false);
-                }}
-                className="px-5 py-2.5 text-sm font-bold text-white bg-ugo-primary hover:bg-ugo-primary/90 rounded-lg shadow-sm transition-colors"
+                onClick={handleSave}
+                disabled={isSaving}
+                className="px-5 py-2.5 text-sm font-bold text-white bg-ugo-primary hover:bg-ugo-primary/90 rounded-lg shadow-sm transition-colors flex items-center justify-center min-w-[120px]"
               >
-                {isAddingFacility ? 'Simpan Unit Baru' : 'Simpan Perubahan'}
+                {isSaving ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  isAddingFacility ? 'Simpan Unit Baru' : 'Simpan Perubahan'
+                )}
               </button>
             </div>
 

@@ -1,6 +1,5 @@
 import { StatCards } from '@/components/Admin/Dashboard/StatCards';
 import { RevenueChart } from '@/components/Admin/Dashboard/RevenueChart';
-import { RecentBookingsTable } from '@/components/Admin/Dashboard/RecentBookingsTable';
 import { ActivityLog } from '@/components/Admin/Dashboard/ActivityLog';
 
 export default function DashboardPage() {
@@ -21,7 +20,6 @@ export default function DashboardPage() {
           <ActivityLog />
         </div>
       </div>
-      <RecentBookingsTable />
     </div>
   );
 }

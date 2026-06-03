@@ -11,8 +11,8 @@ import {
   Activity
 } from 'lucide-react';
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
@@ -30,7 +30,10 @@ const recentTransactions = [
     pengguna: 'Ahmad Fauzi',
     kategori: 'PUBLIC',
     tanggal: '24 Okt, 2023',
+    waktu: '19:00 - 21:00',
+    durasi: '2 Jam',
     nominal: 'Rp 150.000',
+    metodePembayaran: 'QRIS',
     status: 'BERHASIL'
   },
   {
@@ -40,7 +43,10 @@ const recentTransactions = [
     pengguna: 'Riana Putri',
     kategori: 'STUDENT',
     tanggal: '24 Okt, 2023',
+    waktu: '15:00 - 17:00',
+    durasi: '2 Jam',
     nominal: 'Rp 45.000',
+    metodePembayaran: 'Transfer Bank',
     status: 'BERHASIL'
   },
   {
@@ -50,18 +56,34 @@ const recentTransactions = [
     pengguna: 'Budi Santoso',
     kategori: 'PUBLIC',
     tanggal: '23 Okt, 2023',
+    waktu: '08:00 - 10:00',
+    durasi: '2 Jam',
     nominal: 'Rp 200.000',
+    metodePembayaran: 'E-Wallet (OVO)',
     status: 'MENUNGGU'
+  },
+  {
+    id: '#MYU-2942',
+    icon: '⚽',
+    fasilitas: 'Lapangan Futsal B',
+    pengguna: 'Tim Garuda',
+    kategori: 'PUBLIC',
+    tanggal: '25 Okt, 2023',
+    waktu: '20:00 - 22:00',
+    durasi: '2 Jam',
+    nominal: 'Rp 150.000',
+    metodePembayaran: 'QRIS',
+    status: 'GAGAL'
   }
 ];
 
 const lineData = [
-  { name: 'SENIN', realisasi: 20, target: 40 },
-  { name: 'SELASA', realisasi: 35, target: 50 },
-  { name: 'RABU', realisasi: 65, target: 55 },
-  { name: 'KAMIS', realisasi: 45, target: 52 },
-  { name: 'JUMAT', realisasi: 55, target: 58 },
-  { name: 'SABTU', realisasi: 80, target: 62 },
+  { name: 'SENIN', realisasi: 20 },
+  { name: 'SELASA', realisasi: 35 },
+  { name: 'RABU', realisasi: 65 },
+  { name: 'KAMIS', realisasi: 45 },
+  { name: 'JUMAT', realisasi: 55 },
+  { name: 'SABTU', realisasi: 80 },
 ];
 
 const pieData = [
@@ -138,22 +160,24 @@ export default function LaporanPage() {
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <h2 className="font-bold text-lg text-[#1C2B1E]">Tren Pendapatan & Utilisasi</h2>
-                  <p className="text-sm text-[#6B7280]">Perbandingan mingguan antara target dan realisasi.</p>
+                  <p className="text-sm text-[#6B7280]">Perbandingan mingguan realisasi pendapatan.</p>
                 </div>
                 <div className="flex items-center gap-4 text-[10px] font-bold tracking-wider">
-                  <div className="flex items-center gap-1.5 text-[#1C2B1E]">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#1C2B1E]"></span>
+                  <div className="flex items-center gap-1.5 text-[#2D6A4F]">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#2D6A4F]"></span>
                     REALISASI
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[#D4A574]">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#D4A574]"></span>
-                    TARGET
                   </div>
                 </div>
               </div>
               <div className="h-[220px] w-full mt-auto">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={lineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <AreaChart data={lineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorRealisasiLaporan" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#2D6A4F" stopOpacity={0.6}/>
+                        <stop offset="95%" stopColor="#2D6A4F" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
                     <XAxis 
                       dataKey="name" 
                       axisLine={false} 
@@ -165,43 +189,38 @@ export default function LaporanPage() {
                     <Tooltip 
                       contentStyle={{ borderRadius: '12px', border: '1px solid #f3f4f6', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     />
-                    <Line 
+                    <Area 
                       type="monotone" 
                       dataKey="realisasi" 
-                      stroke="#1C2B1E" 
+                      stroke="#2D6A4F" 
                       strokeWidth={3}
-                      dot={{ r: 4, strokeWidth: 0, fill: '#1C2B1E' }}
-                      activeDot={{ r: 6 }}
+                      fillOpacity={1}
+                      fill="url(#colorRealisasiLaporan)"
+                      dot={{ r: 5, strokeWidth: 2, stroke: '#2D6A4F', fill: 'white' }}
+                      activeDot={{ r: 7, fill: '#2D6A4F', stroke: 'white', strokeWidth: 2 }}
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="target" 
-                      stroke="#D4A574" 
-                      strokeWidth={3}
-                      dot={{ r: 4, strokeWidth: 0, fill: '#D4A574' }}
-                    />
-                  </LineChart>
+                  </AreaChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
             {/* KOLOM KANAN: User Demographics (40% approx -> col-span-2) */}
-            <div className="lg:col-span-2 bg-[#1C2B1E] p-6 rounded-2xl shadow-sm flex flex-col justify-between">
-              <div>
+            <div className="lg:col-span-2 bg-[#1C2B1E] p-6 rounded-2xl shadow-sm flex flex-col items-center justify-between">
+              <div className="w-full text-left mb-6">
                 <p className="text-[10px] uppercase font-bold text-white/45 tracking-widest mb-1">USER DEMOGRAPHICS</p>
                 <h2 className="text-[18px] font-bold text-white">User Types</h2>
               </div>
               
-              <div className="flex items-center justify-between mt-4">
-                <div className="relative w-[150px] h-[150px]">
+              <div className="flex flex-col items-center justify-center flex-1 w-full gap-8">
+                <div className="relative w-[220px] h-[220px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={pieData}
                         cx="50%"
                         cy="50%"
-                        innerRadius={46}
-                        outerRadius={70}
+                        innerRadius={75}
+                        outerRadius={105}
                         stroke="none"
                         dataKey="value"
                       >
@@ -213,21 +232,21 @@ export default function LaporanPage() {
                   </ResponsiveContainer>
                   {/* Custom Center Label */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-[22px] font-bold text-white leading-none">1.2k</span>
-                    <span className="text-[10px] text-white/55 font-bold mt-1">TOTAL USERS</span>
+                    <span className="text-[32px] font-bold text-white leading-none">1.2k</span>
+                    <span className="text-[12px] text-white/55 font-bold mt-1">TOTAL USERS</span>
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-3 pr-4">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#D4A574]"></span>
+                <div className="flex items-center justify-center gap-8 w-full mt-2">
+                  <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-xl">
+                    <span className="w-3 h-3 rounded-full bg-[#D4A574]"></span>
                     <span className="text-white text-sm font-medium">Public</span>
-                    <span className="text-white/60 text-sm ml-2">65%</span>
+                    <span className="text-white/80 text-sm font-bold ml-2">65%</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#2D6A4F]"></span>
+                  <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-xl">
+                    <span className="w-3 h-3 rounded-full bg-[#2D6A4F]"></span>
                     <span className="text-white text-sm font-medium">Student</span>
-                    <span className="text-white/60 text-sm ml-2">35%</span>
+                    <span className="text-white/80 text-sm font-bold ml-2">35%</span>
                   </div>
                 </div>
               </div>
@@ -341,8 +360,8 @@ export default function LaporanPage() {
                     <th className="py-4 px-6 text-[11px] uppercase font-bold text-[#6B7280]">Order ID</th>
                     <th className="py-4 px-6 text-[11px] uppercase font-bold text-[#6B7280]">Fasilitas</th>
                     <th className="py-4 px-6 text-[11px] uppercase font-bold text-[#6B7280]">Pengguna</th>
-                    <th className="py-4 px-6 text-[11px] uppercase font-bold text-[#6B7280]">Tanggal</th>
-                    <th className="py-4 px-6 text-[11px] uppercase font-bold text-[#6B7280]">Nominal</th>
+                    <th className="py-4 px-6 text-[11px] uppercase font-bold text-[#6B7280]">Jadwal Main</th>
+                    <th className="py-4 px-6 text-[11px] uppercase font-bold text-[#6B7280]">Pembayaran</th>
                     <th className="py-4 px-6 text-[11px] uppercase font-bold text-[#6B7280]">Status</th>
                   </tr>
                 </thead>
@@ -350,10 +369,10 @@ export default function LaporanPage() {
                   {filteredTransactions.length > 0 ? (
                     filteredTransactions.map(trx => (
                       <tr key={trx.id} className="border-b border-[#F5F0EB] hover:bg-gray-50/50 transition-colors">
-                        <td className="py-[18px] px-6 text-[16px] font-bold text-[#1C2B1E]">{trx.id}</td>
+                        <td className="py-[18px] px-6 text-[14px] font-bold text-[#1C2B1E]">{trx.id}</td>
                         <td className="py-[18px] px-6">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-[#F0EDE8] flex items-center justify-center text-[14px]">{trx.icon}</div>
+                            <div className="w-8 h-8 rounded-lg bg-[#F0EDE8] flex items-center justify-center text-[14px] shrink-0">{trx.icon}</div>
                             <span className="font-medium text-sm text-[#1C2B1E]">{trx.fasilitas}</span>
                           </div>
                         </td>
@@ -361,8 +380,14 @@ export default function LaporanPage() {
                           <p className="font-bold text-sm text-[#1C2B1E]">{trx.pengguna}</p>
                           <p className="text-[10px] uppercase font-bold text-[#6B7280] tracking-wider mt-0.5">{trx.kategori}</p>
                         </td>
-                        <td className="py-[18px] px-6 text-sm text-[#6B7280] font-medium">{trx.tanggal}</td>
-                        <td className="py-[18px] px-6 text-sm font-bold text-[#1C2B1E]">{trx.nominal}</td>
+                        <td className="py-[18px] px-6">
+                          <p className="text-sm font-semibold text-[#1C2B1E]">{trx.tanggal}</p>
+                          <p className="text-xs text-[#6B7280] font-medium mt-0.5">{trx.waktu} <span className="text-[10px] font-bold bg-gray-100 px-1.5 py-0.5 rounded ml-1">{trx.durasi}</span></p>
+                        </td>
+                        <td className="py-[18px] px-6">
+                          <p className="text-sm font-bold text-[#1C2B1E]">{trx.nominal}</p>
+                          <p className="text-[11px] font-medium text-[#6B7280] mt-0.5">{trx.metodePembayaran}</p>
+                        </td>
                         <td className="py-[18px] px-6">
                           {trx.status === 'BERHASIL' && <span className="bg-[#D4EDDA] text-[#2D6A4F] px-3 py-1.5 rounded-full text-xs font-bold inline-flex">BERHASIL</span>}
                           {trx.status === 'MENUNGGU' && <span className="bg-[#FDE8D8] text-[#C4622D] px-3 py-1.5 rounded-full text-xs font-bold inline-flex">MENUNGGU</span>}
