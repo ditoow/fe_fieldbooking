@@ -9,11 +9,11 @@ const nextConfig: NextConfig = {
             },
             {
                 protocol: "https",
-                hostname: "images.unsplash.com", // untuk hero image
+                hostname: "images.unsplash.com",
             },
             {
                 protocol: "https",
-                hostname: "qcizbglhafqgrphobbly.supabase.co", // Tambahkan hostname Supabase di sini
+                hostname: "qcizbglhafqgrphobbly.supabase.co",
             },
         ],
     },
