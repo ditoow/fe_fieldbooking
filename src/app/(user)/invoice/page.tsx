@@ -107,7 +107,7 @@ function InvoiceContent() {
     }
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start pt-8">
 
             <div className="lg:col-span-7 space-y-8">
                 <div>
@@ -235,10 +235,6 @@ export default function InvoicePage() {
     return (
         <div className="w-full pb-20 font-sans min-h-screen bg-[#FDFBF5] text-[#1B3627]">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
-                <div className="mb-12">
-                    <p className="text-xs font-bold text-[#c29867] uppercase tracking-widest mb-2">SECURE BOOKING</p>
-                    <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-none uppercase">Pilih<br />Pembayaran</h1>
-                </div>
                 <Suspense fallback={<div className="text-center py-20 font-bold text-gray-500">Memuat Tagihan...</div>}>
                     <InvoiceContent />
                 </Suspense>

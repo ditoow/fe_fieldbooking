@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { SlidersHorizontal, Trophy, ShoppingBag, ArrowRight } from "lucide-react";
+import { SlidersHorizontal, Trophy, ShoppingBag, ArrowRight, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import HistoryCard from "../components/Riwayat/HistoryCard";
 import TransactionModal from "../components/Riwayat/TransactionModal";
+import { getAllBookings } from "@/lib/api/booking";
+import type { BookingDetail } from "@/lib/api/booking";
 
 export interface HistoryItem {
     id: string;
@@ -21,18 +23,58 @@ export interface HistoryItem {
     facilityId?: number;
 }
 
+function mapStatus(status: string): "SELESAI" | "DIBATALKAN" | "TERTUNDA" {
+    const statusMap: Record<string, "SELESAI" | "DIBATALKAN" | "TERTUNDA"> = {
+        'pending': 'TERTUNDA',
+        'approved': 'SELESAI',
+        'rejected': 'DIBATALKAN',
+        'cancelled': 'DIBATALKAN',
+    };
+    return statusMap[status] ?? 'TERTUNDA';
+}
+
+function mapToHistoryItem(booking: BookingDetail): HistoryItem {
+    return {
+        id: String(booking.id),
+        title: booking.field_name,
+        category: booking.field_name, // ⚠️ Ganti kalau BE punya field sport/category tersendiri
+        price: booking.total_price,
+        date: booking.formatted_date,
+        time: booking.formatted_time,
+        status: mapStatus(booking.status),
+        image: '/lapangan.jpg', // ⚠️ Ganti dengan booking.field_image atau field lain jika ada
+        note: null,
+        createdAt: new Date(booking.created_at).getTime(),
+        facilityId: booking.schedules?.[0]?.field_id,
+    };
+}
+
 export default function RiwayatPage() {
     const router = useRouter();
     const [historyData, setHistoryData] = useState<HistoryItem[]>([]);
     const [filterStatus, setFilterStatus] = useState<string>("ALL");
     const [showFilterDropdown, setShowFilterDropdown] = useState<boolean>(false);
     const [selectedDetailItem, setSelectedDetailItem] = useState<HistoryItem | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const savedHistory = localStorage.getItem('booking_history');
-        if (savedHistory) {
-            setHistoryData(JSON.parse(savedHistory));
-        }
+        const fetchBookings = async () => {
+            try {
+                setIsLoading(true);
+                setError(null);
+                const bookings = await getAllBookings();
+                const mapped = bookings.map(mapToHistoryItem);
+                setHistoryData(mapped);
+            } catch (err) {
+                console.error('Gagal mengambil data riwayat:', err);
+                setError('Gagal memuat riwayat pemesanan. Silakan coba lagi.');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchBookings();
     }, []);
 
     const validHistory = historyData.filter(item => item.status !== "DIBATALKAN");
@@ -135,7 +177,29 @@ export default function RiwayatPage() {
                     </div>
                 </div>
 
-                {filteredData.length === 0 ? (
+                {/* Loading State */}
+                {isLoading && (
+                    <div className="w-full bg-white rounded-2xl border border-gray-100 py-20 flex flex-col items-center justify-center">
+                        <Loader2 className="w-10 h-10 text-[#1B3627] animate-spin mb-4" />
+                        <p className="text-gray-500 text-sm">Memuat riwayat pemesanan...</p>
+                    </div>
+                )}
+
+                {/* Error State */}
+                {!isLoading && error && (
+                    <div className="w-full bg-white rounded-2xl border border-red-100 py-20 flex flex-col items-center justify-center text-center">
+                        <p className="text-red-500 font-semibold mb-4">{error}</p>
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="bg-[#1B3627] text-white px-6 py-2.5 rounded-xl text-sm font-bold"
+                        >
+                            Coba Lagi
+                        </button>
+                    </div>
+                )}
+
+                {/* Empty State */}
+                {!isLoading && !error && filteredData.length === 0 && (
                     <div className="w-full bg-white rounded-2xl border border-dashed border-gray-300 py-20 flex flex-col items-center justify-center text-center">
                         <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
                             <ShoppingBag className="w-10 h-10 text-gray-300" />
@@ -148,9 +212,11 @@ export default function RiwayatPage() {
                             </Link>
                         )}
                     </div>
-                ) : (
+                )}
+
+                {/* Data List */}
+                {!isLoading && !error && filteredData.length > 0 && (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* MENGGUNAKAN KOMPONEN HISTORY CARD YANG SUDAH DIPISAH */}
                         {filteredData.map((item) => (
                             <HistoryCard
                                 key={item.id}
@@ -158,7 +224,7 @@ export default function RiwayatPage() {
                                 formatRupiah={formatRupiah}
                                 getDeadlineText={getDeadlineText}
                                 onDetail={(item: HistoryItem) => setSelectedDetailItem(item)}
-                                onPayNow={(price: number) => router.push(`/invoice?total=${price}`)}
+                                onPayNow={() => router.push(`/invoice?booking_id=${item.id}`)}
                                 onBookAgain={(id: number) => router.push(`/booking/${id || 1}`)}
                             />
                         ))}
@@ -166,7 +232,6 @@ export default function RiwayatPage() {
                 )}
             </section>
 
-            {/* MENGGUNAKAN KOMPONEN MODAL YANG SUDAH DIPISAH */}
             <TransactionModal
                 item={selectedDetailItem}
                 onClose={() => setSelectedDetailItem(null)}

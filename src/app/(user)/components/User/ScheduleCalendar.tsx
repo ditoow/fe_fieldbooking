@@ -68,6 +68,25 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
 
     const dates = generateDatesByOffset(weekOffset);
 
+    // Otomatis pilih hari ini saat pertama kali load
+    useEffect(() => {
+        const today = new Date();
+        const todayISO = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+        // Cari index hari ini di array dates
+        const todayIndex = dates.findIndex(d => d.fullDateISO === todayISO);
+
+        if (todayIndex !== -1) {
+            // Kalau hari ini ada di minggu ini, pilih hari ini
+            setSelectedDate(todayIndex);
+        } else {
+            // Kalau tidak ada (misal weekOffset > 0), pilih hari pertama yang tidak past
+            const firstValid = dates.find(d => !d.isPast);
+            if (firstValid) setSelectedDate(firstValid.id);
+        }
+    }, []); // Hanya jalan sekali saat pertama load
+
+    // Fetch schedules dari BE setiap kali minggu berubah
     useEffect(() => {
         const fetchSchedules = async () => {
             if (dates.length === 0) return;
@@ -224,10 +243,10 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
                                 variant={selectedDate === item.id ? "default" : "ghost"}
                                 onClick={() => { setSelectedDate(item.id); setSelectedSlots([]); }}
                                 className={`flex flex-col items-center justify-center py-3 w-14 h-auto rounded-xl transition-all shrink-0 ${item.isPast
-                                        ? "bg-gray-100 text-gray-300 opacity-50 cursor-not-allowed"
-                                        : selectedDate === item.id
-                                            ? "bg-[#1B3627] text-white font-bold hover:bg-[#132A1D]"
-                                            : "bg-white text-gray-400 hover:bg-gray-50 hover:text-gray-600"
+                                    ? "bg-gray-100 text-gray-300 opacity-50 cursor-not-allowed"
+                                    : selectedDate === item.id
+                                        ? "bg-[#1B3627] text-white font-bold hover:bg-[#132A1D]"
+                                        : "bg-white text-gray-400 hover:bg-gray-50 hover:text-gray-600"
                                     }`}
                             >
                                 <span className="text-[9px] uppercase font-bold tracking-wider mb-1">{item.dayName}</span>
@@ -284,12 +303,12 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
                                         variant="outline"
                                         onClick={() => toggleSlot(slot)}
                                         className={`p-4 rounded-xl flex flex-col items-start justify-between border text-left h-19 transition-all relative ${isBooked
-                                                ? "bg-[#EFEFEF]/60 border-transparent opacity-100 cursor-not-allowed hover:bg-[#EFEFEF]/60"
-                                                : isPast
-                                                    ? "bg-[#F5F2E9] border-transparent opacity-50 cursor-not-allowed hover:bg-[#F5F2E9]"
-                                                    : isSelected
-                                                        ? "bg-[#8b5a2b] border-[#8b5a2b] text-white hover:bg-[#724a23] hover:text-white"
-                                                        : "bg-white border-gray-100 text-gray-800 hover:border-gray-300 hover:bg-white"
+                                            ? "bg-[#EFEFEF]/60 border-transparent opacity-100 cursor-not-allowed hover:bg-[#EFEFEF]/60"
+                                            : isPast
+                                                ? "bg-[#F5F2E9] border-transparent opacity-50 cursor-not-allowed hover:bg-[#F5F2E9]"
+                                                : isSelected
+                                                    ? "bg-[#8b5a2b] border-[#8b5a2b] text-white hover:bg-[#724a23] hover:text-white"
+                                                    : "bg-white border-gray-100 text-gray-800 hover:border-gray-300 hover:bg-white"
                                             }`}
                                     >
                                         <span className={`text-xs font-bold ${isBooked || isPast ? "text-gray-400" : isSelected ? "text-white" : "text-gray-800"
@@ -297,12 +316,12 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
                                             {slot.start_time}
                                         </span>
                                         <span className={`text-[8px] font-black tracking-widest uppercase rounded px-1.5 py-0.5 ${isBooked
-                                                ? "bg-[#1B3627] text-white"
-                                                : isPast
-                                                    ? "bg-gray-200 text-gray-500"
-                                                    : isSelected
-                                                        ? "bg-white/20 text-white"
-                                                        : "text-gray-400 bg-gray-50"
+                                            ? "bg-[#1B3627] text-white"
+                                            : isPast
+                                                ? "bg-gray-200 text-gray-500"
+                                                : isSelected
+                                                    ? "bg-white/20 text-white"
+                                                    : "text-gray-400 bg-gray-50"
                                             }`}>
                                             {isBooked ? "BOOKED" : isPast ? "PAST" : isSelected ? "SELECTED" : "AVAILABLE"}
                                         </span>
