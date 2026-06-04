@@ -1,5 +1,6 @@
 "use client";
 
+import { QRCodeCanvas } from "qrcode.react";
 import React, { useState, useEffect, Suspense } from "react";
 import { Download, Info, ShieldCheck, XCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -199,18 +200,40 @@ function InvoiceContent() {
 
                     <div className="bg-[#1B3627] p-6 rounded-3xl shadow-inner mb-8 w-full max-w-[280px] aspect-square flex flex-col items-center justify-center relative">
                         <div className="absolute top-4 text-[10px] text-gray-400 font-medium tracking-widest uppercase">Payment Gateway</div>
-                        <div className="bg-white p-3 rounded-xl w-3/4 aspect-square mt-4 relative shadow-lg">
-                            <img
-                                src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg"
-                                alt="QR Code"
-                                className="w-full h-full object-contain opacity-90"
-                            />
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <div className="bg-white p-1 rounded-md shadow-sm">
-                                    <ShieldCheck className="w-6 h-6 text-[#8CB954]" />
+
+                        <div className="bg-white p-3 rounded-xl w-3/4 aspect-square mt-4 relative shadow-lg flex items-center justify-center">
+                            {booking.qr_string ? (
+                                booking.qr_string.startsWith("http") ? (
+                                    // Kalau BE kirim URL langsung → render sebagai gambar
+                                    <img
+                                        src={booking.qr_string}
+                                        alt="QR Code Midtrans"
+                                        className="w-full h-full object-contain"
+                                    />
+                                ) : (
+                                    // Kalau BE kirim raw QRIS string → render pakai library
+                                    <QRCodeCanvas
+                                        value={booking.qr_string}
+                                        size={170}
+                                        level="H"
+                                        includeMargin={false}
+                                        imageSettings={{
+                                            src: "/qris-logo.png",
+                                            height: 28,
+                                            width: 28,
+                                            excavate: true,
+                                        }}
+                                    />
+                                )
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs text-center font-medium p-4">
+                                    {booking.booking_type === "requirement"
+                                        ? "Tidak memerlukan pembayaran"
+                                        : "Memuat QRIS..."}
                                 </div>
-                            </div>
+                            )}
                         </div>
+
                         <div className="absolute bottom-4 text-[10px] text-gray-400 font-medium tracking-widest uppercase">Safe Network</div>
                     </div>
 
