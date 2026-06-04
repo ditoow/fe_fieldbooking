@@ -7,7 +7,8 @@ export default function HistoryCard({
     getDeadlineText,
     onDetail,
     onPayNow,
-    onBookAgain
+    onBookAgain,
+    onCancel
 }: any) {
     return (
         <div className="bg-[#FDFBF5] rounded-xl overflow-hidden shadow-sm hover:shadow-md border border-gray-200/60 transition-all flex flex-col sm:flex-row h-auto sm:h-56">
@@ -52,7 +53,7 @@ export default function HistoryCard({
                 </div>
 
                 {/* Tombol Aksi */}
-                <div className="flex gap-3 mt-auto pt-2">
+                <div className="flex gap-2 mt-auto pt-2">
                     <button
                         onClick={() => onDetail(item)}
                         className="flex-1 py-2.5 text-xs font-bold text-[#1B3627] border border-gray-200 rounded hover:bg-gray-50 transition tracking-wide text-center"
@@ -61,12 +62,21 @@ export default function HistoryCard({
                     </button>
 
                     {item.status === 'TERTUNDA' ? (
-                        <button
-                            onClick={() => onPayNow(item.price)}
-                            className="flex-1 py-2.5 text-xs font-bold bg-black text-white rounded hover:bg-gray-800 transition shadow-md shadow-black/20 tracking-wide text-center"
-                        >
-                            BAYAR SEKARANG
-                        </button>
+                        <>
+                            {/* Tambahan Tombol Batalkan */}
+                            <button
+                                onClick={() => onCancel(item.id)}
+                                className="flex-1 py-2.5 text-xs font-bold text-red-600 border border-red-200 bg-red-50 rounded hover:bg-red-100 transition tracking-wide text-center"
+                            >
+                                BATALKAN
+                            </button>
+                            <button
+                                onClick={() => onPayNow(item.price)}
+                                className="flex-1 py-2.5 text-xs font-bold bg-black text-white rounded hover:bg-gray-800 transition shadow-md shadow-black/20 tracking-wide text-center"
+                            >
+                                BAYAR
+                            </button>
+                        </>
                     ) : (
                         <button
                             onClick={() => onBookAgain(item.facilityId)}
