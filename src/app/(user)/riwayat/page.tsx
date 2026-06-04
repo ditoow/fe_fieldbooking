@@ -34,18 +34,25 @@ function mapStatus(status: string): "SELESAI" | "DIBATALKAN" | "TERTUNDA" {
 }
 
 function mapToHistoryItem(booking: BookingDetail): HistoryItem {
+    let defaultImage = "https://images.unsplash.com/photo-1518605368461-1e1e367803ba?q=80&w=600&auto=format&fit=crop"; // futsal
+    if (booking.field_name && booking.field_name.toLowerCase().includes('basket')) {
+        defaultImage = "https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=600&auto=format&fit=crop";
+    } else if (booking.field_name && booking.field_name.toLowerCase().includes('badminton')) {
+        defaultImage = "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=600&auto=format&fit=crop";
+    }
+
     return {
         id: String(booking.id),
-        title: booking.field_name,
-        category: booking.field_name, // ⚠️ Ganti kalau BE punya field sport/category tersendiri
-        price: booking.total_price,
-        date: booking.formatted_date,
-        time: booking.formatted_time,
+        title: booking.field_name || "Lapangan",
+        category: booking.field_name || "Umum", // ⚠️ Ganti kalau BE punya field sport/category tersendiri
+        price: booking.total_price || 0,
+        date: booking.formatted_date || "-",
+        time: booking.formatted_time || "-",
         status: mapStatus(booking.status),
-        image: '/lapangan.jpg', // ⚠️ Ganti dengan booking.field_image atau field lain jika ada
+        image: defaultImage,
         note: null,
         createdAt: new Date(booking.created_at).getTime(),
-        facilityId: booking.schedules?.[0]?.field_id,
+        facilityId: booking.schedules?.[0]?.field_id || 1,
     };
 }
 
@@ -65,10 +72,20 @@ export default function RiwayatPage() {
                 setError(null);
                 const bookings = await getAllBookings();
                 const mapped = bookings.map(mapToHistoryItem);
+                
+                // Urutkan dari yang terbaru
+                mapped.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                
                 setHistoryData(mapped);
             } catch (err) {
                 console.error('Gagal mengambil data riwayat:', err);
-                setError('Gagal memuat riwayat pemesanan. Silakan coba lagi.');
+                // Fallback ke localStorage jika API error (opsional)
+                const savedHistory = localStorage.getItem('booking_history');
+                if (savedHistory) {
+                    setHistoryData(JSON.parse(savedHistory));
+                } else {
+                    setError('Gagal memuat riwayat pemesanan. Silakan coba lagi.');
+                }
             } finally {
                 setIsLoading(false);
             }

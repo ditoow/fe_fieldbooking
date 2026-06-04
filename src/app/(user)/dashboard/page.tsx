@@ -4,10 +4,12 @@ import React, { useState, useEffect } from "react";
 import { Search, CheckCircle, XCircle, ChevronLeft, ChevronRight, Loader2, Star } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { getAllFields, Field } from "@/lib/api/field";
 import axios from "axios";
 
 export default function UserDashboard() {
+    const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 9;
@@ -124,7 +126,11 @@ export default function UserDashboard() {
                 {!isLoading && !error && currentItems.length > 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {currentItems.map((item) => (
-                            <div key={item.id} className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group">
+                            <div 
+                                key={item.id} 
+                                onClick={() => router.push(`/lapangan/${item.id}`)}
+                                className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group cursor-pointer"
+                            >
 
                                 {/* Image Area */}
                                 <div className="h-48 bg-[#F5F2E9] relative flex items-center justify-center overflow-hidden">
@@ -190,6 +196,7 @@ export default function UserDashboard() {
                                         </div>
                                         <Link
                                             href={`/booking/${item.id}`}
+                                            onClick={(e) => e.stopPropagation()}
                                             className="bg-[#E5C3A6] hover:bg-[#d5b090] text-[#1B3627] text-sm font-bold px-6 py-2.5 rounded-xl transition-colors"
                                         >
                                             Booking

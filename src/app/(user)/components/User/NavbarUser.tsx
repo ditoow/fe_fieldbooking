@@ -147,10 +147,12 @@ export default function NavbarUser() {
                 <div className="flex justify-between h-16 items-center">
 
                     {/* Logo */}
-                    <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition shrink-0">
-                        <Leaf className="w-5 h-5 text-[#8CB954]" />
-                        <span className="font-bold text-lg tracking-wide">MyUGO</span>
-                    </Link>
+                    <div className="flex-1 flex items-center">
+                        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition shrink-0">
+                            <Leaf className="w-5 h-5 text-[#8CB954]" />
+                            <span className="font-bold text-lg tracking-wide">MyUGO</span>
+                        </Link>
+                    </div>
 
                     {/* Nav Links - Desktop */}
                     <div className="hidden md:flex items-center gap-8">
@@ -166,79 +168,94 @@ export default function NavbarUser() {
                     </div>
 
                     {/* Action Icons - Desktop */}
-                    <div className="hidden md:flex items-center gap-4">
-                        {/* Bell Icon Desktop */}
-                        <div className="relative" ref={desktopNotifRef}>
-                            <button
-                                onClick={() => { setShowNotif(!showNotif); setShowProfile(false); }}
-                                className={`p-2 rounded-full transition-colors ${showNotif ? "bg-white/10 text-[#E5C3A6]" : "text-gray-300 hover:text-white"}`}
-                            >
-                                <Bell className="w-5 h-5" />
-                                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[#1B3627]"></span>
-                            </button>
-                            {showNotif && <NotificationPopup />}
-                        </div>
-
-                        {/* Profile Circle Desktop */}
-                        <div className="relative" ref={profileRef}>
-                            <button
-                                onClick={() => { setShowProfile(!showProfile); setShowNotif(false); }}
-                                className="flex items-center gap-3 pl-4 border-l border-white/10 group"
-                            >
-                                <p className="text-xs font-bold uppercase tracking-tighter group-hover:text-[#E5C3A6] transition">
-                                    {userData?.name || "User MyUGO"}
-                                </p>
-                                <div className={`w-8 h-8 rounded-full bg-[#E5C3A6] flex items-center justify-center text-[#1B3627] font-bold border-2 transition-all ${showProfile ? "border-white" : "border-[#1B3627]"}`}>
-                                    <User className="w-5 h-5" />
+                    <div className="hidden md:flex flex-1 items-center justify-end gap-4">
+                        {!userData ? (
+                            <div className="flex items-center gap-4">
+                                <Link href="/login" className="text-sm font-semibold text-gray-300 hover:text-white transition-colors">
+                                    Masuk
+                                </Link>
+                                <Link href="/register" className="bg-[#EAD0B3] text-[#1B3627] font-bold px-5 py-2 rounded-lg text-sm hover:bg-[#d8bd9f] transition shadow-md">
+                                    Daftar Sekarang
+                                </Link>
+                            </div>
+                        ) : (
+                            <>
+                                {/* Bell Icon Desktop */}
+                                <div className="relative" ref={desktopNotifRef}>
+                                    <button
+                                        onClick={() => { setShowNotif(!showNotif); setShowProfile(false); }}
+                                        className={`p-2 rounded-full transition-colors ${showNotif ? "bg-white/10 text-[#E5C3A6]" : "text-gray-300 hover:text-white"}`}
+                                    >
+                                        <Bell className="w-5 h-5" />
+                                        <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[#1B3627]"></span>
+                                    </button>
+                                    {showNotif && <NotificationPopup />}
                                 </div>
-                            </button>
 
-                            {showProfile && (
-                                <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100 animate-in fade-in zoom-in duration-200 text-[#1B3627] z-50">
-                                    <div className="p-5 bg-[#FDFBF5] border-b border-gray-100">
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Akun Saya</p>
-                                        <p className="font-bold text-sm truncate">{userData?.name || "User MyUGO"}</p>
-                                        <p className="text-[10px] text-[#8CB954] font-bold uppercase">
-                                            {userRole}
+                                {/* Profile Circle Desktop */}
+                                <div className="relative" ref={profileRef}>
+                                    <button
+                                        onClick={() => { setShowProfile(!showProfile); setShowNotif(false); }}
+                                        className="flex items-center gap-3 pl-4 border-l border-white/10 group"
+                                    >
+                                        <p className="text-xs font-bold uppercase tracking-tighter group-hover:text-[#E5C3A6] transition">
+                                            {userData?.name || "User MyUGO"}
                                         </p>
-                                    </div>
-                                    <div className="p-2">
-                                        <Link href="/profile" className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition group">
-                                            <div className="flex items-center gap-3">
-                                                <User className="w-4 h-4 text-gray-400 group-hover:text-[#1B3627]" />
-                                                <span className="text-xs font-semibold">Profil Saya</span>
+                                        <div className={`w-8 h-8 rounded-full bg-[#E5C3A6] flex items-center justify-center text-[#1B3627] font-bold border-2 transition-all ${showProfile ? "border-white" : "border-[#1B3627]"}`}>
+                                            <User className="w-5 h-5" />
+                                        </div>
+                                    </button>
+
+                                    {showProfile && (
+                                        <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100 animate-in fade-in zoom-in duration-200 text-[#1B3627] z-50">
+                                            <div className="p-5 bg-[#FDFBF5] border-b border-gray-100">
+                                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Akun Saya</p>
+                                                <p className="font-bold text-sm truncate">{userData?.name || "User MyUGO"}</p>
+                                                <p className="text-[10px] text-[#8CB954] font-bold uppercase">
+                                                    {userRole}
+                                                </p>
                                             </div>
-                                            <ChevronRight className="w-3 h-3 text-gray-300" />
-                                        </Link>
-                                        <Link href="/user/settings" className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition group">
-                                            <div className="flex items-center gap-3">
-                                                <Settings className="w-4 h-4 text-gray-400 group-hover:text-[#1B3627]" />
-                                                <span className="text-xs font-semibold">Pengaturan</span>
+                                            <div className="p-2">
+                                                <Link href="/profile" className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition group">
+                                                    <div className="flex items-center gap-3">
+                                                        <User className="w-4 h-4 text-gray-400 group-hover:text-[#1B3627]" />
+                                                        <span className="text-xs font-semibold">Profil Saya</span>
+                                                    </div>
+                                                    <ChevronRight className="w-3 h-3 text-gray-300" />
+                                                </Link>
+                                                <Link href="/user/settings" className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition group">
+                                                    <div className="flex items-center gap-3">
+                                                        <Settings className="w-4 h-4 text-gray-400 group-hover:text-[#1B3627]" />
+                                                        <span className="text-xs font-semibold">Pengaturan</span>
+                                                    </div>
+                                                    <ChevronRight className="w-3 h-3 text-gray-300" />
+                                                </Link>
+                                                <button
+                                                    onClick={handleLogout}
+                                                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-red-500 transition group"
+                                                >
+                                                    <LogOut className="w-4 h-4" />
+                                                    <span className="text-xs font-bold">Keluar Akun</span>
+                                                </button>
                                             </div>
-                                            <ChevronRight className="w-3 h-3 text-gray-300" />
-                                        </Link>
-                                        <button
-                                            onClick={handleLogout}
-                                            className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-red-500 transition group"
-                                        >
-                                            <LogOut className="w-4 h-4" />
-                                            <span className="text-xs font-bold">Keluar Akun</span>
-                                        </button>
-                                    </div>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                        </div>
+                            </>
+                        )}
                     </div>
 
                     {/* Mobile Menu Button & Notif */}
                     <div className="md:hidden flex items-center gap-1">
-                        <div className="relative" ref={mobileNotifRef}>
-                            <button onClick={() => { setShowNotif(!showNotif); setIsMenuOpen(false); }} className={`p-2 rounded-full transition-colors ${showNotif ? "bg-white/10 text-[#E5C3A6]" : "text-gray-300"}`}>
-                                <Bell className="w-5 h-5" />
-                                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[#1B3627]"></span>
-                            </button>
-                            {showNotif && <NotificationPopup />}
-                        </div>
+                        {userData && (
+                            <div className="relative" ref={mobileNotifRef}>
+                                <button onClick={() => { setShowNotif(!showNotif); setIsMenuOpen(false); }} className={`p-2 rounded-full transition-colors ${showNotif ? "bg-white/10 text-[#E5C3A6]" : "text-gray-300"}`}>
+                                    <Bell className="w-5 h-5" />
+                                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[#1B3627]"></span>
+                                </button>
+                                {showNotif && <NotificationPopup />}
+                            </div>
+                        )}
 
                         <button onClick={() => { setIsMenuOpen(!isMenuOpen); setShowNotif(false); }} className="p-2 text-gray-300">
                             {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -264,28 +281,39 @@ export default function NavbarUser() {
                     </div>
 
                     {/* Profil Mobile */}
-                    <div className="pt-6 mt-6 border-t border-white/10">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 rounded-full bg-[#E5C3A6] flex items-center justify-center text-[#1B3627]">
-                                <User className="w-6 h-6" />
+                    {!userData ? (
+                        <div className="pt-6 mt-6 border-t border-white/10 flex flex-col gap-4">
+                            <Link href="/login" onClick={() => setIsMenuOpen(false)} className="text-sm font-bold text-white text-center w-full py-2 bg-white/10 rounded-lg">
+                                Masuk
+                            </Link>
+                            <Link href="/register" onClick={() => setIsMenuOpen(false)} className="text-sm font-bold text-[#1B3627] text-center w-full py-2 bg-[#EAD0B3] rounded-lg shadow-md">
+                                Daftar Sekarang
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="pt-6 mt-6 border-t border-white/10">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="w-10 h-10 rounded-full bg-[#E5C3A6] flex items-center justify-center text-[#1B3627]">
+                                    <User className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-bold uppercase text-white">{userData?.name || "User MyUGO"}</p>
+                                    <p className="text-[10px] text-[#8CB954] font-bold uppercase tracking-wider">{userRole}</p>
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-sm font-bold uppercase text-white">{userData?.name || "User MyUGO"}</p>
-                                <p className="text-[10px] text-[#8CB954] font-bold uppercase tracking-wider">{userRole}</p>
+                            <div className="flex flex-col gap-5 pl-2">
+                                <Link href="/profile" onClick={() => setIsMenuOpen(false)} className="text-sm font-medium text-gray-300 hover:text-white flex items-center gap-3">
+                                    <User className="w-4 h-4" /> Profil Saya
+                                </Link>
+                                <Link href="/user/settings" onClick={() => setIsMenuOpen(false)} className="text-sm font-medium text-gray-300 hover:text-white flex items-center gap-3">
+                                    <Settings className="w-4 h-4" /> Pengaturan
+                                </Link>
+                                <button onClick={handleLogout} className="text-sm font-bold text-red-400 hover:text-red-300 flex items-center gap-3 text-left w-full">
+                                    <LogOut className="w-4 h-4" /> Keluar Akun
+                                </button>
                             </div>
                         </div>
-                        <div className="flex flex-col gap-5 pl-2">
-                            <Link href="/profile" onClick={() => setIsMenuOpen(false)} className="text-sm font-medium text-gray-300 hover:text-white flex items-center gap-3">
-                                <User className="w-4 h-4" /> Profil Saya
-                            </Link>
-                            <Link href="/user/settings" onClick={() => setIsMenuOpen(false)} className="text-sm font-medium text-gray-300 hover:text-white flex items-center gap-3">
-                                <Settings className="w-4 h-4" /> Pengaturan
-                            </Link>
-                            <button onClick={handleLogout} className="text-sm font-bold text-red-400 hover:text-red-300 flex items-center gap-3 text-left w-full">
-                                <LogOut className="w-4 h-4" /> Keluar Akun
-                            </button>
-                        </div>
-                    </div>
+                    )}
                 </div>
             )}
         </nav>

@@ -13,8 +13,15 @@ export default function HistoryCard({
         <div className="bg-[#FDFBF5] rounded-xl overflow-hidden shadow-sm hover:shadow-md border border-gray-200/60 transition-all flex flex-col sm:flex-row h-auto sm:h-56">
 
             {/* Gambar & Badge */}
-            <div className="w-full sm:w-[40%] h-48 sm:h-full relative shrink-0">
-                <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+            <div className="w-full sm:w-[40%] h-48 sm:h-full relative shrink-0 bg-gray-100">
+                <img 
+                    src={item.image} 
+                    alt={item.title} 
+                    className="w-full h-full object-cover text-transparent"
+                    onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1518605368461-1e1e367803ba?q=80&w=600&auto=format&fit=crop';
+                    }}
+                />
                 <div className="absolute inset-0 bg-black/5"></div>
                 <span className={`absolute top-4 left-4 px-3 py-1.5 text-[10px] font-bold rounded shadow-sm tracking-wider uppercase
           ${item.status === 'SELESAI' ? 'bg-[#8CB954] text-white' : ''}
