@@ -8,16 +8,16 @@ export default function HistoryCard({
     onDetail,
     onPayNow,
     onBookAgain,
-    onCancel
+    // onCancel dihapus dari sini karena pindah ke modal
 }: any) {
     return (
         <div className="bg-[#FDFBF5] rounded-xl overflow-hidden shadow-sm hover:shadow-md border border-gray-200/60 transition-all flex flex-col sm:flex-row h-auto sm:h-56">
 
             {/* Gambar & Badge */}
             <div className="w-full sm:w-[40%] h-48 sm:h-full relative shrink-0 bg-gray-100">
-                <img 
-                    src={item.image} 
-                    alt={item.title} 
+                <img
+                    src={item.image}
+                    alt={item.title}
                     className="w-full h-full object-cover text-transparent"
                     onError={(e) => {
                         e.currentTarget.src = 'https://images.unsplash.com/photo-1518605368461-1e1e367803ba?q=80&w=600&auto=format&fit=crop';
@@ -69,21 +69,12 @@ export default function HistoryCard({
                     </button>
 
                     {item.status === 'TERTUNDA' ? (
-                        <>
-                            {/* Tambahan Tombol Batalkan */}
-                            <button
-                                onClick={() => onCancel(item.id)}
-                                className="flex-1 py-2.5 text-xs font-bold text-red-600 border border-red-200 bg-red-50 rounded hover:bg-red-100 transition tracking-wide text-center"
-                            >
-                                BATALKAN
-                            </button>
-                            <button
-                                onClick={() => onPayNow(item.price)}
-                                className="flex-1 py-2.5 text-xs font-bold bg-black text-white rounded hover:bg-gray-800 transition shadow-md shadow-black/20 tracking-wide text-center"
-                            >
-                                BAYAR
-                            </button>
-                        </>
+                        <button
+                            onClick={() => onPayNow(item.price)}
+                            className="flex-1 py-2.5 text-xs font-bold bg-black text-white rounded hover:bg-gray-800 transition shadow-md shadow-black/20 tracking-wide text-center"
+                        >
+                            BAYAR
+                        </button>
                     ) : (
                         <button
                             onClick={() => onBookAgain(item.facilityId)}

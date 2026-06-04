@@ -71,10 +71,10 @@ export default function RiwayatPage() {
             setError(null);
             const bookings = await getAllBookings();
             const mapped = bookings.map(mapToHistoryItem);
-            
+
             // Urutkan dari yang terbaru
             mapped.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-            
+
             setHistoryData(mapped);
         } catch (err) {
             console.error('Gagal mengambil data riwayat:', err);
@@ -278,7 +278,7 @@ export default function RiwayatPage() {
                                 onDetail={(item: HistoryItem) => setSelectedDetailItem(item)}
                                 onPayNow={() => router.push(`/invoice?booking_id=${item.id}`)}
                                 onBookAgain={(id: number) => router.push(`/booking/${id || 1}`)}
-                                onCancel={handleCancelBooking} // <-- Pass handler pembatalan ke komponen
+                            // onCancel dihapus dari sini karena sudah pindah ke modal
                             />
                         ))}
                     </div>
@@ -289,6 +289,7 @@ export default function RiwayatPage() {
                 item={selectedDetailItem}
                 onClose={() => setSelectedDetailItem(null)}
                 formatRupiah={formatRupiah}
+                onCancel={handleCancelBooking} // <-- PINDAHKAN KE SINI
             />
 
         </div>

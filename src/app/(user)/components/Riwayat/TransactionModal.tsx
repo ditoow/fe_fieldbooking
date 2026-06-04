@@ -8,31 +8,31 @@ import {
 // Import interface HistoryItem yang sudah kamu definisikan di halaman riwayat
 import { HistoryItem } from "@/app/(user)/riwayat/page";
 
-// Membuat definisi tipe (interface) untuk props komponen
+// Menambahkan prop onCancel ke dalam interface
 interface TransactionModalProps {
     item: HistoryItem | null;
     onClose: () => void;
     formatRupiah: (angka: number) => string;
+    onCancel?: (id: any) => void;
 }
 
 export default function TransactionModal({
     item,
     onClose,
-    formatRupiah
+    formatRupiah,
+    onCancel // Menerima prop onCancel
 }: TransactionModalProps) {
     return (
         <Dialog open={!!item} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="bg-[#FDFBF5] border-gray-200 p-0 overflow-hidden sm:max-w-sm [&>button]:text-white [&>button]:top-5 [&>button]:right-5">
-                
+
                 <DialogHeader className="bg-[#1B3627] text-white p-6 text-center m-0">
                     <DialogTitle className="text-base font-bold tracking-wide text-center">
                         Detail Transaksi
                     </DialogTitle>
-                    <p className="text-[9px] uppercase tracking-widest text-[#8CB954] mt-1 text-center">
-                        {item?.id}
-                    </p>
+                    {/* ID Pesanan dihapus dari sini */}
                 </DialogHeader>
-                
+
                 {item && (
                     <div className="p-6 space-y-4">
                         <div>
@@ -61,7 +61,27 @@ export default function TransactionModal({
                             <span className="text-xs font-bold text-gray-600">Total Biaya</span>
                             <span className="text-base font-black">Rp {formatRupiah(item.price)}</span>
                         </div>
-                        <button onClick={onClose} className="w-full mt-2 py-2.5 bg-[#1B3627] text-white text-xs font-bold rounded hover:bg-[#132A1D] transition">Tutup</button>
+
+                        {/* Area Tombol di dalam Modal */}
+                        <div className="mt-4 flex flex-col gap-2">
+                            {item.status === 'TERTUNDA' && onCancel && (
+                                <button
+                                    onClick={() => {
+                                        onCancel(item.id);
+                                        onClose(); // Opsional: otomatis menutup modal saat klik batalkan
+                                    }}
+                                    className="w-full py-2.5 bg-red-50 text-red-600 border border-red-200 text-xs font-bold rounded hover:bg-red-100 transition tracking-wide"
+                                >
+                                    BATALKAN
+                                </button>
+                            )}
+                            <button
+                                onClick={onClose}
+                                className="w-full py-2.5 bg-[#1B3627] text-white text-xs font-bold rounded hover:bg-[#132A1D] transition tracking-wide"
+                            >
+                                TUTUP
+                            </button>
+                        </div>
                     </div>
                 )}
             </DialogContent>
