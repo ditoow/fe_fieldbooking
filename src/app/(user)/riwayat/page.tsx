@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import HistoryCard from "../components/Riwayat/HistoryCard";
 import TransactionModal from "../components/Riwayat/TransactionModal";
-import { getAllBookings } from "@/lib/api/booking";
+import { getAllBookings, cancelBookingApi } from "@/lib/api/booking";
 import type { BookingDetail } from "@/lib/api/booking";
 
 export interface HistoryItem {
@@ -65,34 +65,69 @@ export default function RiwayatPage() {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchBookings = async () => {
-            try {
-                setIsLoading(true);
-                setError(null);
-                const bookings = await getAllBookings();
-                const mapped = bookings.map(mapToHistoryItem);
-                
-                // Urutkan dari yang terbaru
-                mapped.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-                
-                setHistoryData(mapped);
-            } catch (err) {
-                console.error('Gagal mengambil data riwayat:', err);
-                // Fallback ke localStorage jika API error (opsional)
-                const savedHistory = localStorage.getItem('booking_history');
-                if (savedHistory) {
-                    setHistoryData(JSON.parse(savedHistory));
-                } else {
-                    setError('Gagal memuat riwayat pemesanan. Silakan coba lagi.');
-                }
-            } finally {
-                setIsLoading(false);
+    const fetchBookings = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+            const bookings = await getAllBookings();
+            const mapped = bookings.map(mapToHistoryItem);
+            
+            // Urutkan dari yang terbaru
+            mapped.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            
+            setHistoryData(mapped);
+        } catch (err) {
+            console.error('Gagal mengambil data riwayat:', err);
+            // Fallback ke localStorage jika API error (opsional)
+            const savedHistory = localStorage.getItem('booking_history');
+            if (savedHistory) {
+                setHistoryData(JSON.parse(savedHistory));
+            } else {
+                setError('Gagal memuat riwayat pemesanan. Silakan coba lagi.');
             }
-        };
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchBookings();
     }, []);
+
+    // FUNGSI UNTUK MEMBATALKAN PESANAN
+    const handleCancelBooking = async (bookingId: string) => {
+        const isConfirm = window.confirm("Apakah Anda yakin ingin membatalkan pesanan ini?");
+        if (!isConfirm) return;
+
+        try {
+            // Mengubah state lokal secara langsung agar UI langsung responsif (Optimistic Update)
+            setHistoryData(prevData =>
+                prevData.map(item =>
+                    item.id === bookingId
+                        ? { ...item, status: "DIBATALKAN", note: "Dibatalkan oleh pengguna" }
+                        : item
+                )
+            );
+
+            // MEMANGGIL API KE BACKEND
+            await cancelBookingApi(bookingId);
+
+            alert("Pesanan berhasil dibatalkan!");
+
+            // Refetch data dari server setelah cancel untuk memastikan sinkronisasi
+            fetchBookings();
+
+        } catch (err: any) {
+            console.error('Gagal membatalkan pesanan:', err);
+
+            // Tangkap pesan error dari backend jika ada
+            const errorMessage = err.response?.data?.message || "Terjadi kesalahan. Gagal membatalkan pesanan.";
+            alert(errorMessage);
+
+            // Jika API gagal, kembalikan data ke kondisi awal dengan fetch ulang
+            fetchBookings();
+        }
+    };
 
     const validHistory = historyData.filter(item => item.status !== "DIBATALKAN");
     const totalKunjungan = validHistory.length;
@@ -243,6 +278,7 @@ export default function RiwayatPage() {
                                 onDetail={(item: HistoryItem) => setSelectedDetailItem(item)}
                                 onPayNow={() => router.push(`/invoice?booking_id=${item.id}`)}
                                 onBookAgain={(id: number) => router.push(`/booking/${id || 1}`)}
+                                onCancel={handleCancelBooking} // <-- Pass handler pembatalan ke komponen
                             />
                         ))}
                     </div>

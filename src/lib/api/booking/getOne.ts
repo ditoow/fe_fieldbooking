@@ -1,4 +1,5 @@
 import api from '../../api';
+
 export interface BookingDetail {
     id: number;
     booking_number: string;
@@ -6,6 +7,8 @@ export interface BookingDetail {
     booking_type: string;
     total_price: number;
     file_url: string | null;
+    qr_id?: string | null;
+    qr_string?: string | null;
     is_attended: boolean;
     attended_at: string | null;
     expires_at: string | null;
