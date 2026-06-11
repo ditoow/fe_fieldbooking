@@ -46,13 +46,17 @@ export default function ConfirmModal({
         setError("");
 
         try {
-            const schedule_ids = selectedSlots.map(s => s.id);
+            // Membentuk payload baru sesuai skema on-demand
+            const payload = {
+                field_id: field.id,
+                date: dates[selectedDate].fullDateISO,
+                time_slots: selectedSlots.map(s => s.start_time)
+            };
 
             // DEBUG — lihat apa yang dikirim ke BE
-            console.log('selectedSlots:', selectedSlots);
-            console.log('schedule_ids yang dikirim:', schedule_ids);
+            console.log('payload yang dikirim:', payload);
 
-            const result = await createBooking(schedule_ids);
+            const result = await createBooking(payload);
 
             // DEBUG — lihat response dari BE
             console.log('result booking:', result);
@@ -102,7 +106,7 @@ export default function ConfirmModal({
                             <div>
                                 <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">WAKTU ({selectedSlots.length} Sesi)</p>
                                 <p className="text-xs font-bold text-[#1B3627]">
-                                    {selectedSlots.map(s => s.start_time).join(", ")}
+                                    {selectedSlots.map(s => `${s.start_time} - ${s.end_time}`).join(", ")}
                                 </p>
                             </div>
                         </div>

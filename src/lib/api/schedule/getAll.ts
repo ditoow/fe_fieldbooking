@@ -1,11 +1,11 @@
 import api from '../../api';
 
 export interface Slot {
-    id: number;
+    id?: number; // Opsional karena slot virtual tidak memiliki ID
     start_time: string;
     end_time: string;
-    price: string;
-    status: string;   // "available" / "booked"
+    price: string | number;
+    status: "available" | "booked" | "maintenance";
 }
 
 export interface ScheduleDay {

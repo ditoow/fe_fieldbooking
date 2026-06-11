@@ -34,27 +34,36 @@ export default function BookingSummary({
                             <CalendarIcon className="w-4 h-4" />
                         </div>
                         <div>
-                            <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">PILIH TANGGAL</p>
-                            <p className="text-xs font-bold">{dates.find(d => d.id === selectedDate)?.fullDate || "-"}</p>
+                            <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Date</p>
+                            <p className="text-xs font-bold">{dates[selectedDate]?.fullDate}</p>
                         </div>
                     </div>
-                    <div className="flex gap-3 items-center">
-                        <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center text-green-700">
+                    <div className="flex gap-3 items-start">
+                        <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center text-[#8b5a2b] shrink-0">
                             <Clock className="w-4 h-4" />
                         </div>
-                        <div>
-                            <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">WAKTU ({selectedSlots.length} Sesi)</p>
-                            <p className="text-xs font-bold">
-                                {selectedSlots.length > 0
-                                    ? selectedSlots.map(s => s.start_time).join(", ")
-                                    : "-"
-                                }
-                            </p>
+                        <div className="flex-1">
+                            <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Time Slots ({selectedSlots.length})</p>
+                            {selectedSlots.length === 0 ? (
+                                <p className="text-xs text-gray-400 italic mt-0.5">No slots selected</p>
+                            ) : (
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                    {selectedSlots.map((slot) => (
+                                        <span
+                                            key={slot.start_time} // Diubah ke start_time karena id bisa bernilai undefined
+                                            className="text-[10px] font-bold bg-[#8b5a2b]/10 text-[#8b5a2b] px-2 py-0.5 rounded"
+                                        >
+                                            {slot.start_time} - {slot.end_time} {/* Menampilkan jam mulai dan selesai secara rinci */}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
+
                 <div className="border-t border-gray-200/60 pt-4 mb-6">
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">TOTAL HARGA</p>
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Total Price</p>
                     <div className="flex justify-between items-baseline">
                         <p className="text-xl font-black">Rp {formatRupiah(String(totalHarga))}</p>
                         <span className="text-[9px] text-gray-400 font-medium">Tax included</span>
@@ -64,8 +73,8 @@ export default function BookingSummary({
                     onClick={onConfirmClick}
                     disabled={selectedSlots.length === 0}
                     className={`w-full py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider text-white transition-all text-center ${selectedSlots.length > 0
-                            ? "bg-[#8b5a2b] hover:bg-[#724a23]"
-                            : "bg-gray-300 cursor-not-allowed"
+                        ? "bg-[#8b5a2b] hover:bg-[#724a23]"
+                        : "bg-gray-300 cursor-not-allowed"
                         }`}
                 >
                     Confirm & Book Now →

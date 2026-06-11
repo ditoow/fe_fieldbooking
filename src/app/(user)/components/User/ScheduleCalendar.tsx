@@ -68,25 +68,20 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
 
     const dates = generateDatesByOffset(weekOffset);
 
-    // Otomatis pilih hari ini saat pertama kali load
     useEffect(() => {
         const today = new Date();
         const todayISO = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-        // Cari index hari ini di array dates
         const todayIndex = dates.findIndex(d => d.fullDateISO === todayISO);
 
         if (todayIndex !== -1) {
-            // Kalau hari ini ada di minggu ini, pilih hari ini
             setSelectedDate(todayIndex);
         } else {
-            // Kalau tidak ada (misal weekOffset > 0), pilih hari pertama yang tidak past
             const firstValid = dates.find(d => !d.isPast);
             if (firstValid) setSelectedDate(firstValid.id);
         }
-    }, []); // Hanya jalan sekali saat pertama load
+    }, []);
 
-    // Fetch schedules dari BE setiap kali minggu berubah
     useEffect(() => {
         const fetchSchedules = async () => {
             if (dates.length === 0) return;
@@ -116,15 +111,12 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
     const currentSlots = schedules.find(s => s.date === selectedDateISO)?.slots ?? [];
     const totalHarga = selectedSlots.reduce((acc, slot) => acc + Number(slot.price), 0);
 
-    // Cek apakah slot sudah lewat jam sekarang (hanya berlaku untuk hari ini)
     const isSlotPast = (slot: Slot): boolean => {
         const today = new Date();
         const todayISO = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-        // Kalau bukan hari ini, semua slot valid
         if (selectedDateISO !== todayISO) return false;
 
-        // Kalau hari ini, cek apakah jam slot sudah lewat
         const currentHour = today.getHours();
         const currentMinute = today.getMinutes();
         const [slotHour, slotMinute] = slot.start_time.split(':').map(Number);
@@ -158,9 +150,10 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
     };
 
     const toggleSlot = (slot: Slot) => {
-        const isSelected = selectedSlots.some(s => s.id === slot.id);
+        // Tracker sekarang menggunakan start_time alih-alih ID
+        const isSelected = selectedSlots.some(s => s.start_time === slot.start_time);
         if (isSelected) {
-            setSelectedSlots(selectedSlots.filter(s => s.id !== slot.id));
+            setSelectedSlots(selectedSlots.filter(s => s.start_time !== slot.start_time));
         } else {
             setSelectedSlots([...selectedSlots, slot]);
         }
@@ -266,6 +259,10 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
                             <span className="text-[9px] text-gray-400 font-bold uppercase">Booked</span>
                         </div>
                         <div className="flex items-center gap-1.5">
+                            <div className="w-3 h-3 rounded-sm bg-red-100 border border-red-200"></div>
+                            <span className="text-[9px] text-gray-400 font-bold uppercase">Maintenance</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
                             <div className="w-3 h-3 rounded-sm bg-[#F5F2E9] opacity-50"></div>
                             <span className="text-[9px] text-gray-400 font-bold uppercase">Past</span>
                         </div>
@@ -292,38 +289,43 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
                     ) : (
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             {currentSlots.map((slot) => {
-                                const isSelected = selectedSlots.some(s => s.id === slot.id);
+                                const isSelected = selectedSlots.some(s => s.start_time === slot.start_time);
                                 const isBooked = slot.status === "booked";
+                                const isMaintenance = slot.status === "maintenance";
                                 const isPast = isSlotPast(slot);
 
                                 return (
                                     <Button
-                                        key={slot.id}
-                                        disabled={isBooked || isPast}
+                                        key={slot.start_time} // Menggunakan start_time karena id bisa undefined
+                                        disabled={isBooked || isPast || isMaintenance}
                                         variant="outline"
                                         onClick={() => toggleSlot(slot)}
-                                        className={`p-4 rounded-xl flex flex-col items-start justify-between border text-left h-19 transition-all relative ${isBooked
-                                            ? "bg-[#EFEFEF]/60 border-transparent opacity-100 cursor-not-allowed hover:bg-[#EFEFEF]/60"
-                                            : isPast
-                                                ? "bg-[#F5F2E9] border-transparent opacity-50 cursor-not-allowed hover:bg-[#F5F2E9]"
-                                                : isSelected
-                                                    ? "bg-[#8b5a2b] border-[#8b5a2b] text-white hover:bg-[#724a23] hover:text-white"
-                                                    : "bg-white border-gray-100 text-gray-800 hover:border-gray-300 hover:bg-white"
+                                        className={`p-4 rounded-xl flex flex-col items-start justify-between border text-left h-19 transition-all relative ${isMaintenance
+                                            ? "bg-red-50/70 border-red-100/50 text-red-400 cursor-not-allowed hover:bg-red-50/70"
+                                            : isBooked
+                                                ? "bg-[#EFEFEF]/60 border-transparent opacity-100 cursor-not-allowed hover:bg-[#EFEFEF]/60"
+                                                : isPast
+                                                    ? "bg-[#F5F2E9] border-transparent opacity-50 cursor-not-allowed hover:bg-[#F5F2E9]"
+                                                    : isSelected
+                                                        ? "bg-[#8b5a2b] border-[#8b5a2b] text-white hover:bg-[#724a23] hover:text-white"
+                                                        : "bg-white border-gray-100 text-gray-800 hover:border-gray-300 hover:bg-white"
                                             }`}
                                     >
-                                        <span className={`text-xs font-bold ${isBooked || isPast ? "text-gray-400" : isSelected ? "text-white" : "text-gray-800"
+                                        <span className={`text-xs font-bold ${isBooked || isPast || isMaintenance ? "text-gray-400" : isSelected ? "text-white" : "text-gray-800"
                                             }`}>
-                                            {slot.start_time}
+                                            {slot.start_time} - {slot.end_time}
                                         </span>
-                                        <span className={`text-[8px] font-black tracking-widest uppercase rounded px-1.5 py-0.5 ${isBooked
-                                            ? "bg-[#1B3627] text-white"
-                                            : isPast
-                                                ? "bg-gray-200 text-gray-500"
-                                                : isSelected
-                                                    ? "bg-white/20 text-white"
-                                                    : "text-gray-400 bg-gray-50"
+                                        <span className={`text-[8px] font-black tracking-widest uppercase rounded px-1.5 py-0.5 ${isMaintenance
+                                            ? "bg-red-100 text-red-500"
+                                            : isBooked
+                                                ? "bg-[#1B3627] text-white"
+                                                : isPast
+                                                    ? "bg-gray-200 text-gray-500"
+                                                    : isSelected
+                                                        ? "bg-white/20 text-white"
+                                                        : "text-gray-400 bg-gray-50"
                                             }`}>
-                                            {isBooked ? "BOOKED" : isPast ? "PAST" : isSelected ? "SELECTED" : "AVAILABLE"}
+                                            {isMaintenance ? "MAINTENANCE" : isBooked ? "BOOKED" : isPast ? "PAST" : isSelected ? "SELECTED" : "AVAILABLE"}
                                         </span>
                                     </Button>
                                 );
