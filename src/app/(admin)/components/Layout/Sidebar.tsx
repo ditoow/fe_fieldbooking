@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 
 const navItems = [
   { name: 'Dashboard', href: '/admin-dashboard', icon: LayoutDashboard },
-  { name: 'Verifikasi User', href: '/admin-verifikasi-user', icon: Users },
+  { name: 'Manajemen User', href: '/admin-verifikasi-user', icon: Users },
   { name: 'Kelola Lapangan', href: '/admin-kelola-lapangan', icon: Building },
   { name: 'Laporan', href: '/admin-laporan', icon: FileText },
 ];

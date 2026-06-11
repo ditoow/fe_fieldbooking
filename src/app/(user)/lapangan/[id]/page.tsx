@@ -6,7 +6,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { 
     ChevronLeft, ChevronRight, Star, MapPin, Loader2, AlertCircle, CheckCircle, 
-    XCircle, Clock, Info, ShieldCheck, Car, Wind, Users, Coffee, Droplets
+    XCircle, Clock, Info, ShieldCheck, Car, Wind, Users, Coffee, Droplets,
+    Maximize, Layers, Lightbulb, Activity
 } from "lucide-react";
 import { getFieldById, Field } from "@/lib/api/field";
 
@@ -62,13 +63,12 @@ export default function FieldDetailPage() {
         );
     }
 
-    // Dummy Amenities
-    const amenities = [
-        { icon: <Car className="w-5 h-5" />, label: "Parkir Luas" },
-        { icon: <Droplets className="w-5 h-5" />, label: "Kamar Mandi" },
-        { icon: <Wind className="w-5 h-5" />, label: "Sirkulasi Udara" },
-        { icon: <Users className="w-5 h-5" />, label: "Ruang Tunggu" },
-        { icon: <Coffee className="w-5 h-5" />, label: "Kantin/Kafetaria" },
+    // Spesifikasi Lapangan (bisa diganti dinamis dari API nanti)
+    const specifications = [
+        { icon: <Maximize className="w-5 h-5" />, label: "Ukuran Standar Internasional", subLabel: "Dimensi sesuai regulasi" },
+        { icon: <Layers className="w-5 h-5" />, label: "Material Lantai Premium", subLabel: field?.surface_type || "Sintetis Kualitas Tinggi" },
+        { icon: <Lightbulb className="w-5 h-5" />, label: "Pencahayaan LED Terang", subLabel: "Visibilitas maksimal malam hari" },
+        { icon: <Activity className="w-5 h-5" />, label: "Level Kompetisi", subLabel: "Cocok untuk turnamen & latihan" },
     ];
 
     const galleryImages = field ? [
@@ -237,19 +237,22 @@ export default function FieldDetailPage() {
                             </div>
                         </section>
                         
-                        {/* Amenities Section */}
+                        {/* Specifications Section */}
                         <section className="bg-white rounded-3xl p-8 sm:p-10 shadow-xl shadow-gray-200/40 border border-gray-100 animate-in fade-in slide-in-from-bottom-12 duration-700 delay-300 fill-mode-both">
                             <div className="flex items-center gap-3 mb-8">
                                 <div className="w-2 h-8 bg-[#E5C3A6] rounded-full"></div>
-                                <h3 className="text-2xl sm:text-3xl font-extrabold text-[#1B3627] tracking-tight">Fasilitas Premium</h3>
+                                <h3 className="text-2xl sm:text-3xl font-extrabold text-[#1B3627] tracking-tight">Spesifikasi Lapangan</h3>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                                {amenities.map((item, index) => (
-                                    <div key={index} className="flex items-center gap-4 p-4 rounded-2xl bg-[#F9F8F4] border border-gray-100 hover:bg-white hover:shadow-lg hover:border-gray-200 transition-all group">
-                                        <div className="text-[#1B3627] bg-white p-3 rounded-xl shadow-sm group-hover:scale-110 transition-transform duration-300">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                {specifications.map((item, index) => (
+                                    <div key={index} className="flex items-start gap-4 p-5 rounded-2xl bg-[#F9F8F4] border border-gray-100 hover:bg-white hover:shadow-lg hover:border-gray-200 transition-all group">
+                                        <div className="text-[#1B3627] bg-white p-3 rounded-xl shadow-sm group-hover:scale-110 transition-transform duration-300 shrink-0">
                                             {item.icon}
                                         </div>
-                                        <span className="font-bold text-[#1B3627]">{item.label}</span>
+                                        <div className="flex flex-col">
+                                            <span className="font-bold text-[#1B3627] text-lg">{item.label}</span>
+                                            <span className="text-gray-500 text-sm mt-1">{item.subLabel}</span>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
