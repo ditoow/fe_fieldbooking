@@ -1,6 +1,12 @@
 import api from '../../api';
 
-export async function createBooking(schedule_ids: number[]) {
-    const res = await api.post('/bookings', { schedule_ids });
-    return res.data; // { message, data: BookingResource }
+export interface CreateBookingPayload {
+    field_id: number;
+    date: string; // Format: YYYY-MM-DD
+    time_slots: string[]; // Contoh: ["08:00", "09:00"]
+}
+
+export async function createBooking(payload: CreateBookingPayload) {
+    const res = await api.post('/bookings', payload);
+    return res.data; // Mengembalikan { message, data: BookingResource }
 }
