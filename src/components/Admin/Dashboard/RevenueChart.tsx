@@ -1,5 +1,3 @@
-"use client";
-
 import { CartesianGrid, Area, AreaChart, XAxis, YAxis } from "recharts";
 import {
   Card,
@@ -17,25 +15,26 @@ import {
   ChartLegendContent,
 } from "@/components/ui/chart";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 
-const chartData = [
-  { name: 'SENIN', realisasi: 20 },
-  { name: 'SELASA', realisasi: 35 },
-  { name: 'RABU', realisasi: 65 },
-  { name: 'KAMIS', realisasi: 45 },
-  { name: 'JUMAT', realisasi: 55 },
-  { name: 'SABTU', realisasi: 80 },
-];
+interface RevenueTrendItem {
+  name: string;
+  realisasi: number;
+}
+
+interface RevenueChartProps {
+  data: RevenueTrendItem[];
+  loading: boolean;
+}
 
 const chartConfig = {
   realisasi: {
     label: "Realisasi",
-    color: "#2D6A4F", // Menggunakan hijau yang lebih cerah agar gradient terlihat bagus
+    color: "#2D6A4F", 
   },
 } satisfies ChartConfig;
 
-export function RevenueChart() {
+export function RevenueChart({ data, loading }: RevenueChartProps) {
   return (
     <Card className="shadow-sm border-gray-100 border-none sm:border-solid h-full flex flex-col">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -52,55 +51,61 @@ export function RevenueChart() {
         </Link>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col justify-end">
-        <ChartContainer config={chartConfig} className="h-[300px] w-full mt-auto">
-          <AreaChart
-            accessibilityLayer
-            data={chartData}
-            margin={{
-              top: 10,
-              left: -20,
-              right: 10,
-              bottom: 0,
-            }}
-          >
-            <defs>
-              <linearGradient id="colorRealisasi" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-realisasi)" stopOpacity={0.6}/>
-                <stop offset="95%" stopColor="var(--color-realisasi)" stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid vertical={false} strokeDasharray="3 3" />
-            <XAxis
-              dataKey="name"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={10}
-              tick={{ fontSize: 12, fill: '#888' }}
-            />
-            <YAxis 
-              tickLine={false}
-              axisLine={false}
-              tickMargin={10}
-              tick={{ fontSize: 12, fill: '#888' }}
-            />
-            <ChartTooltip 
-              cursor={false} 
-              content={<ChartTooltipContent className="bg-white rounded-xl shadow-lg border-gray-100" />} 
-            />
-            <ChartLegend content={<ChartLegendContent />} verticalAlign="top" align="right" />
-            <Area
-              name="Realisasi"
-              dataKey="realisasi"
-              type="monotone"
-              stroke="var(--color-realisasi)"
-              strokeWidth={3}
-              fillOpacity={1} 
-              fill="url(#colorRealisasi)"
-              dot={{ r: 5, fill: "white", stroke: "var(--color-realisasi)", strokeWidth: 2 }}
-              activeDot={{ r: 7, fill: "var(--color-realisasi)", stroke: "white", strokeWidth: 2 }}
-            />
-          </AreaChart>
-        </ChartContainer>
+        {loading ? (
+          <div className="flex-1 flex justify-center items-center h-[300px]">
+            <Loader2 className="w-8 h-8 animate-spin text-[#2D6A4F]" />
+          </div>
+        ) : (
+          <ChartContainer config={chartConfig} className="h-[300px] w-full mt-auto">
+            <AreaChart
+              accessibilityLayer
+              data={data}
+              margin={{
+                top: 10,
+                left: -20,
+                right: 10,
+                bottom: 0,
+              }}
+            >
+              <defs>
+                <linearGradient id="colorRealisasi" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--color-realisasi)" stopOpacity={0.6}/>
+                  <stop offset="95%" stopColor="var(--color-realisasi)" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} strokeDasharray="3 3" />
+              <XAxis
+                dataKey="name"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={10}
+                tick={{ fontSize: 12, fill: '#888' }}
+              />
+              <YAxis 
+                tickLine={false}
+                axisLine={false}
+                tickMargin={10}
+                tick={{ fontSize: 12, fill: '#888' }}
+              />
+              <ChartTooltip 
+                cursor={false} 
+                content={<ChartTooltipContent className="bg-white rounded-xl shadow-lg border-gray-100" />} 
+              />
+              <ChartLegend content={<ChartLegendContent />} verticalAlign="top" align="right" />
+              <Area
+                name="Realisasi"
+                dataKey="realisasi"
+                type="monotone"
+                stroke="var(--color-realisasi)"
+                strokeWidth={3}
+                fillOpacity={1} 
+                fill="url(#colorRealisasi)"
+                dot={{ r: 5, fill: "white", stroke: "var(--color-realisasi)", strokeWidth: 2 }}
+                activeDot={{ r: 7, fill: "var(--color-realisasi)", stroke: "white", strokeWidth: 2 }}
+              />
+            </AreaChart>
+          </ChartContainer>
+        )}
       </CardContent>
     </Card>
   );

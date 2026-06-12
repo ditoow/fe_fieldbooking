@@ -19,9 +19,13 @@ export interface User {
     updated_at: string;
 }
 
-export const getAllUsers = async (): Promise<User[]> => {
-    // We request pagination = 100 or simply get the default and map data
-    const response = await api.get('/admin/users?per_page=100');
+export const getAllUsers = async (search?: string, role?: string, status?: string): Promise<User[]> => {
+    const params: Record<string, string> = { per_page: '100' };
+    if (search) params.search = search;
+    if (role) params.role = role;
+    if (status) params.status = status;
+
+    const response = await api.get('/admin/users', { params });
     return response.data.data;
 };
 

@@ -1,10 +1,6 @@
-"use client";
-
-import { useEffect, useState } from 'react';
 import { CalendarDays, Clock, CheckCircle2, Users, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
-import api from '@/lib/api';
 
 interface AdminStats {
   total_users?: number;
@@ -13,27 +9,12 @@ interface AdminStats {
   pending_bookings?: number;
 }
 
-export function StatCards() {
-  const [stats, setStats] = useState<AdminStats | null>(null);
-  const [loading, setLoading] = useState(true);
+interface StatCardsProps {
+  stats: AdminStats | null;
+  loading: boolean;
+}
 
-  const fetchStats = async () => {
-    try {
-      // Menggunakan instance api dari src/lib/api.ts
-      // Token otomatis ditambahkan dari localStorage di instance ini
-      const response = await api.get('/admin/stats');
-      setStats(response.data);
-    } catch (error) {
-      console.error("Gagal mengambil data stats:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
+export function StatCards({ stats, loading }: StatCardsProps) {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-10 w-full">
