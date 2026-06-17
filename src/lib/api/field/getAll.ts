@@ -17,11 +17,14 @@ export interface Field {
     surface_type: string;
     rating: number;
     image_url: string;
+    carousel_urls: string[];
     category: string;
     status: string;         // "available" / "maintenance"
     price_min: string | null;
     price_max: string | null;
     schedules: Schedule[];
+    available_slots_today: number;
+    specifications: { label: string; value: string }[];
 }
 
 export async function getAllFields(): Promise<Field[]> {

@@ -12,7 +12,10 @@ export interface BookingDetail {
     is_attended: boolean;
     attended_at: string | null;
     expires_at: string | null;
+    is_reviewed?: boolean;
     field_name: string;
+    field_image_url?: string | null;
+    field_category?: string;
     formatted_date: string;
     formatted_time: string;
     schedules: {

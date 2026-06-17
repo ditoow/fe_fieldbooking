@@ -4,8 +4,9 @@ import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-// FIX: Menghapus import Mail dan Phone yang tidak terpakai
-import { User, Lock, Save, ShieldAlert } from "lucide-react";
+import { User, Lock, Save, ShieldAlert, Loader2 } from "lucide-react";
+import { useAuth } from "@/lib/context/AuthContext";
+import { updateProfile, updatePassword } from "@/lib/api/auth";
 
 interface UserSessionData {
     nama: string;
@@ -16,6 +17,7 @@ interface UserSessionData {
 }
 
 export default function ProfilePage() {
+    const { user, updateUserContext, loading: authLoading } = useAuth();
     const [userData, setUserData] = useState<UserSessionData>({
         nama: "",
         email: "",
@@ -23,6 +25,9 @@ export default function ProfilePage() {
         nim: "",
         phone: ""
     });
+    const [loading, setLoading] = useState(true);
+    const [isSavingProfile, setIsSavingProfile] = useState(false);
+    const [isSavingPassword, setIsSavingPassword] = useState(false);
 
     const [passwordData, setPasswordData] = useState({
         currentPassword: "",
@@ -30,54 +35,91 @@ export default function ProfilePage() {
         confirmPassword: ""
     });
 
-    // Mengambil sesi user yang aktif dari localStorage saat halaman dimuat
     useEffect(() => {
-        // FIX: Membungkus logika set state ke dalam fungsi untuk menghindari cascading renders
-        const fetchUserData = () => {
-            const session = localStorage.getItem("user_session");
-            if (session) {
-                const parsed = JSON.parse(session);
-                setUserData({
-                    nama: parsed.nama || "",
-                    email: parsed.email || "",
-                    role: parsed.role || "Mahasiswa",
-                    nim: parsed.nim || "",
-                    phone: parsed.phone || ""
-                });
-            }
-        };
-        
-        fetchUserData();
-    }, []);
+        if (!authLoading && user) {
+            setUserData({
+                nama: user.name || "",
+                email: user.email || "",
+                role: user.role || user.roles?.[0]?.name || "Mahasiswa",
+                nim: user.student_id || "",
+                phone: user.phone || ""
+            });
+            setLoading(false);
+        } else if (!authLoading && !user) {
+            setLoading(false);
+        }
+    }, [user, authLoading]);
 
-    const handleProfileSubmit = (e: React.FormEvent) => {
+    const handleProfileSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const session = localStorage.getItem("user_session");
-        const currentSession = session ? JSON.parse(session) : {};
+        if (isSavingProfile) return;
 
-        const updatedSession = {
-            ...currentSession,
-            ...userData
-        };
+        setIsSavingProfile(true);
+        try {
+            const res = await updateProfile({
+                name: userData.nama,
+                email: userData.email,
+                phone: userData.phone || "",
+            });
 
-        localStorage.setItem("user_session", JSON.stringify(updatedSession));
-        alert("Profil Anda berhasil diperbarui!");
-        window.location.reload(); // Sinkronisasi ulang data ke Navbar
+            // Update di konteks global (otomatis sync ke Navbar)
+            updateUserContext({
+                name: res.user.name,
+                email: res.user.email,
+                phone: res.user.phone,
+                student_id: res.user.student_id,
+                role: res.user.role || res.user.roles?.[0]?.name,
+                roles: res.user.roles,
+            });
+
+            alert(res.message || "Profil Anda berhasil diperbarui!");
+        } catch (err: any) {
+            console.error(err);
+            const errorMessage = err.response?.data?.message || err.message || "Terjadi kesalahan saat memperbarui profil.";
+            alert(errorMessage);
+        } finally {
+            setIsSavingProfile(false);
+        }
     };
 
-    const handlePasswordSubmit = (e: React.FormEvent) => {
+    const handlePasswordSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isSavingPassword) return;
+
         if (passwordData.newPassword !== passwordData.confirmPassword) {
             alert("Konfirmasi password baru tidak cocok!");
             return;
         }
-        alert("Password berhasil diubah!");
-        setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+
+        setIsSavingPassword(true);
+        try {
+            const res = await updatePassword({
+                current_password: passwordData.currentPassword,
+                new_password: passwordData.newPassword,
+                new_password_confirmation: passwordData.confirmPassword,
+            });
+
+            alert(res.message || "Password berhasil diubah!");
+            setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+        } catch (err: any) {
+            console.error(err);
+            const errorMessage = err.response?.data?.message || err.message || "Terjadi kesalahan saat mengganti password.";
+            alert(errorMessage);
+        } finally {
+            setIsSavingPassword(false);
+        }
     };
+
+    if (loading || authLoading) {
+        return (
+            <div className="max-w-5xl mx-auto px-4 py-20 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-[#1B3627] animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-5xl mx-auto px-4 py-10 font-sans min-height-screen">
-            {/* Header Profil */}
             <div className="bg-[#1B3627] rounded-3xl p-6 md:p-8 text-white mb-8 shadow-lg flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden">
                 <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
                 
@@ -94,10 +136,8 @@ export default function ProfilePage() {
                 </div>
             </div>
 
-            {/* Grid Konten (Gruping Form Menggunakan Shadcn Card) */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 
-                {/* Form Informasi Pribadi (Mengambil 2 Kolom) */}
                 <div className="lg:col-span-2">
                     <Card className="bg-[#FDFBF5] border-gray-200/60 shadow-sm rounded-2xl overflow-hidden">
                         <CardHeader className="border-b border-gray-100 bg-white/50 p-6">
@@ -154,8 +194,21 @@ export default function ProfilePage() {
                                 </div>
 
                                 <div className="pt-2 flex justify-end">
-                                    <Button type="submit" className="bg-[#1B3627] hover:bg-[#132A1D] text-white px-6 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition shadow-md shadow-green-900/10 h-auto">
-                                        <Save className="w-4 h-4" /> Simpan Perubahan
+                                    <Button 
+                                        type="submit" 
+                                        disabled={isSavingProfile}
+                                        className="bg-[#1B3627] hover:bg-[#132A1D] text-white px-6 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition shadow-md shadow-green-900/10 h-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {isSavingProfile ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                Menyimpan...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="w-4 h-4" /> Simpan Perubahan
+                                            </>
+                                        )}
                                     </Button>
                                 </div>
                             </form>
@@ -163,7 +216,6 @@ export default function ProfilePage() {
                     </Card>
                 </div>
 
-                {/* Form Keamanan / Ganti Password (1 Kolom) */}
                 <div className="lg:col-span-1">
                     <Card className="bg-[#FDFBF5] border-gray-200/60 shadow-sm rounded-2xl overflow-hidden">
                         <CardHeader className="border-b border-gray-100 bg-white/50 p-6">
@@ -208,15 +260,25 @@ export default function ProfilePage() {
                                 </div>
 
                                 <div className="pt-2">
-                                    <Button type="submit" className="w-full bg-[#8b5a2b] hover:bg-[#724a23] text-white py-2.5 rounded-xl text-xs font-bold transition shadow-md h-auto">
-                                        Perbarui Password
+                                    <Button 
+                                        type="submit" 
+                                        disabled={isSavingPassword}
+                                        className="w-full bg-[#8b5a2b] hover:bg-[#724a23] text-white py-2.5 rounded-xl text-xs font-bold transition shadow-md h-auto disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    >
+                                        {isSavingPassword ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                Memperbarui...
+                                            </>
+                                        ) : (
+                                            "Perbarui Password"
+                                        )}
                                     </Button>
                                 </div>
                             </form>
                         </CardContent>
                     </Card>
 
-                    {/* Informasi Tambahan Aksesibilitas */}
                     <div className="mt-4 p-4 bg-amber-50/50 border border-amber-200/40 rounded-xl flex gap-3 text-amber-800">
                         <ShieldAlert className="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
                         <p className="text-[11px] font-medium leading-relaxed m-0">

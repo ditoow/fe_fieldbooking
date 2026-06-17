@@ -15,7 +15,14 @@ const nextConfig: NextConfig = {
                 protocol: "https",
                 hostname: "qcizbglhafqgrphobbly.supabase.co",
             },
+            {
+                protocol: "https",
+                hostname: "ruvikuwgtggtcmksafts.supabase.co",
+            },
         ],
+    },
+    experimental: {
+        cpus: 2, // Membatasi compiler thread ke 2 core
     },
 };
 

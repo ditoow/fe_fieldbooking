@@ -5,10 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Leaf, AlertCircle } from "lucide-react";
 import { login } from "@/lib/api/auth";
+import { useAuth } from "@/lib/context/AuthContext";
 import axios from "axios";
 
 export default function LoginPage() {
     const router = useRouter();
+    const { loginContext } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -26,8 +28,8 @@ export default function LoginPage() {
             console.log('user:', result.user);    // tambah ini
             console.log('roles:', result.user?.roles); // tambah ini
 
-            // Simpan data user ke localStorage supaya bisa diakses di halaman lain
-            localStorage.setItem("user_session", JSON.stringify(result.user));
+            // Simpan data ke Context (otomatis set token & session di state & localStorage)
+            loginContext(result.token, result.user);
 
             // Redirect berdasarkan role dari Spatie Permission
             const role = result.user?.roles?.[0]?.name;

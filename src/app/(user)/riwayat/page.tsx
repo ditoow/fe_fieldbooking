@@ -6,8 +6,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import HistoryCard from "../components/Riwayat/HistoryCard";
 import TransactionModal from "../components/Riwayat/TransactionModal";
+import RescheduleModal from "../components/Riwayat/RescheduleModal";
+import RatingModal from "../components/Riwayat/RatingModal";
 import { getAllBookings, cancelBookingApi } from "@/lib/api/booking";
 import type { BookingDetail } from "@/lib/api/booking";
+import { useAuth } from "@/lib/context/AuthContext";
 
 export interface HistoryItem {
     id: string;
@@ -16,17 +19,37 @@ export interface HistoryItem {
     price: number;
     date: string;
     time: string;
-    status: "SELESAI" | "DIBATALKAN" | "TERTUNDA";
+    status: "DIPESAN" | "SELESAI" | "DIBATALKAN" | "TERTUNDA";
     image: string;
     note: string | null;
     createdAt?: number;
     facilityId?: number;
+    schedules?: BookingDetail['schedules'];
+    is_reviewed?: boolean;
 }
 
-function mapStatus(status: string): "SELESAI" | "DIBATALKAN" | "TERTUNDA" {
-    const statusMap: Record<string, "SELESAI" | "DIBATALKAN" | "TERTUNDA"> = {
+function getBookingEndTime(schedules: BookingDetail['schedules']) {
+    if (!schedules || schedules.length === 0) return null;
+    const sorted = [...schedules].sort((a, b) => {
+        const dateTimeA = new Date(`${a.date}T${a.end_time}`);
+        const dateTimeB = new Date(`${b.date}T${b.end_time}`);
+        return dateTimeB.getTime() - dateTimeA.getTime();
+    });
+    return new Date(`${sorted[0].date}T${sorted[0].end_time}`);
+}
+
+function isBookingEnded(schedules: BookingDetail['schedules']) {
+    const endTime = getBookingEndTime(schedules);
+    if (!endTime) return false;
+    return new Date() > endTime;
+}
+
+function mapStatus(status: string, schedules: BookingDetail['schedules']): "DIPESAN" | "SELESAI" | "DIBATALKAN" | "TERTUNDA" {
+    if (status === 'approved') {
+        return isBookingEnded(schedules) ? 'SELESAI' : 'DIPESAN';
+    }
+    const statusMap: Record<string, "DIPESAN" | "SELESAI" | "DIBATALKAN" | "TERTUNDA"> = {
         'pending': 'TERTUNDA',
-        'approved': 'SELESAI',
         'rejected': 'DIBATALKAN',
         'cancelled': 'DIBATALKAN',
     };
@@ -44,15 +67,17 @@ function mapToHistoryItem(booking: BookingDetail): HistoryItem {
     return {
         id: String(booking.id),
         title: booking.field_name || "Lapangan",
-        category: booking.field_name || "Umum", // ⚠️ Ganti kalau BE punya field sport/category tersendiri
+        category: booking.field_category || booking.field_name || "Umum",
         price: booking.total_price || 0,
         date: booking.formatted_date || "-",
         time: booking.formatted_time || "-",
-        status: mapStatus(booking.status),
-        image: defaultImage,
+        status: mapStatus(booking.status, booking.schedules),
+        image: booking.field_image_url || defaultImage,
         note: null,
         createdAt: new Date(booking.created_at).getTime(),
         facilityId: booking.schedules?.[0]?.field_id || 1,
+        schedules: booking.schedules,
+        is_reviewed: booking.is_reviewed,
     };
 }
 
@@ -61,7 +86,11 @@ export default function RiwayatPage() {
     const [historyData, setHistoryData] = useState<HistoryItem[]>([]);
     const [filterStatus, setFilterStatus] = useState<string>("ALL");
     const [showFilterDropdown, setShowFilterDropdown] = useState<boolean>(false);
+    const { user } = useAuth();
     const [selectedDetailItem, setSelectedDetailItem] = useState<HistoryItem | null>(null);
+    const [selectedRescheduleItem, setSelectedRescheduleItem] = useState<HistoryItem | null>(null);
+    const [selectedRatingItem, setSelectedRatingItem] = useState<HistoryItem | null>(null);
+    const userRole = user?.roles?.[0]?.name || "umum";
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -215,7 +244,7 @@ export default function RiwayatPage() {
                         </button>
                         {showFilterDropdown && (
                             <div className="absolute right-0 mt-2 w-44 bg-white rounded-xl shadow-xl border border-gray-100 z-30 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                                {["ALL", "TERTUNDA", "SELESAI", "DIBATALKAN"].map(status => (
+                                {["ALL", "TERTUNDA", "DIPESAN", "SELESAI", "DIBATALKAN"].map(status => (
                                     <button
                                         key={status}
                                         onClick={() => { setFilterStatus(status); setShowFilterDropdown(false); }}
@@ -290,6 +319,23 @@ export default function RiwayatPage() {
                 onClose={() => setSelectedDetailItem(null)}
                 formatRupiah={formatRupiah}
                 onCancel={handleCancelBooking} // <-- PINDAHKAN KE SINI
+                userRole={userRole}
+                onReschedule={(item) => setSelectedRescheduleItem(item)}
+                onRate={(item) => setSelectedRatingItem(item)}
+            />
+
+            <RescheduleModal
+                isOpen={!!selectedRescheduleItem}
+                onClose={() => setSelectedRescheduleItem(null)}
+                bookingItem={selectedRescheduleItem}
+                onSuccess={fetchBookings}
+            />
+
+            <RatingModal
+                isOpen={!!selectedRatingItem}
+                onClose={() => setSelectedRatingItem(null)}
+                bookingItem={selectedRatingItem}
+                onSuccess={fetchBookings}
             />
 
         </div>

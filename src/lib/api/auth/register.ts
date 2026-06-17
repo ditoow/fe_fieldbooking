@@ -6,6 +6,7 @@ interface RegisterPayload {
   phone: string;
   password: string;
   password_confirmation: string;
+  student_id?: string;
 }
 
 export async function register(payload: RegisterPayload) {

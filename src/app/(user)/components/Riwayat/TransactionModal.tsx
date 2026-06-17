@@ -8,20 +8,51 @@ import {
 // Import interface HistoryItem yang sudah kamu definisikan di halaman riwayat
 import { HistoryItem } from "@/app/(user)/riwayat/page";
 
-// Menambahkan prop onCancel ke dalam interface
+// Menambahkan prop onCancel & onRate ke dalam interface
 interface TransactionModalProps {
     item: HistoryItem | null;
     onClose: () => void;
     formatRupiah: (angka: number) => string;
     onCancel?: (id: any) => void;
+    userRole?: string;
+    onReschedule?: (item: HistoryItem) => void;
+    onRate?: (item: HistoryItem) => void;
 }
 
 export default function TransactionModal({
     item,
     onClose,
     formatRupiah,
-    onCancel // Menerima prop onCancel
+    onCancel, // Menerima prop onCancel
+    userRole,
+    onReschedule,
+    onRate
 }: TransactionModalProps) {
+    
+    // Fungsi pembantu untuk menentukan apakah pemesanan bisa di-reschedule (sisa waktu >= 2 jam)
+    const canReschedule = (schedules: any[] | undefined) => {
+        if (!schedules || schedules.length === 0) return false;
+        
+        // Cari jadwal mulai paling awal
+        const sorted = [...schedules].sort((a, b) => {
+            const dateTimeA = new Date(`${a.date}T${a.start_time}`);
+            const dateTimeB = new Date(`${b.date}T${b.start_time}`);
+            return dateTimeA.getTime() - dateTimeB.getTime();
+        });
+        
+        const startTime = new Date(`${sorted[0].date}T${sorted[0].start_time}`);
+        const diffMs = startTime.getTime() - Date.now();
+        const diffHours = diffMs / (1000 * 60 * 60);
+        return diffHours >= 2;
+    };
+
+    const isRescheduleAvailable = 
+        item && 
+        item.status === 'DIPESAN' && 
+        userRole?.toLowerCase() === 'mahasiswa' && 
+        onReschedule && 
+        canReschedule(item.schedules);
+
     return (
         <Dialog open={!!item} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="bg-[#FDFBF5] border-gray-200 p-0 overflow-hidden sm:max-w-sm [&>button]:text-white [&>button]:top-5 [&>button]:right-5">
@@ -30,7 +61,6 @@ export default function TransactionModal({
                     <DialogTitle className="text-base font-bold tracking-wide text-center">
                         Detail Transaksi
                     </DialogTitle>
-                    {/* ID Pesanan dihapus dari sini */}
                 </DialogHeader>
 
                 {item && (
@@ -52,7 +82,10 @@ export default function TransactionModal({
                         <div className="border-t border-gray-200/60 pt-3">
                             <div className="flex justify-between items-center">
                                 <span className="text-xs font-medium text-gray-500">Status Pembayaran</span>
-                                <span className={`text-[10px] font-black tracking-wider uppercase px-2 py-0.5 rounded ${item.status === 'SELESAI' ? 'bg-green-100 text-green-700' : item.status === 'DIBATALKAN' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                                <span className={`text-[10px] font-black tracking-wider uppercase px-2 py-0.5 rounded 
+                                    ${item.status === 'SELESAI' ? 'bg-green-100 text-green-700' : 
+                                      item.status === 'DIPESAN' ? 'bg-amber-100 text-[#8b5a2b]' : 
+                                      item.status === 'DIBATALKAN' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}>
                                     {item.status}
                                 </span>
                             </div>
@@ -68,13 +101,38 @@ export default function TransactionModal({
                                 <button
                                     onClick={() => {
                                         onCancel(item.id);
-                                        onClose(); // Opsional: otomatis menutup modal saat klik batalkan
+                                        onClose();
                                     }}
                                     className="w-full py-2.5 bg-red-50 text-red-600 border border-red-200 text-xs font-bold rounded hover:bg-red-100 transition tracking-wide"
                                 >
                                     BATALKAN
                                 </button>
                             )}
+                            
+                            {isRescheduleAvailable && onReschedule && (
+                                <button
+                                    onClick={() => {
+                                        onReschedule(item);
+                                        onClose();
+                                    }}
+                                    className="w-full py-2.5 bg-[#f6ebd7]/60 text-[#8b5a2b] border border-amber-200 text-xs font-bold rounded hover:bg-[#ebd5c1]/60 transition tracking-wide"
+                                >
+                                    RESCHEDULE JADWAL
+                                </button>
+                            )}
+
+                            {item.status === 'SELESAI' && !item.is_reviewed && onRate && (
+                                <button
+                                    onClick={() => {
+                                        onRate(item);
+                                        onClose();
+                                    }}
+                                    className="w-full py-2.5 bg-[#8b5a2b] text-white text-xs font-bold rounded hover:bg-[#724a23] transition tracking-wide shadow-sm"
+                                >
+                                    BERI RATING
+                                </button>
+                            )}
+
                             <button
                                 onClick={onClose}
                                 className="w-full py-2.5 bg-[#1B3627] text-white text-xs font-bold rounded hover:bg-[#132A1D] transition tracking-wide"
