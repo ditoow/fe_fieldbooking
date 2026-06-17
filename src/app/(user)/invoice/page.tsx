@@ -27,11 +27,12 @@ function InvoiceContent() {
     ? "api.sandbox.midtrans.com"
     : "api.midtrans.com";
   const qrImageUrl =
-    booking?.qr_string && booking.qr_string.startsWith("http")
+    booking?.qr_image_url ||
+    (booking?.qr_string && booking.qr_string.startsWith("http")
       ? booking.qr_string
       : booking?.qr_id
         ? `https://${midtransDomain}/v2/qris/${booking.qr_id}/qr-code`
-        : "";
+        : "");
 
   // Fetch data booking dari BE
   useEffect(() => {
