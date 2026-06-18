@@ -53,6 +53,8 @@ export default function KelolaLapanganPage() {
     status: 'available',
     image: '',
     imageFile: null as File | null,
+    additionalImageFiles: [] as File[],
+    additionalImageUrls: [] as string[],
   });
 
   const fetchFields = async () => {
@@ -86,6 +88,8 @@ export default function KelolaLapanganPage() {
       status: facility.status || 'available',
       image: facility.image_url || '',
       imageFile: null,
+      additionalImageFiles: [],
+      additionalImageUrls: facility.carousel_urls || [],
     });
     setOpenDropdownId(null);
   };
@@ -104,15 +108,55 @@ export default function KelolaLapanganPage() {
       status: 'available',
       image: '',
       imageFile: null,
+      additionalImageFiles: [],
+      additionalImageUrls: [],
     });
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    if (e.target.files && e.target.files.length > 0) {
+      const files = Array.from(e.target.files);
+      const file = files[0];
       const url = URL.createObjectURL(file);
-      setEditForm({ ...editForm, image: url, imageFile: file });
+      
+      const extraFiles = files.slice(1);
+      const extraUrls = extraFiles.map(f => URL.createObjectURL(f));
+
+      setEditForm(prev => ({ 
+        ...prev, 
+        image: url, 
+        imageFile: file,
+        additionalImageFiles: [...prev.additionalImageFiles, ...extraFiles],
+        additionalImageUrls: [...prev.additionalImageUrls, ...extraUrls]
+      }));
     }
+  };
+
+  const handleAddMoreImages = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const files = Array.from(e.target.files);
+      const urls = files.map(f => URL.createObjectURL(f));
+      
+      setEditForm(prev => ({
+        ...prev,
+        additionalImageFiles: [...prev.additionalImageFiles, ...files],
+        additionalImageUrls: [...prev.additionalImageUrls, ...urls]
+      }));
+    }
+  };
+
+  const removeAdditionalImage = (index: number) => {
+    setEditForm(prev => {
+      const newFiles = [...prev.additionalImageFiles];
+      const newUrls = [...prev.additionalImageUrls];
+      newFiles.splice(index, 1);
+      newUrls.splice(index, 1);
+      return {
+        ...prev,
+        additionalImageFiles: newFiles,
+        additionalImageUrls: newUrls
+      };
+    });
   };
 
   const handleDelete = async (id: number) => {
@@ -155,6 +199,11 @@ export default function KelolaLapanganPage() {
       if (editForm.imageFile) {
         formData.append('image_file', editForm.imageFile);
       }
+      
+      // Append additional images for backend (if supported in the future)
+      editForm.additionalImageFiles.forEach((file, idx) => {
+        formData.append(`images[${idx}]`, file);
+      });
 
       if (isAddingFacility) {
         await createField(formData);
@@ -322,13 +371,14 @@ export default function KelolaLapanganPage() {
               
               {/* Photo Edit Section */}
               <div className="mb-6">
-                <p className="text-sm font-bold text-gray-700 mb-2">Foto Fasilitas</p>
-                <div className="relative h-48 w-full rounded-xl overflow-hidden bg-gray-50 border-2 border-dashed border-gray-300 group flex items-center justify-center">
+                <p className="text-sm font-bold text-gray-700 mb-2">Foto Fasilitas (Utama)</p>
+                <div className="relative h-48 w-full rounded-xl overflow-hidden bg-gray-50 border-2 border-dashed border-gray-300 group flex items-center justify-center mb-4">
                   <input 
                     type="file" 
                     accept="image/*" 
                     id="facility-image-upload" 
                     className="hidden" 
+                    multiple
                     onChange={handleImageUpload}
                   />
                   {editForm.image ? (
@@ -345,16 +395,53 @@ export default function KelolaLapanganPage() {
                       <label htmlFor="facility-image-upload" className="absolute inset-0 bg-ugo-sidebar/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
                         <div className="bg-white text-ugo-sidebar px-4 py-2 rounded-lg text-sm font-bold shadow-lg flex items-center gap-2 hover:bg-ugo-primary hover:text-white transition-colors">
                           <ImageIcon className="w-4 h-4" />
-                          Ubah Foto
+                          Ubah Foto Utama
                         </div>
                       </label>
                     </>
                   ) : (
                     <label htmlFor="facility-image-upload" className="flex flex-col items-center gap-2 text-gray-400 group-hover:text-ugo-primary transition-colors cursor-pointer w-full h-full justify-center">
                       <UploadCloud className="w-8 h-8" />
-                      <span className="text-sm font-medium">Klik untuk upload foto</span>
+                      <span className="text-sm font-medium">Upload Foto (Bisa pilih banyak)</span>
                     </label>
                   )}
+                </div>
+
+                {/* Additional Images Carousel */}
+                <div className="w-full">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-bold text-gray-700">Galeri Tambahan (Carousel)</p>
+                    <label htmlFor="additional-image-upload" className="text-xs font-bold text-ugo-primary hover:text-ugo-sidebar cursor-pointer bg-ugo-primary/10 px-3 py-1 rounded-full transition-colors flex items-center gap-1">
+                      <UploadCloud className="w-3 h-3" /> Tambah
+                    </label>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      id="additional-image-upload" 
+                      className="hidden" 
+                      multiple
+                      onChange={handleAddMoreImages}
+                    />
+                  </div>
+                  
+                  <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
+                    {editForm.additionalImageUrls.map((url, idx) => (
+                      <div key={idx} className="relative w-24 h-24 shrink-0 rounded-lg overflow-hidden border border-gray-200 group">
+                        <img src={url} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
+                        <button 
+                          onClick={(e) => { e.preventDefault(); removeAdditionalImage(idx); }}
+                          className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-md"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                    {editForm.additionalImageUrls.length === 0 && (
+                      <div className="w-full py-4 border border-dashed border-gray-200 rounded-lg flex items-center justify-center text-xs text-gray-400 bg-gray-50">
+                        Belum ada foto tambahan.
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 

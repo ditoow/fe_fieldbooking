@@ -102,9 +102,7 @@ export default function FieldDetailPage() {
 
     const galleryImages = field ? [
         field.image_url,
-        "https://images.unsplash.com/photo-1518605368461-1e1e367803ba?q=80&w=2070&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1574680096145-d05b474e2155?q=80&w=2069&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1526232761682-d26e03ac148e?q=80&w=2029&auto=format&fit=crop"
+        ...(field.carousel_urls || [])
     ].filter(Boolean) as string[] : [];
 
     return (
