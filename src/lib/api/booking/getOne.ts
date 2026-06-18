@@ -9,10 +9,14 @@ export interface BookingDetail {
     file_url: string | null;
     qr_id?: string | null;
     qr_string?: string | null;
+    qr_image_url?: string | null;
     is_attended: boolean;
     attended_at: string | null;
     expires_at: string | null;
+    is_reviewed?: boolean;
     field_name: string;
+    field_image_url?: string | null;
+    field_category?: string;
     formatted_date: string;
     formatted_time: string;
     schedules: {

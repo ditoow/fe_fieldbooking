@@ -26,6 +26,7 @@ export default function HistoryCard({
                 <div className="absolute inset-0 bg-black/5"></div>
                 <span className={`absolute top-4 left-4 px-3 py-1.5 text-[10px] font-bold rounded shadow-sm tracking-wider uppercase
           ${item.status === 'SELESAI' ? 'bg-[#8CB954] text-white' : ''}
+          ${item.status === 'DIPESAN' ? 'bg-[#c29867] text-white' : ''}
           ${item.status === 'DIBATALKAN' ? 'bg-red-500 text-white' : ''}
           ${item.status === 'TERTUNDA' ? 'bg-[#d4dfca] text-[#1B3627]' : ''}
         `}>

@@ -14,6 +14,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [studentId, setStudentId] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -23,12 +24,14 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
+      const isStudentEmail = email.toLowerCase().endsWith("@mhs.dinus.ac.id");
       await register({
         name: nama,
         email,
         phone: "+62" + phone,
         password,
         password_confirmation: password,
+        student_id: isStudentEmail ? studentId : undefined,
       });
 
       // BE hanya return { message, user }, tidak ada token
@@ -108,6 +111,20 @@ export default function RegisterPage() {
                 className="w-full bg-[#F5F2E9] border-none rounded-md px-4 py-3 text-sm focus:ring-2 focus:ring-[#EAD0B3] outline-none text-[#1B3627]"
               />
             </div>
+
+            {email.toLowerCase().endsWith("@mhs.dinus.ac.id") && (
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Nomor Induk Mahasiswa (NIM)</label>
+                <input
+                  type="text"
+                  value={studentId}
+                  onChange={(e) => setStudentId(e.target.value)}
+                  placeholder="A11.2023.xxxxx"
+                  required
+                  className="w-full bg-[#F5F2E9] border-none rounded-md px-4 py-3 text-sm focus:ring-2 focus:ring-[#EAD0B3] outline-none text-[#1B3627]"
+                />
+              </div>
+            )}
 
             <div>
               <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">No. HP</label>

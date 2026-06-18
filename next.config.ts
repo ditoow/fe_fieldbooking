@@ -21,6 +21,9 @@ const nextConfig: NextConfig = {
             },
         ],
     },
+    experimental: {
+        cpus: 2, // Membatasi compiler thread ke 2 core
+    },
 };
 
 export default nextConfig;

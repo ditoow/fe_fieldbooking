@@ -1,64 +1,50 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Leaf } from "lucide-react";
-
-// Pakai tipe union biar jelas statusnya ada 3 kemungkinan
-type AuthStatus = "idle" | "authorized" | "unauthorized";
+import { useAuth } from "@/lib/context/AuthContext";
 
 export default function AuthGuard({ children, requireAdmin = false }: { children: React.ReactNode, requireAdmin?: boolean }) {
     const router = useRouter();
-    const [status, setStatus] = useState<AuthStatus>("idle");
+    const { user, token, loading } = useAuth();
 
     useEffect(() => {
-        const token = localStorage.getItem("jwt_token");
-        const sessionStr = localStorage.getItem("user_session");
+        if (loading) return;
 
-        // Wrap di setTimeout(0) — ini trick yang valid untuk menghindari
-        // setState synchronous di dalam effect body
-        // Eksekusinya tetap cepat (next tick), tapi React tidak anggap ini cascading
-        setTimeout(() => {
-            if (!token || !sessionStr) {
-                setStatus("unauthorized");
-                return;
-            }
-
-            if (requireAdmin) {
-                try {
-                    const session = JSON.parse(sessionStr);
-                    // Cek properti role langsung atau dari array roles bawaan Spatie Laravel Permission
-                    const userRole = session?.role || session?.roles?.[0]?.name;
-                    
-                    if (userRole !== "admin") {
-                        setStatus("unauthorized");
-                    } else {
-                        setStatus("authorized");
-                    }
-                } catch (e) {
-                    setStatus("unauthorized");
-                }
-            } else {
-                setStatus("authorized");
-            }
-        }, 0);
-    }, [requireAdmin]);
-
-    // Unauthorized → redirect ke login
-    useEffect(() => {
-        if (status === "unauthorized") {
+        if (!token || !user) {
             router.replace("/login");
+            return;
         }
-    }, [status, router]);
 
-    // idle = belum selesai cek, unauthorized = lagi redirect
-    // keduanya tampilkan loading screen
-    if (status !== "authorized") {
+        if (requireAdmin) {
+            const userRole = user.role || user.roles?.[0]?.name;
+            if (userRole?.toLowerCase() !== "admin") {
+                router.replace("/login");
+            }
+        }
+    }, [loading, token, user, requireAdmin, router]);
+
+    if (loading) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-[#FDFBF5]">
                 <Leaf className="w-10 h-10 text-[#8CB954] animate-pulse mb-4" />
                 <p className="text-[#1B3627] font-bold text-sm tracking-widest uppercase animate-pulse">
                     Memeriksa Akses...
+                </p>
+            </div>
+        );
+    }
+
+    const userRole = user?.role || user?.roles?.[0]?.name;
+    const isAuthorized = token && user && (!requireAdmin || userRole?.toLowerCase() === "admin");
+
+    if (!isAuthorized) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[#FDFBF5]">
+                <Leaf className="w-10 h-10 text-[#8CB954] animate-pulse mb-4" />
+                <p className="text-[#1B3627] font-bold text-sm tracking-widest uppercase animate-pulse">
+                    Mengalihkan Akses...
                 </p>
             </div>
         );
