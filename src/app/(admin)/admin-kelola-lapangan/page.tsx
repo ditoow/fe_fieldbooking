@@ -1,10 +1,36 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Plus, MoreVertical, PlusCircle, Edit2, Trash2, X, UploadCloud, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Plus, MoreVertical, PlusCircle, Edit2, Trash2, X, UploadCloud, Image as ImageIcon, Loader2, Eye } from 'lucide-react';
 import { getAllFields, Field } from '@/lib/api/field/getAll';
 import { createField, updateField, deleteField } from '@/lib/api/admin/field';
 import axios from 'axios';
+const parseDescription = (desc: string) => {
+  if (!desc) return { long_description: '', jam_buka: '08:00 - 22:00', kapasitas: 'Tim Standar', spesifikasi: 'Ukuran Standar Internasional, Material Lantai Premium, Pencahayaan LED Terang, Level Kompetisi' };
+  
+  if (desc.includes('|||')) {
+    const parts = desc.split('|||');
+    return {
+      long_description: parts[0] || '',
+      jam_buka: parts[1] || '08:00 - 22:00',
+      kapasitas: parts[2] || 'Tim Standar',
+      spesifikasi: parts[3] || 'Ukuran Standar Internasional, Material Lantai Premium, Pencahayaan LED Terang, Level Kompetisi'
+    };
+  }
+
+  try {
+    const parsed = JSON.parse(desc);
+    if (parsed && typeof parsed === 'object' && 'long_description' in parsed) {
+      return parsed;
+    }
+  } catch(e) {}
+  return {
+    long_description: desc,
+    jam_buka: '08:00 - 22:00',
+    kapasitas: 'Tim Standar',
+    spesifikasi: 'Ukuran Standar Internasional, Material Lantai Premium, Pencahayaan LED Terang, Level Kompetisi'
+  };
+};
 
 export default function KelolaLapanganPage() {
   const [fields, setFields] = useState<Field[]>([]);
@@ -15,10 +41,13 @@ export default function KelolaLapanganPage() {
   const [editingFacility, setEditingFacility] = useState<Field | null>(null);
   const [isAddingFacility, setIsAddingFacility] = useState(false);
 
-  // Form state
+  // Form states
   const [editForm, setEditForm] = useState({
     name: '',
     description: '',
+    jam_buka: '08:00 - 22:00',
+    kapasitas: 'Tim Standar',
+    spesifikasi: 'Ukuran Standar Internasional, Material Lantai Premium, Pencahayaan LED Terang, Level Kompetisi',
     category: '',
     surface_type: 'vinyl',
     status: 'available',
@@ -45,9 +74,13 @@ export default function KelolaLapanganPage() {
   const handleEditClick = (facility: Field) => {
     setEditingFacility(facility);
     setIsAddingFacility(false);
+    const parsed = parseDescription(facility.description || '');
     setEditForm({
       name: facility.name || '',
-      description: facility.description || '',
+      description: parsed.long_description || '',
+      jam_buka: parsed.jam_buka || '08:00 - 22:00',
+      kapasitas: parsed.kapasitas || 'Tim Standar',
+      spesifikasi: parsed.spesifikasi || 'Ukuran Standar Internasional, Material Lantai Premium, Pencahayaan LED Terang, Level Kompetisi',
       category: facility.category || '',
       surface_type: facility.surface_type || 'vinyl',
       status: facility.status || 'available',
@@ -63,6 +96,9 @@ export default function KelolaLapanganPage() {
     setEditForm({
       name: '',
       description: '',
+      jam_buka: '08:00 - 22:00',
+      kapasitas: 'Tim Standar',
+      spesifikasi: 'Ukuran Standar Internasional, Material Lantai Premium, Pencahayaan LED Terang, Level Kompetisi',
       category: '',
       surface_type: 'vinyl',
       status: 'available',
@@ -103,7 +139,15 @@ export default function KelolaLapanganPage() {
       setIsSaving(true);
       const formData = new FormData();
       formData.append('name', editForm.name);
-      formData.append('description', editForm.description);
+      
+      const dataToSave = [
+        editForm.description,
+        editForm.jam_buka,
+        editForm.kapasitas,
+        editForm.spesifikasi
+      ].join('|||');
+      formData.append('description', dataToSave);
+      
       formData.append('category', editForm.category);
       formData.append('surface_type', editForm.surface_type);
       formData.append('status', editForm.status);
@@ -182,7 +226,7 @@ export default function KelolaLapanganPage() {
                   </span>
                 ) : (
                   <span className="bg-ugo-status-maintenance-bg text-ugo-status-maintenance-text px-3 py-1 rounded-full text-xs font-bold shadow-md">
-                    MAINTENANCE
+                    PERBAIKAN
                   </span>
                 )}
               </div>
@@ -222,7 +266,9 @@ export default function KelolaLapanganPage() {
             <div className="p-5">
               <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">{facility.category}</p>
               <h3 className="font-bold text-lg text-ugo-sidebar mb-2">{facility.name}</h3>
-              <p className="text-xs text-gray-500 font-medium mb-4 line-clamp-2">{facility.description}</p>
+              <p className="text-xs text-gray-500 font-medium mb-4 line-clamp-2">
+                {parseDescription(facility.description || '').long_description}
+              </p>
               
               <div className="flex justify-between items-end">
                 <p className="text-xs text-gray-500 font-medium">Permukaan</p>
@@ -326,12 +372,46 @@ export default function KelolaLapanganPage() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-bold text-gray-700 block mb-1.5">Deskripsi *</label>
+                  <label className="text-sm font-bold text-gray-700 block mb-1.5">Deskripsi Lapangan *</label>
                   <textarea 
                     value={editForm.description}
                     onChange={(e) => setEditForm({...editForm, description: e.target.value})}
                     rows={3}
                     placeholder="Deskripsi fasilitas lapangan..."
+                    className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
+                  ></textarea>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 block mb-1.5">Jam Buka</label>
+                    <input 
+                      type="text" 
+                      value={editForm.jam_buka}
+                      onChange={(e) => setEditForm({...editForm, jam_buka: e.target.value})}
+                      placeholder="Contoh: 08:00 - 22:00"
+                      className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 block mb-1.5">Kapasitas</label>
+                    <input 
+                      type="text" 
+                      value={editForm.kapasitas}
+                      onChange={(e) => setEditForm({...editForm, kapasitas: e.target.value})}
+                      placeholder="Contoh: Tim Standar"
+                      className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-bold text-gray-700 block mb-1.5">Spesifikasi Lapangan (Pisahkan dengan koma)</label>
+                  <textarea 
+                    value={editForm.spesifikasi}
+                    onChange={(e) => setEditForm({...editForm, spesifikasi: e.target.value})}
+                    rows={2}
+                    placeholder="Contoh: Ukuran Standar Internasional, Material Lantai Premium, Pencahayaan LED"
                     className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
                   ></textarea>
                 </div>
@@ -364,27 +444,35 @@ export default function KelolaLapanganPage() {
 
                 <div>
                   <label className="text-sm font-bold text-gray-700 block mb-2">Status Operasional</label>
-                  <div className="flex gap-3">
-                    <label 
-                      className={`flex-1 cursor-pointer rounded-xl border-2 px-4 py-3 text-center transition-all ${
+                  <div className="relative flex items-center p-1.5 bg-gray-100 rounded-xl w-full h-14 border border-gray-200">
+                    {/* Sliding Background */}
+                    <div 
+                      className={`absolute top-1.5 bottom-1.5 rounded-lg shadow-md transition-all duration-300 ease-in-out ${
                         editForm.status === 'available' 
-                          ? 'border-ugo-sidebar bg-ugo-sidebar text-white shadow-md' 
-                          : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                          ? 'left-1.5 w-[calc(50%-6px)] bg-ugo-sidebar' 
+                          : 'left-[50%] w-[calc(50%-6px)] bg-ugo-status-menunggu-text'
                       }`}
+                    ></div>
+                    
+                    {/* Labels */}
+                    <button
+                      type="button"
                       onClick={() => setEditForm({...editForm, status: 'available'})}
-                    >
-                      <span className="text-sm font-bold">AKTIF</span>
-                    </label>
-                    <label 
-                      className={`flex-1 cursor-pointer rounded-xl border-2 px-4 py-3 text-center transition-all ${
-                        editForm.status === 'maintenance' 
-                          ? 'border-ugo-status-menunggu-text bg-ugo-status-menunggu-bg text-ugo-status-menunggu-text shadow-md' 
-                          : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                      className={`relative flex-1 text-center text-sm font-bold z-10 transition-colors duration-300 ${
+                        editForm.status === 'available' ? 'text-white' : 'text-gray-500 hover:text-gray-800'
                       }`}
-                      onClick={() => setEditForm({...editForm, status: 'maintenance'})}
                     >
-                      <span className="text-sm font-bold">MAINTENANCE</span>
-                    </label>
+                      AKTIF
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditForm({...editForm, status: 'maintenance'})}
+                      className={`relative flex-1 text-center text-sm font-bold z-10 transition-colors duration-300 ${
+                        editForm.status === 'maintenance' ? 'text-white' : 'text-gray-500 hover:text-gray-800'
+                      }`}
+                    >
+                      PERBAIKAN
+                    </button>
                   </div>
                 </div>
               </div>

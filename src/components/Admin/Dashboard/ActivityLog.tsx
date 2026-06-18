@@ -38,7 +38,7 @@ export function ActivityLog({ data, loading }: ActivityLogProps) {
         <CardTitle className="font-bold text-lg text-ugo-sidebar">Log Aktivitas</CardTitle>
         <CardDescription>Aktivitas terbaru sistem</CardDescription>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col justify-start">
+      <CardContent className="flex-1 flex flex-col justify-start overflow-y-auto pr-2 custom-scrollbar">
         {loading ? (
           <div className="flex-1 flex justify-center items-center py-10">
             <Loader2 className="w-6 h-6 animate-spin text-ugo-sidebar" />

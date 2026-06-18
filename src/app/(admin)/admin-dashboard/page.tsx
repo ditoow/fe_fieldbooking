@@ -66,8 +66,10 @@ export default function DashboardPage() {
         <div className="lg:col-span-3">
           <RevenueChart data={trendData} loading={trendLoading} />
         </div>
-        <div className="lg:col-span-1">
-          <ActivityLog data={activityLogs} loading={logsLoading} />
+        <div className="lg:col-span-1 relative min-h-[400px]">
+          <div className="absolute inset-0">
+            <ActivityLog data={activityLogs} loading={logsLoading} />
+          </div>
         </div>
       </div>
     </div>

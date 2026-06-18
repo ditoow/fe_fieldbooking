@@ -7,9 +7,36 @@ import Link from "next/link";
 import { 
     ChevronLeft, ChevronRight, Star, MapPin, Loader2, AlertCircle, CheckCircle, 
     XCircle, Clock, Info, ShieldCheck, Car, Wind, Users, Coffee, Droplets,
-    Maximize, Layers, Lightbulb, Activity
+    Maximize, Layers, Lightbulb, Activity, CheckCircle2
 } from "lucide-react";
 import { getFieldById, Field } from "@/lib/api/field";
+
+const parseDescription = (desc: string) => {
+  if (!desc) return { long_description: '', jam_buka: '08:00 - 22:00', kapasitas: 'Tim Standar', spesifikasi: 'Ukuran Standar Internasional, Material Lantai Premium, Pencahayaan LED Terang, Level Kompetisi' };
+  
+  if (desc.includes('|||')) {
+    const parts = desc.split('|||');
+    return {
+      long_description: parts[0] || '',
+      jam_buka: parts[1] || '08:00 - 22:00',
+      kapasitas: parts[2] || 'Tim Standar',
+      spesifikasi: parts[3] || 'Ukuran Standar Internasional, Material Lantai Premium, Pencahayaan LED Terang, Level Kompetisi'
+    };
+  }
+
+  try {
+    const parsed = JSON.parse(desc);
+    if (parsed && typeof parsed === 'object' && 'long_description' in parsed) {
+      return parsed;
+    }
+  } catch(e) {}
+  return {
+    long_description: desc,
+    jam_buka: '08:00 - 22:00',
+    kapasitas: 'Tim Standar',
+    spesifikasi: 'Ukuran Standar Internasional, Material Lantai Premium, Pencahayaan LED Terang, Level Kompetisi'
+  };
+};
 
 export default function FieldDetailPage() {
     const params = useParams();
@@ -63,13 +90,15 @@ export default function FieldDetailPage() {
         );
     }
 
-    // Spesifikasi Lapangan (bisa diganti dinamis dari API nanti)
-    const specifications = [
-        { icon: <Maximize className="w-5 h-5" />, label: "Ukuran Standar Internasional", subLabel: "Dimensi sesuai regulasi" },
-        { icon: <Layers className="w-5 h-5" />, label: "Material Lantai Premium", subLabel: field?.surface_type || "Sintetis Kualitas Tinggi" },
-        { icon: <Lightbulb className="w-5 h-5" />, label: "Pencahayaan LED Terang", subLabel: "Visibilitas maksimal malam hari" },
-        { icon: <Activity className="w-5 h-5" />, label: "Level Kompetisi", subLabel: "Cocok untuk turnamen & latihan" },
-    ];
+    const parsedData = parseDescription(field?.description || '');
+
+    // Spesifikasi Lapangan (Dinamis dari input admin)
+    const specList = parsedData.spesifikasi.split(',').map(s => s.trim()).filter(Boolean);
+    const specifications = specList.map((spec) => ({
+        icon: <CheckCircle className="w-5 h-5" />, 
+        label: spec, 
+        subLabel: "Fasilitas & Spesifikasi" 
+    }));
 
     const galleryImages = field ? [
         field.image_url,
@@ -190,8 +219,8 @@ export default function FieldDetailPage() {
                         {/* Highlights Grid */}
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-10 duration-700 delay-100 fill-mode-both">
                             <div className="bg-white p-6 rounded-3xl shadow-xl shadow-gray-200/40 border border-gray-100 flex flex-col items-center text-center justify-center hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-gray-200/50 transition-all cursor-default">
-                                <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center mb-4 text-green-600">
-                                    <ShieldCheck className="w-6 h-6" />
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 ${field.status === "available" ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"}`}>
+                                    {field.status === "available" ? <ShieldCheck className="w-6 h-6" /> : <XCircle className="w-6 h-6" />}
                                 </div>
                                 <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Status</p>
                                 <p className="font-extrabold text-[#1B3627] text-base">
@@ -210,14 +239,14 @@ export default function FieldDetailPage() {
                                     <Clock className="w-6 h-6" />
                                 </div>
                                 <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Jam Buka</p>
-                                <p className="font-extrabold text-[#1B3627] text-base">08:00 - 22:00</p>
+                                <p className="font-extrabold text-[#1B3627] text-base">{parsedData.jam_buka}</p>
                             </div>
                             <div className="bg-white p-6 rounded-3xl shadow-xl shadow-gray-200/40 border border-gray-100 flex flex-col items-center text-center justify-center hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-gray-200/50 transition-all cursor-default">
                                 <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center mb-4 text-purple-600">
                                     <Users className="w-6 h-6" />
                                 </div>
                                 <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Kapasitas</p>
-                                <p className="font-extrabold text-[#1B3627] text-base">Tim Standar</p>
+                                <p className="font-extrabold text-[#1B3627] text-base">{parsedData.kapasitas}</p>
                             </div>
                         </div>
 
@@ -232,7 +261,7 @@ export default function FieldDetailPage() {
                                     <h3 className="text-2xl sm:text-3xl font-extrabold text-[#1B3627] tracking-tight">Tentang Lapangan</h3>
                                 </div>
                                 <p className="text-gray-600 leading-relaxed text-base sm:text-lg whitespace-pre-line font-medium max-w-3xl">
-                                    {field.description || "Lapangan olahraga kelas premium dengan fasilitas memadai untuk menunjang performa Anda. Didesain dengan standar internasional untuk memberikan pengalaman bermain yang nyaman, kompetitif, dan aman bagi setiap pemain."}
+                                    {parsedData.long_description || "Lapangan olahraga kelas premium dengan fasilitas memadai untuk menunjang performa Anda. Didesain dengan standar internasional untuk memberikan pengalaman bermain yang nyaman, kompetitif, dan aman bagi setiap pemain."}
                                 </p>
                             </div>
                         </section>
@@ -345,7 +374,7 @@ export default function FieldDetailPage() {
                             <div className="space-y-4 mb-8 bg-[#F9F8F4] p-5 rounded-3xl border border-gray-100">
                                 <div className="flex justify-between items-center py-2">
                                     <span className="text-gray-500 font-semibold text-sm">Buka Hari Ini</span>
-                                    <span className="text-[#1B3627] font-extrabold text-sm">08:00 - 22:00</span>
+                                    <span className="text-[#1B3627] font-extrabold text-sm">{parsedData.jam_buka}</span>
                                 </div>
                                 <div className="w-full h-px bg-gray-200"></div>
                                 <div className="flex justify-between items-center py-2">

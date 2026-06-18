@@ -8,6 +8,33 @@ import { useRouter } from "next/navigation";
 import { getAllFields, Field } from "@/lib/api/field";
 import axios from "axios";
 
+const parseDescription = (desc: string) => {
+  if (!desc) return { long_description: '', jam_buka: '08:00 - 22:00', kapasitas: 'Tim Standar', spesifikasi: 'Ukuran Standar Internasional, Material Lantai Premium, Pencahayaan LED Terang, Level Kompetisi' };
+  
+  if (desc.includes('|||')) {
+    const parts = desc.split('|||');
+    return {
+      long_description: parts[0] || '',
+      jam_buka: parts[1] || '08:00 - 22:00',
+      kapasitas: parts[2] || 'Tim Standar',
+      spesifikasi: parts[3] || 'Ukuran Standar Internasional, Material Lantai Premium, Pencahayaan LED Terang, Level Kompetisi'
+    };
+  }
+
+  try {
+    const parsed = JSON.parse(desc);
+    if (parsed && typeof parsed === 'object' && 'long_description' in parsed) {
+      return parsed;
+    }
+  } catch(e) {}
+  return {
+    long_description: desc,
+    jam_buka: '08:00 - 22:00',
+    kapasitas: 'Tim Standar',
+    spesifikasi: 'Ukuran Standar Internasional, Material Lantai Premium, Pencahayaan LED Terang, Level Kompetisi'
+  };
+};
+
 export default function UserDashboard() {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
@@ -165,7 +192,9 @@ export default function UserDashboard() {
                                     </div>
 
                                     {/* Deskripsi */}
-                                    <p className="text-sm text-gray-500 mb-4 line-clamp-2">{item.description}</p>
+                                    <p className="text-sm text-gray-500 mb-4 line-clamp-2">
+                                        {parseDescription(item.description || '').long_description}
+                                    </p>
 
                                     {/* Status */}
                                     <div className={`flex items-center text-sm font-medium mb-4 ${item.status === "available" ? "text-green-600" : "text-red-500"}`}>

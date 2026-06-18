@@ -36,7 +36,7 @@ const chartConfig = {
 
 export function RevenueChart({ data, loading }: RevenueChartProps) {
   return (
-    <Card className="shadow-sm border-gray-100 border-none sm:border-solid h-full flex flex-col">
+    <Card className="shadow-sm border-gray-100 border-none sm:border-solid flex flex-col">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle className="font-bold text-lg text-ugo-sidebar">Tren Pendapatan & Utilisasi</CardTitle>
@@ -50,13 +50,13 @@ export function RevenueChart({ data, loading }: RevenueChartProps) {
           <ArrowRight className="w-4 h-4" />
         </Link>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col justify-end">
+      <CardContent className="flex flex-col pt-0">
         {loading ? (
-          <div className="flex-1 flex justify-center items-center h-[300px]">
+          <div className="flex justify-center items-center h-[300px]">
             <Loader2 className="w-8 h-8 animate-spin text-[#2D6A4F]" />
           </div>
         ) : (
-          <ChartContainer config={chartConfig} className="h-[300px] w-full mt-auto">
+          <ChartContainer config={chartConfig} className="h-[300px] w-full">
             <AreaChart
               accessibilityLayer
               data={data}

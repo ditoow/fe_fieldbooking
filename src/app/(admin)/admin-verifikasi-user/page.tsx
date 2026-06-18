@@ -146,10 +146,13 @@ export default function VerifikasiUserPage() {
         </button>
       </div>
 
-      {/* Table Section */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-        <div className="p-6 border-b border-gray-100 flex justify-end items-center bg-white rounded-t-2xl relative">
-          <div className="flex gap-3 relative">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-6">
+        <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white rounded-t-2xl relative">
+          <div>
+            <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1">DATA PENGGUNA</p>
+            <h2 className="text-xl font-bold text-[#1C2B1E]">Daftar Pengguna</h2>
+          </div>
+          <div className="flex gap-3 relative w-full sm:w-auto">
             <div className="relative w-64">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input 
