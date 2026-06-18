@@ -40,6 +40,7 @@ export default function KelolaLapanganPage() {
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [editingFacility, setEditingFacility] = useState<Field | null>(null);
   const [isAddingFacility, setIsAddingFacility] = useState(false);
+  const [activeTab, setActiveTab] = useState<'umum' | 'detail' | 'media'>('umum');
 
   // Form states
   const [editForm, setEditForm] = useState({
@@ -76,6 +77,7 @@ export default function KelolaLapanganPage() {
   const handleEditClick = (facility: Field) => {
     setEditingFacility(facility);
     setIsAddingFacility(false);
+    setActiveTab('umum');
     const parsed = parseDescription(facility.description || '');
     setEditForm({
       name: facility.name || '',
@@ -97,6 +99,7 @@ export default function KelolaLapanganPage() {
   const handleAddClick = () => {
     setIsAddingFacility(true);
     setEditingFacility(null);
+    setActiveTab('umum');
     setEditForm({
       name: '',
       description: '',
@@ -367,204 +370,251 @@ export default function KelolaLapanganPage() {
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 overflow-y-auto">
+            <div className="p-6 overflow-y-auto custom-scrollbar">
               
-              {/* Photo Edit Section */}
-              <div className="mb-6">
-                <p className="text-sm font-bold text-gray-700 mb-2">Foto Fasilitas (Utama)</p>
-                <div className="relative h-48 w-full rounded-xl overflow-hidden bg-gray-50 border-2 border-dashed border-gray-300 group flex items-center justify-center mb-4">
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    id="facility-image-upload" 
-                    className="hidden" 
-                    multiple
-                    onChange={handleImageUpload}
-                  />
-                  {editForm.image ? (
-                    <>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img 
-                        src={editForm.image} 
-                        alt="Preview" 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        onError={(e) => {
-                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=No+Image';
-                        }}
-                      />
-                      <label htmlFor="facility-image-upload" className="absolute inset-0 bg-ugo-sidebar/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                        <div className="bg-white text-ugo-sidebar px-4 py-2 rounded-lg text-sm font-bold shadow-lg flex items-center gap-2 hover:bg-ugo-primary hover:text-white transition-colors">
-                          <ImageIcon className="w-4 h-4" />
-                          Ubah Foto Utama
-                        </div>
-                      </label>
-                    </>
-                  ) : (
-                    <label htmlFor="facility-image-upload" className="flex flex-col items-center gap-2 text-gray-400 group-hover:text-ugo-primary transition-colors cursor-pointer w-full h-full justify-center">
-                      <UploadCloud className="w-8 h-8" />
-                      <span className="text-sm font-medium">Upload Foto (Bisa pilih banyak)</span>
-                    </label>
-                  )}
-                </div>
+              {/* Custom Tabs */}
+              <div className="flex border-b border-gray-200 mb-6">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('umum')}
+                  className={`flex-1 py-2 text-sm font-bold border-b-2 transition-colors ${activeTab === 'umum' ? 'border-ugo-primary text-ugo-primary' : 'border-transparent text-gray-400 hover:text-gray-700'}`}
+                >
+                  Informasi Umum
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('detail')}
+                  className={`flex-1 py-2 text-sm font-bold border-b-2 transition-colors ${activeTab === 'detail' ? 'border-ugo-primary text-ugo-primary' : 'border-transparent text-gray-400 hover:text-gray-700'}`}
+                >
+                  Spesifikasi & Detail
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('media')}
+                  className={`flex-1 py-2 text-sm font-bold border-b-2 transition-colors ${activeTab === 'media' ? 'border-ugo-primary text-ugo-primary' : 'border-transparent text-gray-400 hover:text-gray-700'}`}
+                >
+                  Galeri Foto
+                </button>
+              </div>
 
-                {/* Additional Images Carousel */}
-                <div className="w-full">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-bold text-gray-700">Galeri Tambahan (Carousel)</p>
-                    <label htmlFor="additional-image-upload" className="text-xs font-bold text-ugo-primary hover:text-ugo-sidebar cursor-pointer bg-ugo-primary/10 px-3 py-1 rounded-full transition-colors flex items-center gap-1">
-                      <UploadCloud className="w-3 h-3" /> Tambah
-                    </label>
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      id="additional-image-upload" 
-                      className="hidden" 
-                      multiple
-                      onChange={handleAddMoreImages}
-                    />
-                  </div>
-                  
-                  <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
-                    {editForm.additionalImageUrls.map((url, idx) => (
-                      <div key={idx} className="relative w-24 h-24 shrink-0 rounded-lg overflow-hidden border border-gray-200 group">
-                        <img src={url} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
-                        <button 
-                          onClick={(e) => { e.preventDefault(); removeAdditionalImage(idx); }}
-                          className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-md"
+              <div className="space-y-4">
+                {/* TAB UMUM */}
+                {activeTab === 'umum' && (
+                  <div className="space-y-4 fade-in animate-in duration-300">
+                    <div>
+                      <label className="text-sm font-bold text-gray-700 block mb-1.5">Nama Lapangan *</label>
+                      <input 
+                        type="text" 
+                        value={editForm.name}
+                        onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                        placeholder="Contoh: Lapangan Futsal A"
+                        className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-bold text-gray-700 block mb-1.5">Deskripsi Lapangan *</label>
+                      <textarea 
+                        value={editForm.description}
+                        onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                        rows={4}
+                        placeholder="Deskripsi fasilitas lapangan..."
+                        className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium custom-scrollbar"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-bold text-gray-700 block mb-1.5">Kategori *</label>
+                        <select 
+                          value={editForm.category}
+                          onChange={(e) => setEditForm({...editForm, category: e.target.value})}
+                          className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium appearance-none"
                         >
-                          <X className="w-3 h-3" />
+                          <option value="">Pilih Kategori...</option>
+                          <option value="Futsal">Futsal</option>
+                          <option value="Mini Soccer">Mini Soccer</option>
+                          <option value="Badminton">Badminton</option>
+                          <option value="Voli">Voli</option>
+                          <option value="Tenis">Tenis</option>
+                          <option value="Basket">Basket</option>
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-bold text-gray-700 block mb-1.5">Tipe Permukaan</label>
+                        <select 
+                          value={editForm.surface_type}
+                          onChange={(e) => setEditForm({...editForm, surface_type: e.target.value})}
+                          className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium appearance-none"
+                        >
+                          <option value="vinyl">Vinyl</option>
+                          <option value="sintetis">Rumput Sintetis</option>
+                          <option value="kayu">Lantai Kayu</option>
+                          <option value="semen">Semen / Plester</option>
+                          <option value="tanah">Tanah / Rumput Asli</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-bold text-gray-700 block mb-2">Status Operasional</label>
+                      <div className="relative flex items-center p-1.5 bg-gray-100 rounded-xl w-full h-14 border border-gray-200">
+                        {/* Sliding Background */}
+                        <div 
+                          className={`absolute top-1.5 bottom-1.5 rounded-lg shadow-md transition-all duration-300 ease-in-out ${
+                            editForm.status === 'available' 
+                              ? 'left-1.5 w-[calc(50%-6px)] bg-ugo-sidebar' 
+                              : 'left-[50%] w-[calc(50%-6px)] bg-ugo-status-menunggu-text'
+                          }`}
+                        ></div>
+                        
+                        {/* Labels */}
+                        <button
+                          type="button"
+                          onClick={() => setEditForm({...editForm, status: 'available'})}
+                          className={`relative flex-1 text-center text-sm font-bold z-10 transition-colors duration-300 ${
+                            editForm.status === 'available' ? 'text-white' : 'text-gray-500 hover:text-gray-800'
+                          }`}
+                        >
+                          AKTIF
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditForm({...editForm, status: 'maintenance'})}
+                          className={`relative flex-1 text-center text-sm font-bold z-10 transition-colors duration-300 ${
+                            editForm.status === 'maintenance' ? 'text-white' : 'text-gray-500 hover:text-gray-800'
+                          }`}
+                        >
+                          PERBAIKAN
                         </button>
                       </div>
-                    ))}
-                    {editForm.additionalImageUrls.length === 0 && (
-                      <div className="w-full py-4 border border-dashed border-gray-200 rounded-lg flex items-center justify-center text-xs text-gray-400 bg-gray-50">
-                        Belum ada foto tambahan.
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB DETAIL & SPESIFIKASI */}
+                {activeTab === 'detail' && (
+                  <div className="space-y-4 fade-in animate-in duration-300">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-bold text-gray-700 block mb-1.5">Jam Buka</label>
+                        <input 
+                          type="text" 
+                          value={editForm.jam_buka}
+                          onChange={(e) => setEditForm({...editForm, jam_buka: e.target.value})}
+                          placeholder="08:00 - 22:00"
+                          className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
+                        />
                       </div>
-                    )}
+                      <div>
+                        <label className="text-sm font-bold text-gray-700 block mb-1.5">Kapasitas</label>
+                        <input 
+                          type="text" 
+                          value={editForm.kapasitas}
+                          onChange={(e) => setEditForm({...editForm, kapasitas: e.target.value})}
+                          placeholder="Contoh: 10 Orang"
+                          className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-bold text-gray-700 block mb-1.5">Spesifikasi Tambahan (Pisahkan dengan koma)</label>
+                      <textarea 
+                        value={editForm.spesifikasi}
+                        onChange={(e) => setEditForm({...editForm, spesifikasi: e.target.value})}
+                        rows={4}
+                        placeholder="Ukuran Lapangan, Jenis Bola, Pencahayaan..."
+                        className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium custom-scrollbar"
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* TAB MEDIA (FOTO & CAROUSEL) */}
+                {activeTab === 'media' && (
+                  <div className="space-y-6 fade-in animate-in duration-300">
+                    <div>
+                      <p className="text-sm font-bold text-gray-700 mb-2">Foto Fasilitas Utama</p>
+                      <div className="relative h-48 w-full rounded-xl overflow-hidden bg-gray-50 border-2 border-dashed border-gray-300 group flex items-center justify-center mb-4">
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          id="facility-image-upload" 
+                          className="hidden" 
+                          onChange={handleImageUpload}
+                        />
+                        {editForm.image ? (
+                          <>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img 
+                              src={editForm.image} 
+                              alt="Preview" 
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              onError={(e) => {
+                                  (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=No+Image';
+                              }}
+                            />
+                            <label htmlFor="facility-image-upload" className="absolute inset-0 bg-ugo-sidebar/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                              <div className="bg-white text-ugo-sidebar px-4 py-2 rounded-lg text-sm font-bold shadow-lg flex items-center gap-2 hover:bg-ugo-primary hover:text-white transition-colors">
+                                <ImageIcon className="w-4 h-4" />
+                                Ubah Foto Utama
+                              </div>
+                            </label>
+                          </>
+                        ) : (
+                          <label htmlFor="facility-image-upload" className="flex flex-col items-center gap-2 text-gray-400 group-hover:text-ugo-primary transition-colors cursor-pointer w-full h-full justify-center">
+                            <UploadCloud className="w-8 h-8" />
+                            <span className="text-sm font-medium">Upload Foto Utama</span>
+                          </label>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Additional Images Carousel */}
+                    <div className="w-full">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm font-bold text-gray-700">Galeri Tambahan (Carousel)</p>
+                        <label htmlFor="additional-image-upload" className="text-xs font-bold text-ugo-primary hover:text-ugo-sidebar cursor-pointer bg-ugo-primary/10 px-3 py-1 rounded-full transition-colors flex items-center gap-1">
+                          <UploadCloud className="w-3 h-3" /> Tambah Foto
+                        </label>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          id="additional-image-upload" 
+                          className="hidden" 
+                          multiple
+                          onChange={handleAddMoreImages}
+                        />
+                      </div>
+                      
+                      <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
+                        {editForm.additionalImageUrls.map((url, idx) => (
+                          <div key={idx} className="relative w-24 h-24 shrink-0 rounded-lg overflow-hidden border border-gray-200 group">
+                            <img src={url} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
+                            <button 
+                              onClick={(e) => { e.preventDefault(); removeAdditionalImage(idx); }}
+                              className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-md"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                        {editForm.additionalImageUrls.length === 0 && (
+                          <div className="w-full py-6 border border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-400 bg-gray-50">
+                            <ImageIcon className="w-6 h-6 mb-2 opacity-30" />
+                            <span className="text-xs font-medium">Belum ada foto tambahan.</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {/* Form Fields */}
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-bold text-gray-700 block mb-1.5">Nama Lapangan *</label>
-                  <input 
-                    type="text" 
-                    value={editForm.name}
-                    onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                    placeholder="Contoh: Lapangan Futsal A"
-                    className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-bold text-gray-700 block mb-1.5">Deskripsi Lapangan *</label>
-                  <textarea 
-                    value={editForm.description}
-                    onChange={(e) => setEditForm({...editForm, description: e.target.value})}
-                    rows={3}
-                    placeholder="Deskripsi fasilitas lapangan..."
-                    className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
-                  ></textarea>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-bold text-gray-700 block mb-1.5">Jam Buka</label>
-                    <input 
-                      type="text" 
-                      value={editForm.jam_buka}
-                      onChange={(e) => setEditForm({...editForm, jam_buka: e.target.value})}
-                      placeholder="Contoh: 08:00 - 22:00"
-                      className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-bold text-gray-700 block mb-1.5">Kapasitas</label>
-                    <input 
-                      type="text" 
-                      value={editForm.kapasitas}
-                      onChange={(e) => setEditForm({...editForm, kapasitas: e.target.value})}
-                      placeholder="Contoh: Tim Standar"
-                      className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-bold text-gray-700 block mb-1.5">Spesifikasi Lapangan (Pisahkan dengan koma)</label>
-                  <textarea 
-                    value={editForm.spesifikasi}
-                    onChange={(e) => setEditForm({...editForm, spesifikasi: e.target.value})}
-                    rows={2}
-                    placeholder="Contoh: Ukuran Standar Internasional, Material Lantai Premium, Pencahayaan LED"
-                    className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
-                  ></textarea>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-bold text-gray-700 block mb-1.5">Kategori *</label>
-                    <input 
-                      type="text" 
-                      value={editForm.category}
-                      onChange={(e) => setEditForm({...editForm, category: e.target.value})}
-                      placeholder="Contoh: Futsal"
-                      className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-bold text-gray-700 block mb-1.5">Tipe Permukaan</label>
-                    <select 
-                      value={editForm.surface_type}
-                      onChange={(e) => setEditForm({...editForm, surface_type: e.target.value})}
-                      className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
-                    >
-                      <option value="vinyl">Vinyl</option>
-                      <option value="parket">Parket</option>
-                      <option value="semen">Semen</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-bold text-gray-700 block mb-2">Status Operasional</label>
-                  <div className="relative flex items-center p-1.5 bg-gray-100 rounded-xl w-full h-14 border border-gray-200">
-                    {/* Sliding Background */}
-                    <div 
-                      className={`absolute top-1.5 bottom-1.5 rounded-lg shadow-md transition-all duration-300 ease-in-out ${
-                        editForm.status === 'available' 
-                          ? 'left-1.5 w-[calc(50%-6px)] bg-ugo-sidebar' 
-                          : 'left-[50%] w-[calc(50%-6px)] bg-ugo-status-menunggu-text'
-                      }`}
-                    ></div>
-                    
-                    {/* Labels */}
-                    <button
-                      type="button"
-                      onClick={() => setEditForm({...editForm, status: 'available'})}
-                      className={`relative flex-1 text-center text-sm font-bold z-10 transition-colors duration-300 ${
-                        editForm.status === 'available' ? 'text-white' : 'text-gray-500 hover:text-gray-800'
-                      }`}
-                    >
-                      AKTIF
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEditForm({...editForm, status: 'maintenance'})}
-                      className={`relative flex-1 text-center text-sm font-bold z-10 transition-colors duration-300 ${
-                        editForm.status === 'maintenance' ? 'text-white' : 'text-gray-500 hover:text-gray-800'
-                      }`}
-                    >
-                      PERBAIKAN
-                    </button>
-                  </div>
-                </div>
-              </div>
-
             </div>
+
+
 
             {/* Modal Footer */}
             <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 rounded-b-2xl">
