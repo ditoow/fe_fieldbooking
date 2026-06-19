@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, Filter, Ban, CheckCircle, Download, ArrowLeft, Loader2, ThumbsUp, ThumbsDown, FileCheck } from 'lucide-react';
+import { Search, Filter, Ban, CheckCircle, Download, ArrowLeft, Loader2, FileCheck, X, Eye } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { getAllUsers, updateUserStatus, User } from '@/lib/api/admin/user';
 import { getAdminBookings, approveBooking, rejectBooking } from '@/lib/api/admin/booking';
@@ -27,6 +27,9 @@ export default function VerifikasiUserPage() {
     suspended: true,
   });
   
+  const [selectedBooking, setSelectedBooking] = useState<BookingDetail | null>(null);
+  const [isProcessingApprove, setIsProcessingApprove] = useState(false);
+  const [isProcessingReject, setIsProcessingReject] = useState(false);
   const [showPDF, setShowPDF] = useState(false);
 
   const fetchUsers = async () => {
@@ -61,8 +64,9 @@ export default function VerifikasiUserPage() {
   const handleApprove = async (id: number) => {
     if (!window.confirm('Yakin ingin menyetujui booking ini?')) return;
     try {
-      setIsProcessingId(id);
+      setIsProcessingApprove(true);
       await approveBooking(id);
+      setSelectedBooking(null);
       await fetchBookings();
     } catch (error) {
       console.error("Gagal approve booking:", error);
@@ -72,15 +76,16 @@ export default function VerifikasiUserPage() {
         alert("Terjadi kesalahan.");
       }
     } finally {
-      setIsProcessingId(null);
+      setIsProcessingApprove(false);
     }
   };
 
   const handleReject = async (id: number) => {
     if (!window.confirm('Yakin ingin menolak booking ini?')) return;
     try {
-      setIsProcessingId(id);
+      setIsProcessingReject(true);
       await rejectBooking(id);
+      setSelectedBooking(null);
       await fetchBookings();
     } catch (error) {
       console.error("Gagal reject booking:", error);
@@ -90,7 +95,7 @@ export default function VerifikasiUserPage() {
         alert("Terjadi kesalahan.");
       }
     } finally {
-      setIsProcessingId(null);
+      setIsProcessingReject(false);
     }
   };
 
@@ -253,14 +258,18 @@ export default function VerifikasiUserPage() {
                     <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Lapangan & Waktu</th>
                     <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Tanggal</th>
                     <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Harga</th>
-                    <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500 text-center">Aksi</th>
+                    <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Dokumen</th>
                   </tr>
                 </thead>
                 <tbody>
                   {bookings.map((b) => {
                     const userData = b.user as { id: string; name: string; email: string; student_id?: string } | undefined;
                     return (
-                      <tr key={b.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                      <tr
+                        key={b.id}
+                        onClick={() => setSelectedBooking(b)}
+                        className="border-b border-gray-50 hover:bg-ugo-primary/5 transition-colors cursor-pointer"
+                      >
                         <td className="py-4 px-6 font-mono text-sm font-semibold text-ugo-sidebar">
                           {b.booking_number}
                         </td>
@@ -283,33 +292,15 @@ export default function VerifikasiUserPage() {
                         <td className="py-4 px-6 font-semibold text-sm">
                           Rp {b.total_price.toLocaleString('id-ID')}
                         </td>
-                        <td className="py-4 px-6 text-center">
-                          <div className="flex gap-2 justify-center">
-                            <button
-                              onClick={() => handleApprove(b.id)}
-                              disabled={isProcessingId === b.id}
-                              className="w-9 h-9 rounded-lg flex items-center justify-center bg-green-50 text-green-600 hover:bg-green-100 border border-green-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                              title="Setujui booking"
-                            >
-                              {isProcessingId === b.id ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <ThumbsUp className="w-4 h-4" />
-                              )}
-                            </button>
-                            <button
-                              onClick={() => handleReject(b.id)}
-                              disabled={isProcessingId === b.id}
-                              className="w-9 h-9 rounded-lg flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                              title="Tolak booking"
-                            >
-                              {isProcessingId === b.id ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <ThumbsDown className="w-4 h-4" />
-                              )}
-                            </button>
-                          </div>
+                        <td className="py-4 px-6">
+                          {b.file_url ? (
+                            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-ugo-primary bg-ugo-primary/5 px-3 py-1.5 rounded-full">
+                              <Eye className="w-3.5 h-3.5" />
+                              Lihat
+                            </span>
+                          ) : (
+                            <span className="text-xs text-gray-400">-</span>
+                          )}
                         </td>
                       </tr>
                     );
@@ -597,6 +588,106 @@ export default function VerifikasiUserPage() {
               <div className="text-right">HALAMAN 1 DARI 1</div>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Preview Modal */}
+      {selectedBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95">
+            {/* Header */}
+            <div className="sticky top-0 bg-white z-10 flex items-center justify-between p-6 border-b border-gray-100 rounded-t-3xl">
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Preview Booking</p>
+                <h2 className="text-lg font-bold text-ugo-sidebar mt-0.5">{selectedBooking.booking_number}</h2>
+              </div>
+              <button
+                onClick={() => setSelectedBooking(null)}
+                className="w-8 h-8 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+              >
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-6">
+              {/* Info Cards */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Mahasiswa</p>
+                  <p className="font-bold text-ugo-sidebar text-sm">
+                    {(selectedBooking.user as { name?: string })?.name || '-'}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {(selectedBooking.user as { email?: string })?.email || ''}
+                  </p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Lapangan</p>
+                  <p className="font-bold text-ugo-sidebar text-sm">{selectedBooking.field_name}</p>
+                  <p className="text-xs text-gray-500">{selectedBooking.field_category}</p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Tanggal & Waktu</p>
+                  <p className="font-bold text-ugo-sidebar text-sm">{selectedBooking.formatted_date}</p>
+                  <p className="text-xs text-gray-500">{selectedBooking.formatted_time}</p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Harga</p>
+                  <p className="font-bold text-ugo-sidebar text-sm">
+                    Rp {selectedBooking.total_price.toLocaleString('id-ID')}
+                  </p>
+                </div>
+              </div>
+
+              {/* Document Preview */}
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Dokumen Persyaratan</p>
+                {selectedBooking.file_url ? (
+                  <div className="border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
+                    <iframe
+                      src={selectedBooking.file_url}
+                      className="w-full h-[400px]"
+                      title="Document Preview"
+                    />
+                  </div>
+                ) : (
+                  <div className="border border-dashed border-gray-300 rounded-xl p-8 text-center text-gray-400">
+                    <FileCheck className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm font-medium">Belum ada dokumen yang diunggah</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => handleApprove(selectedBooking.id)}
+                  disabled={isProcessingApprove || isProcessingReject}
+                  className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-3.5 px-6 rounded-xl font-bold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isProcessingApprove ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <CheckCircle className="w-4 h-4" />
+                  )}
+                  Setujui Booking
+                </button>
+                <button
+                  onClick={() => handleReject(selectedBooking.id)}
+                  disabled={isProcessingApprove || isProcessingReject}
+                  className="flex-1 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white py-3.5 px-6 rounded-xl font-bold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isProcessingReject ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Ban className="w-4 h-4" />
+                  )}
+                  Tolak Booking
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
