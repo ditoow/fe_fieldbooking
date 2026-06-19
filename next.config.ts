@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+    output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
     images: {
         remotePatterns: [
             {
@@ -22,7 +23,7 @@ const nextConfig: NextConfig = {
         ],
     },
     experimental: {
-        cpus: 2, // Membatasi compiler thread ke 2 core
+        cpus: 2,
     },
 };
 
