@@ -13,3 +13,7 @@ export async function approveBooking(id: number): Promise<void> {
 export async function rejectBooking(id: number): Promise<void> {
     await api.patch(`/admin/bookings/${id}/reject`);
 }
+
+export async function attendBooking(id: number): Promise<void> {
+    await api.patch(`/admin/bookings/${id}/attend`);
+}

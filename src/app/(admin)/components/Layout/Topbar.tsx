@@ -26,7 +26,7 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
         >
           <Menu className="w-6 h-6" />
         </button>
-        <Link href="/admin-dashboard" className="flex items-center gap-3 group">
+        <Link href="/admin/dashboard" className="flex items-center gap-3 group">
           <div className="w-8 h-8 bg-ugo-primary rounded flex items-center justify-center hidden sm:flex group-hover:bg-ugo-primary/90 transition-colors">
             <Box className="w-5 h-5 text-white" />
           </div>

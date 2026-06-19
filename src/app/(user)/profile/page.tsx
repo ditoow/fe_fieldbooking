@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { User, Lock, Save, ShieldAlert, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
 import { updateProfile, updatePassword } from "@/lib/api/auth";
+import toast from 'react-hot-toast';
 
 interface UserSessionData {
     nama: string;
@@ -72,11 +73,11 @@ export default function ProfilePage() {
                 roles: res.user.roles,
             });
 
-            alert(res.message || "Profil Anda berhasil diperbarui!");
+            toast.success(res.message || "Profil Anda berhasil diperbarui!");
         } catch (err: any) {
             console.error(err);
             const errorMessage = err.response?.data?.message || err.message || "Terjadi kesalahan saat memperbarui profil.";
-            alert(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setIsSavingProfile(false);
         }
@@ -87,7 +88,7 @@ export default function ProfilePage() {
         if (isSavingPassword) return;
 
         if (passwordData.newPassword !== passwordData.confirmPassword) {
-            alert("Konfirmasi password baru tidak cocok!");
+            toast.error("Konfirmasi password baru tidak cocok!");
             return;
         }
 
@@ -99,12 +100,12 @@ export default function ProfilePage() {
                 new_password_confirmation: passwordData.confirmPassword,
             });
 
-            alert(res.message || "Password berhasil diubah!");
+            toast.success(res.message || "Password berhasil diubah!");
             setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
         } catch (err: any) {
             console.error(err);
             const errorMessage = err.response?.data?.message || err.message || "Terjadi kesalahan saat mengganti password.";
-            alert(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setIsSavingPassword(false);
         }
