@@ -34,7 +34,7 @@ export default function LoginPage() {
             // Redirect berdasarkan role dari Spatie Permission
             const role = result.user?.roles?.[0]?.name;
             if (role === "admin") {
-                router.push("/admin-dashboard");
+                router.push("/admin/dashboard");
             } else {
                 router.push("/dashboard");
             }

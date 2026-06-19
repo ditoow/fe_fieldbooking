@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Star, Loader2, MessageSquare, AlertCircle } from "lucide-react";
 import { submitRating } from "@/lib/api/rating";
 import { HistoryItem } from "@/app/(user)/riwayat/page";
+import toast from 'react-hot-toast';
 
 interface RatingModalProps {
     isOpen: boolean;
@@ -52,7 +53,7 @@ export default function RatingModal({
                 review: review.trim() || undefined
             });
 
-            alert(res.message || "Terima kasih! Ulasan Anda berhasil dikirim.");
+            toast.success(res.message || "Terima kasih! Ulasan Anda berhasil dikirim.");
             onSuccess();
             onClose();
         } catch (err: any) {

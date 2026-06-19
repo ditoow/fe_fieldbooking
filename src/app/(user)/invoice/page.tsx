@@ -5,6 +5,7 @@ import { Download, Info, ShieldCheck, XCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { getBookingById, BookingDetail } from "@/lib/api/booking";
+import { formatBookingNumber } from "@/lib/utils";
 import axios from "axios";
 
 function InvoiceContent() {
@@ -177,7 +178,7 @@ function InvoiceContent() {
           <div className="flex justify-between items-center text-[10px] font-bold text-gray-500">
             <span>NOMOR BOOKING</span>
             <span className="font-bold text-[#1B3627]">
-              {booking.booking_number}
+              {formatBookingNumber(booking.booking_number)}
             </span>
           </div>
           <div className="flex justify-between items-center text-[10px] font-bold text-gray-500">
@@ -273,7 +274,7 @@ function InvoiceContent() {
               ID TRANSAKSI
             </span>
             <span className="text-sm font-black text-[#1B3627]">
-              {booking.booking_number}
+              {formatBookingNumber(booking.booking_number)}
             </span>
           </div>
 

@@ -25,7 +25,7 @@ export function StatCards({ stats, loading }: StatCardsProps) {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-      <Link href="/admin-verifikasi-user" className="block outline-none">
+      <Link href="/admin/manajemen/user" className="block outline-none">
         <Card className="rounded-2xl shadow-sm border-gray-100 overflow-hidden hover:shadow-md transition-shadow cursor-pointer h-full">
           <CardContent className="p-6">
             <div className="flex justify-between items-start mb-4">
@@ -39,7 +39,7 @@ export function StatCards({ stats, loading }: StatCardsProps) {
         </Card>
       </Link>
 
-      <Link href="/admin-kelola-lapangan" className="block outline-none">
+      <Link href="/admin/lapangan" className="block outline-none">
         <Card className="rounded-2xl shadow-sm border-gray-100 overflow-hidden hover:shadow-md transition-shadow cursor-pointer h-full">
           <CardContent className="p-6">
             <div className="flex justify-between items-start mb-4">
@@ -67,7 +67,7 @@ export function StatCards({ stats, loading }: StatCardsProps) {
         </Card>
       </Link>
 
-      <Link href="/admin-verifikasi-user" className="block outline-none">
+      <Link href="/admin/manajemen/booking" className="block outline-none">
         <Card className="rounded-2xl shadow-sm border-gray-100 overflow-hidden hover:shadow-md transition-shadow cursor-pointer h-full">
           <CardContent className="p-6">
             <div className="flex justify-between items-start mb-4">

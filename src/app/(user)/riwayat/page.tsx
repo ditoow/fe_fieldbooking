@@ -11,6 +11,8 @@ import RatingModal from "../components/Riwayat/RatingModal";
 import { getAllBookings, cancelBookingApi } from "@/lib/api/booking";
 import type { BookingDetail } from "@/lib/api/booking";
 import { useAuth } from "@/lib/context/AuthContext";
+import { useConfirm } from "@/lib/hooks/use-confirm";
+import toast from 'react-hot-toast';
 
 export interface HistoryItem {
     id: string;
@@ -96,6 +98,7 @@ export default function RiwayatPage() {
     const userRole = user?.roles?.[0]?.name || "umum";
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const { confirm, ConfirmModal } = useConfirm();
 
     const fetchBookings = async () => {
         try {
@@ -128,7 +131,7 @@ export default function RiwayatPage() {
 
     // FUNGSI UNTUK MEMBATALKAN PESANAN
     const handleCancelBooking = async (bookingId: string) => {
-        const isConfirm = window.confirm("Apakah Anda yakin ingin membatalkan pesanan ini?");
+        const isConfirm = await confirm({ title: 'Batalkan Pesanan', message: 'Apakah Anda yakin ingin membatalkan pesanan ini?', variant: 'destructive' });
         if (!isConfirm) return;
 
         try {
@@ -144,7 +147,7 @@ export default function RiwayatPage() {
             // MEMANGGIL API KE BACKEND
             await cancelBookingApi(bookingId);
 
-            alert("Pesanan berhasil dibatalkan!");
+            toast.success("Pesanan berhasil dibatalkan!");
 
             // Refetch data dari server setelah cancel untuk memastikan sinkronisasi
             fetchBookings();
@@ -154,7 +157,7 @@ export default function RiwayatPage() {
 
             // Tangkap pesan error dari backend jika ada
             const errorMessage = err.response?.data?.message || "Terjadi kesalahan. Gagal membatalkan pesanan.";
-            alert(errorMessage);
+            toast.error(errorMessage);
 
             // Jika API gagal, kembalikan data ke kondisi awal dengan fetch ulang
             fetchBookings();
@@ -341,6 +344,7 @@ export default function RiwayatPage() {
                 onSuccess={fetchBookings}
             />
 
+            <ConfirmModal />
         </div>
     );
 }
