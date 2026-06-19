@@ -20,6 +20,7 @@ export interface HistoryItem {
     date: string;
     time: string;
     status: "DIPESAN" | "SELESAI" | "DIBATALKAN" | "TERTUNDA";
+    booking_type?: string;
     image: string;
     note: string | null;
     createdAt?: number;
@@ -52,6 +53,7 @@ function mapStatus(status: string, schedules: BookingDetail['schedules']): "DIPE
         'pending': 'TERTUNDA',
         'rejected': 'DIBATALKAN',
         'cancelled': 'DIBATALKAN',
+        'expired': 'DIBATALKAN',
     };
     return statusMap[status] ?? 'TERTUNDA';
 }
@@ -72,6 +74,7 @@ function mapToHistoryItem(booking: BookingDetail): HistoryItem {
         date: booking.formatted_date || "-",
         time: booking.formatted_time || "-",
         status: mapStatus(booking.status, booking.schedules),
+        booking_type: booking.booking_type,
         image: booking.field_image_url || defaultImage,
         note: null,
         createdAt: new Date(booking.created_at).getTime(),
@@ -305,7 +308,7 @@ export default function RiwayatPage() {
                                 formatRupiah={formatRupiah}
                                 getDeadlineText={getDeadlineText}
                                 onDetail={(item: HistoryItem) => setSelectedDetailItem(item)}
-                                onPayNow={() => router.push(`/invoice?booking_id=${item.id}`)}
+                                onPayNow={() => router.push(item.booking_type === "requirement" ? `/verifikasi-pending?booking_id=${item.id}` : `/invoice?booking_id=${item.id}`)}
                                 onBookAgain={(id: number) => router.push(`/booking/${id || 1}`)}
                             // onCancel dihapus dari sini karena sudah pindah ke modal
                             />

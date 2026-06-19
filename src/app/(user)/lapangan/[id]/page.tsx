@@ -25,6 +25,7 @@ import {
   Layers,
   Lightbulb,
   Activity,
+  Calendar,
   CheckCircle2,
 } from "lucide-react";
 import { getFieldById, Field } from "@/lib/api/field";
@@ -124,16 +125,6 @@ export default function FieldDetailPage() {
 
   const parsedData = parseDescription(field?.description || "");
 
-  // Spesifikasi Lapangan (Dinamis dari input admin)
-  const specList = parsedData.spesifikasi
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-  const specifications = specList.map((spec) => ({
-    icon: <CheckCircle className="w-5 h-5" />,
-    label: spec,
-    subLabel: "Fasilitas & Spesifikasi",
-  }));
   const iconMap: Record<string, React.ReactNode> = {
     "Ukuran Lapangan": <Maximize className="w-5 h-5" />,
     Pencahayaan: <Lightbulb className="w-5 h-5" />,
@@ -150,11 +141,6 @@ export default function FieldDetailPage() {
       subLabel: spec.value,
     })) || [];
 
-  const galleryImages = field
-    ? field.carousel_urls?.length > 0
-      ? field.carousel_urls
-      : [field.image_url]
-    : [];
   const galleryImages = field
     ? ([field.image_url, ...(field.carousel_urls || [])].filter(
         Boolean,

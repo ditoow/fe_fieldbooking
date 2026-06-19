@@ -74,7 +74,7 @@ export default function HistoryCard({
                             onClick={() => onPayNow(item.price)}
                             className="flex-1 py-2.5 text-xs font-bold bg-black text-white rounded hover:bg-gray-800 transition shadow-md shadow-black/20 tracking-wide text-center"
                         >
-                            BAYAR
+                            {item.booking_type === "requirement" ? "VERIFIKASI" : "BAYAR"}
                         </button>
                     ) : (
                         <button

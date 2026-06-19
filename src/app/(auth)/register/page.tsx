@@ -151,6 +151,7 @@ export default function RegisterPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
+                  minLength={8}
                   className="w-full bg-[#F5F2E9] border-none rounded-md px-4 py-3 text-sm focus:ring-2 focus:ring-[#EAD0B3] outline-none text-[#1B3627]"
                 />
                 <button
