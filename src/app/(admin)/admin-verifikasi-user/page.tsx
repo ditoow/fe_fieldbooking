@@ -1,17 +1,23 @@
 "use client";
 
-import { Search, Filter, Ban, CheckCircle, Download, ArrowLeft, Loader2 } from 'lucide-react';
+import { Search, Filter, Ban, CheckCircle, Download, ArrowLeft, Loader2, ThumbsUp, ThumbsDown, FileCheck } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { getAllUsers, updateUserStatus, User } from '@/lib/api/admin/user';
+import { getAdminBookings, approveBooking, rejectBooking } from '@/lib/api/admin/booking';
+import type { BookingDetail } from '@/lib/api/booking/getOne';
 import axios from 'axios';
 
+type TabType = 'booking' | 'user';
+
 export default function VerifikasiUserPage() {
+  const [activeTab, setActiveTab] = useState<TabType>('booking');
   const [users, setUsers] = useState<User[]>([]);
+  const [bookings, setBookings] = useState<BookingDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showFilter, setShowFilter] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Update filters to match backend status
+  const [isProcessingId, setIsProcessingId] = useState<string | number | null>(null);
+
   const [activeFilters, setActiveFilters] = useState({
     active: true,
     suspended: true,
@@ -22,23 +28,71 @@ export default function VerifikasiUserPage() {
   });
   
   const [showPDF, setShowPDF] = useState(false);
-  const [isProcessingId, setIsProcessingId] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     try {
-      setIsLoading(true);
       const data = await getAllUsers();
       setUsers(data);
     } catch (error) {
       console.error("Failed to fetch users", error);
+    }
+  };
+
+  const fetchBookings = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getAdminBookings({ status: 'pending', booking_type: 'requirement', per_page: 50 });
+      setBookings(data);
+    } catch (error) {
+      console.error("Failed to fetch bookings", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (activeTab === 'booking') {
+      fetchBookings();
+    } else {
+      fetchUsers().finally(() => setIsLoading(false));
+    }
+  }, [activeTab]);
+
+  const handleApprove = async (id: number) => {
+    if (!window.confirm('Yakin ingin menyetujui booking ini?')) return;
+    try {
+      setIsProcessingId(id);
+      await approveBooking(id);
+      await fetchBookings();
+    } catch (error) {
+      console.error("Gagal approve booking:", error);
+      if (axios.isAxiosError(error)) {
+        alert(error.response?.data?.message || "Gagal menyetujui booking.");
+      } else {
+        alert("Terjadi kesalahan.");
+      }
+    } finally {
+      setIsProcessingId(null);
+    }
+  };
+
+  const handleReject = async (id: number) => {
+    if (!window.confirm('Yakin ingin menolak booking ini?')) return;
+    try {
+      setIsProcessingId(id);
+      await rejectBooking(id);
+      await fetchBookings();
+    } catch (error) {
+      console.error("Gagal reject booking:", error);
+      if (axios.isAxiosError(error)) {
+        alert(error.response?.data?.message || "Gagal menolak booking.");
+      } else {
+        alert("Terjadi kesalahan.");
+      }
+    } finally {
+      setIsProcessingId(null);
+    }
+  };
 
   const handleUpdateStatus = async (id: string, currentStatus: string) => {
     const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
@@ -81,13 +135,11 @@ export default function VerifikasiUserPage() {
 
   const filteredUsers = useMemo(() => {
     return users.filter(v => {
-      // Filter by search
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch = v.name.toLowerCase().includes(searchLower) || 
                             (v.user_number && v.user_number.toLowerCase().includes(searchLower)) ||
                             v.email.toLowerCase().includes(searchLower);
       
-      // Filter by status
       const noFilterSelected = !activeFilters.active && !activeFilters.suspended;
       let matchesStatus = noFilterSelected;
       
@@ -100,7 +152,6 @@ export default function VerifikasiUserPage() {
     });
   }, [users, searchQuery, activeFilters]);
 
-  // Statistics
   const totalActive = users.filter(u => u.status === 'active').length;
   const totalSuspended = users.filter(u => u.status === 'suspended').length;
 
@@ -110,211 +161,334 @@ export default function VerifikasiUserPage() {
         <div className="flex flex-col gap-6 fade-in animate-in">
           {/* Header */}
       <div>
-        <h1 className="text-[30px] font-bold text-ugo-sidebar leading-tight mb-2">Manajemen User</h1>
+        <h1 className="text-[30px] font-bold text-ugo-sidebar leading-tight mb-2">Verifikasi & Manajemen</h1>
         <p className="text-gray-500 text-sm">
-          Kelola daftar pengguna aplikasi. Anda dapat mencari, memfilter, serta memblokir/mengaktifkan akun pengguna di sini.
+          Kelola booking yang menunggu verifikasi serta daftar pengguna aplikasi.
         </p>
       </div>
 
-      {/* Banner */}
-      <div className="bg-ugo-sidebar rounded-2xl p-6 text-white flex flex-col md:flex-row justify-between items-start md:items-end shadow-lg gap-6 md:gap-0">
-        <div className="flex flex-col gap-5 w-full md:w-auto">
-          <h2 className="text-xl font-bold text-white tracking-wide">Statistik Pengguna</h2>
-          <div className="flex items-center gap-4 sm:gap-8 flex-wrap sm:flex-nowrap">
-            <div>
-              <p className="text-[11px] text-[#D4A574] uppercase tracking-widest font-bold mb-1">TOTAL USER</p>
-              <p className="text-3xl font-bold text-white">{users.length}</p>
-            </div>
-            <div className="hidden sm:block w-[1px] h-10 bg-white/10"></div>
-            <div>
-              <p className="text-[11px] text-[#D4A574] uppercase tracking-widest font-bold mb-1">AKTIF</p>
-              <p className="text-3xl font-bold text-white">{totalActive}</p>
-            </div>
-            <div className="hidden sm:block w-[1px] h-10 bg-white/10"></div>
-            <div>
-              <p className="text-[11px] text-[#D4A574] uppercase tracking-widest font-bold mb-1">SUSPENDED</p>
-              <p className="text-3xl font-bold text-white">{totalSuspended}</p>
-            </div>
-          </div>
-        </div>
-        <button 
-          onClick={() => setShowPDF(true)}
-          className="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-[#F5E6D8] hover:bg-[#ebd5c1] text-[#1C2B1E] rounded-lg text-sm font-bold shadow-sm transition-colors mb-1"
+      {/* Tabs */}
+      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+        <button
+          onClick={() => setActiveTab('booking')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-colors ${
+            activeTab === 'booking' ? 'bg-white text-ugo-sidebar shadow-sm' : 'text-gray-500 hover:text-gray-700'
+          }`}
         >
-          Eksport Laporan Harian
-          <Download className="w-4 h-4" />
+          <FileCheck className="w-4 h-4" />
+          Verifikasi Booking
+        </button>
+        <button
+          onClick={() => setActiveTab('user')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-colors ${
+            activeTab === 'user' ? 'bg-white text-ugo-sidebar shadow-sm' : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <Filter className="w-4 h-4" />
+          Manajemen User
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-6">
-        <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white rounded-t-2xl relative">
-          <div>
-            <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1">DATA PENGGUNA</p>
-            <h2 className="text-xl font-bold text-[#1C2B1E]">Daftar Pengguna</h2>
-          </div>
-          <div className="flex gap-3 relative w-full sm:w-auto">
-            <div className="relative w-64">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input 
-                type="text" 
-                placeholder="Cari ID, nama, atau email..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/20"
-              />
-            </div>
-            <button 
-              onClick={() => setShowFilter(!showFilter)}
-              className="flex items-center gap-2 px-4 py-2 bg-ugo-primary text-white rounded-lg text-sm font-medium hover:bg-ugo-primary/90 transition-colors"
-            >
-              <Filter className="w-4 h-4" />
-              Filters
-            </button>
-
-            {/* Filter Dialog Simulation */}
-            {showFilter && (
-              <div className="absolute right-0 top-12 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 p-5 z-20">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-bold text-lg">Filter Status</h3>
-                  <button onClick={() => {
-                    setShowFilter(false);
-                    setPendingFilters(activeFilters);
-                  }} className="text-gray-400 hover:text-gray-600">×</button>
+      {activeTab === 'user' && (
+        <>
+          <div className="bg-ugo-sidebar rounded-2xl p-6 text-white flex flex-col md:flex-row justify-between items-start md:items-end shadow-lg gap-6 md:gap-0">
+            <div className="flex flex-col gap-5 w-full md:w-auto">
+              <h2 className="text-xl font-bold text-white tracking-wide">Statistik Pengguna</h2>
+              <div className="flex items-center gap-4 sm:gap-8 flex-wrap sm:flex-nowrap">
+                <div>
+                  <p className="text-[11px] text-[#D4A574] uppercase tracking-widest font-bold mb-1">TOTAL USER</p>
+                  <p className="text-3xl font-bold text-white">{users.length}</p>
                 </div>
-                <div className="mb-5">
-                  <div className="flex flex-col gap-3">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={pendingFilters.active}
-                        onChange={(e) => setPendingFilters({...pendingFilters, active: e.target.checked})}
-                        className="w-4 h-4 accent-ugo-primary rounded" 
-                      />
-                      <span className="text-sm font-medium">Aktif</span>
-                    </label>
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={pendingFilters.suspended}
-                        onChange={(e) => setPendingFilters({...pendingFilters, suspended: e.target.checked})}
-                        className="w-4 h-4 accent-ugo-primary rounded" 
-                      />
-                      <span className="text-sm font-medium">Suspended</span>
-                    </label>
-                  </div>
+                <div className="hidden sm:block w-[1px] h-10 bg-white/10"></div>
+                <div>
+                  <p className="text-[11px] text-[#D4A574] uppercase tracking-widest font-bold mb-1">AKTIF</p>
+                  <p className="text-3xl font-bold text-white">{totalActive}</p>
                 </div>
-
-                <hr className="my-4 border-gray-100" />
-                
-                <div className="flex justify-between items-center">
-                  <button 
-                    onClick={() => {
-                      const reset = {active: true, suspended: true};
-                      setPendingFilters(reset);
-                      setActiveFilters(reset);
-                    }}
-                    className="text-sm text-ugo-sidebar font-medium hover:text-ugo-primary hover:underline transition-colors"
-                  >
-                    Atur Ulang
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setActiveFilters(pendingFilters);
-                      setShowFilter(false);
-                    }}
-                    className="px-5 py-2 bg-ugo-primary hover:bg-ugo-primary/90 text-white rounded-full text-sm font-bold transition-colors"
-                  >
-                    Terapkan
-                  </button>
+                <div className="hidden sm:block w-[1px] h-10 bg-white/10"></div>
+                <div>
+                  <p className="text-[11px] text-[#D4A574] uppercase tracking-widest font-bold mb-1">SUSPENDED</p>
+                  <p className="text-3xl font-bold text-white">{totalSuspended}</p>
                 </div>
               </div>
+            </div>
+            <button 
+              onClick={() => setShowPDF(true)}
+              className="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-[#F5E6D8] hover:bg-[#ebd5c1] text-[#1C2B1E] rounded-lg text-sm font-bold shadow-sm transition-colors mb-1"
+            >
+              Eksport Laporan Harian
+              <Download className="w-4 h-4" />
+            </button>
+          </div>
+        </>
+      )}
+
+      {activeTab === 'booking' ? (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-6">
+          <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white rounded-t-2xl">
+            <div>
+              <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1">MENUNGGU VERIFIKASI</p>
+              <h2 className="text-xl font-bold text-[#1C2B1E]">Booking Mahasiswa</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">Total menunggu: {bookings.length}</span>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto min-h-[300px]">
+            {isLoading ? (
+              <div className="flex justify-center items-center h-[300px]">
+                <Loader2 className="w-8 h-8 animate-spin text-ugo-primary" />
+              </div>
+            ) : bookings.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-[300px] text-gray-400 gap-3">
+                <FileCheck className="w-12 h-12" />
+                <p className="font-medium">Tidak ada booking yang menunggu verifikasi</p>
+              </div>
+            ) : (
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-100">
+                    <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">No. Booking</th>
+                    <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Mahasiswa</th>
+                    <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Lapangan & Waktu</th>
+                    <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Tanggal</th>
+                    <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Harga</th>
+                    <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bookings.map((b) => {
+                    const userData = b.user as { id: string; name: string; email: string; student_id?: string } | undefined;
+                    return (
+                      <tr key={b.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                        <td className="py-4 px-6 font-mono text-sm font-semibold text-ugo-sidebar">
+                          {b.booking_number}
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-ugo-primary/10 text-ugo-primary font-bold flex items-center justify-center text-sm">
+                              {userData ? getInitials(userData.name) : '?'}
+                            </div>
+                            <div>
+                              <p className="font-bold text-sm text-ugo-sidebar">{userData?.name || '-'}</p>
+                              <p className="text-xs text-gray-500">{userData?.email || ''}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <p className="font-semibold text-sm text-ugo-sidebar">{b.field_name}</p>
+                          <p className="text-xs text-gray-500">{b.formatted_time}</p>
+                        </td>
+                        <td className="py-4 px-6 text-sm text-gray-600">{b.formatted_date}</td>
+                        <td className="py-4 px-6 font-semibold text-sm">
+                          Rp {b.total_price.toLocaleString('id-ID')}
+                        </td>
+                        <td className="py-4 px-6 text-center">
+                          <div className="flex gap-2 justify-center">
+                            <button
+                              onClick={() => handleApprove(b.id)}
+                              disabled={isProcessingId === b.id}
+                              className="w-9 h-9 rounded-lg flex items-center justify-center bg-green-50 text-green-600 hover:bg-green-100 border border-green-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Setujui booking"
+                            >
+                              {isProcessingId === b.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <ThumbsUp className="w-4 h-4" />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => handleReject(b.id)}
+                              disabled={isProcessingId === b.id}
+                              className="w-9 h-9 rounded-lg flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Tolak booking"
+                            >
+                              {isProcessingId === b.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <ThumbsDown className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             )}
           </div>
         </div>
-
-        <div className="overflow-x-auto min-h-[300px]">
-          {isLoading ? (
-            <div className="flex justify-center items-center h-[300px]">
-              <Loader2 className="w-8 h-8 animate-spin text-ugo-primary" />
+      ) : (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-6">
+          <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white rounded-t-2xl relative">
+            <div>
+              <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1">DATA PENGGUNA</p>
+              <h2 className="text-xl font-bold text-[#1C2B1E]">Daftar Pengguna</h2>
             </div>
-          ) : (
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">ID / NIM</th>
-                <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Nama User</th>
-                <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Kategori</th>
-                <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Status</th>
-                <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500 text-center">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsers.length > 0 ? (
-                filteredUsers.map((v) => {
-                  const kategori = getKategori(v);
-                  return (
-                    <tr key={v.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                      <td className="py-4 px-6 font-semibold text-sm text-ugo-sidebar whitespace-nowrap">
-                        {v.user_number || v.student_id || '-'}
-                      </td>
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-xl bg-ugo-primary text-white font-bold flex items-center justify-center text-sm`}>
-                            {getInitials(v.name)}
-                          </div>
-                          <div>
-                            <p className="font-bold text-sm text-ugo-sidebar">{v.name}</p>
-                            <p className="text-xs text-gray-500">{v.email}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-4 px-6">
-                        <span className={`${getKategoriBadge(kategori)} px-3 py-1 rounded-full text-xs font-bold inline-flex`}>
-                          {kategori}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6">
-                        {v.status === 'active' ? (
-                          <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold inline-flex">Aktif</span>
-                        ) : (
-                          <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold inline-flex uppercase">Suspended</span>
-                        )}
-                      </td>
-                      <td className="py-4 px-6 text-center">
-                        <div className="flex gap-2 justify-center">
-                          <button 
-                            onClick={() => handleUpdateStatus(v.id, v.status)}
-                            disabled={isProcessingId === v.id || kategori === 'ADMIN'}
-                            title={kategori === 'ADMIN' ? 'Tidak dapat mengubah status admin' : (v.status === 'active' ? 'Suspend User' : 'Aktifkan User')}
-                            className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed
-                              ${v.status === 'active' 
-                                ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-100' 
-                                : 'bg-green-50 text-green-600 hover:bg-green-100 border border-green-100'
-                              }`}
-                          >
-                            {isProcessingId === v.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : v.status === 'active' ? (
-                              <Ban className="w-4 h-4" />
-                            ) : (
-                              <CheckCircle className="w-4 h-4" />
-                            )}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })
-              ) : (
-                <tr>
-                  <td colSpan={5} className="py-12 text-center text-gray-500 font-medium">Tidak ada pengguna yang sesuai.</td>
-                </tr>
+            <div className="flex gap-3 relative w-full sm:w-auto">
+              <div className="relative w-64">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input 
+                  type="text" 
+                  placeholder="Cari ID, nama, atau email..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/20"
+                />
+              </div>
+              <button 
+                onClick={() => setShowFilter(!showFilter)}
+                className="flex items-center gap-2 px-4 py-2 bg-ugo-primary text-white rounded-lg text-sm font-medium hover:bg-ugo-primary/90 transition-colors"
+              >
+                <Filter className="w-4 h-4" />
+                Filters
+              </button>
+
+              {showFilter && (
+                <div className="absolute right-0 top-12 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 p-5 z-20">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-bold text-lg">Filter Status</h3>
+                    <button onClick={() => {
+                      setShowFilter(false);
+                      setPendingFilters(activeFilters);
+                    }} className="text-gray-400 hover:text-gray-600">×</button>
+                  </div>
+                  <div className="mb-5">
+                    <div className="flex flex-col gap-3">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={pendingFilters.active}
+                          onChange={(e) => setPendingFilters({...pendingFilters, active: e.target.checked})}
+                          className="w-4 h-4 accent-ugo-primary rounded" 
+                        />
+                        <span className="text-sm font-medium">Aktif</span>
+                      </label>
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={pendingFilters.suspended}
+                          onChange={(e) => setPendingFilters({...pendingFilters, suspended: e.target.checked})}
+                          className="w-4 h-4 accent-ugo-primary rounded" 
+                        />
+                        <span className="text-sm font-medium">Suspended</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <hr className="my-4 border-gray-100" />
+                  
+                  <div className="flex justify-between items-center">
+                    <button 
+                      onClick={() => {
+                        const reset = {active: true, suspended: true};
+                        setPendingFilters(reset);
+                        setActiveFilters(reset);
+                      }}
+                      className="text-sm text-ugo-sidebar font-medium hover:text-ugo-primary hover:underline transition-colors"
+                    >
+                      Atur Ulang
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setActiveFilters(pendingFilters);
+                        setShowFilter(false);
+                      }}
+                      className="px-5 py-2 bg-ugo-primary hover:bg-ugo-primary/90 text-white rounded-full text-sm font-bold transition-colors"
+                    >
+                      Terapkan
+                    </button>
+                  </div>
+                </div>
               )}
-            </tbody>
-          </table>
-          )}
+            </div>
+          </div>
+
+          <div className="overflow-x-auto min-h-[300px]">
+            {isLoading ? (
+              <div className="flex justify-center items-center h-[300px]">
+                <Loader2 className="w-8 h-8 animate-spin text-ugo-primary" />
+              </div>
+            ) : (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-100">
+                  <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">ID / NIM</th>
+                  <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Nama User</th>
+                  <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Kategori</th>
+                  <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Status</th>
+                  <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.length > 0 ? (
+                  filteredUsers.map((v) => {
+                    const kategori = getKategori(v);
+                    return (
+                      <tr key={v.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                        <td className="py-4 px-6 font-semibold text-sm text-ugo-sidebar whitespace-nowrap">
+                          {v.user_number || v.student_id || '-'}
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl bg-ugo-primary text-white font-bold flex items-center justify-center text-sm`}>
+                              {getInitials(v.name)}
+                            </div>
+                            <div>
+                              <p className="font-bold text-sm text-ugo-sidebar">{v.name}</p>
+                              <p className="text-xs text-gray-500">{v.email}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className={`${getKategoriBadge(kategori)} px-3 py-1 rounded-full text-xs font-bold inline-flex`}>
+                            {kategori}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6">
+                          {v.status === 'active' ? (
+                            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold inline-flex">Aktif</span>
+                          ) : (
+                            <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold inline-flex uppercase">Suspended</span>
+                          )}
+                        </td>
+                        <td className="py-4 px-6 text-center">
+                          <div className="flex gap-2 justify-center">
+                            <button 
+                              onClick={() => handleUpdateStatus(v.id, v.status)}
+                              disabled={isProcessingId === v.id || kategori === 'ADMIN'}
+                              title={kategori === 'ADMIN' ? 'Tidak dapat mengubah status admin' : (v.status === 'active' ? 'Suspend User' : 'Aktifkan User')}
+                              className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed
+                                ${v.status === 'active' 
+                                  ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-100' 
+                                  : 'bg-green-50 text-green-600 hover:bg-green-100 border border-green-100'
+                                }`}
+                            >
+                              {isProcessingId === v.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : v.status === 'active' ? (
+                                <Ban className="w-4 h-4" />
+                              ) : (
+                                <CheckCircle className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="py-12 text-center text-gray-500 font-medium">Tidak ada pengguna yang sesuai.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+            )}
+          </div>
         </div>
-      </div>
+      )}
         </div>
       ) : (
         // ==========================================
