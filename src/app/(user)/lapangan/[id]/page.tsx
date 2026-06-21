@@ -135,14 +135,14 @@ export default function FieldDetailPage() {
   };
 
   const specifications =
-    field?.specifications?.map((spec) => ({
+    (Array.isArray(field?.specifications) ? field.specifications : []).map((spec) => ({
       icon: iconMap[spec.label] || <Info className="w-5 h-5" />,
       label: spec.label,
       subLabel: spec.value,
     })) || [];
 
   const galleryImages = field
-    ? ([field.image_url, ...(field.carousel_urls || [])].filter(
+    ? ([field.image_url, ...(Array.isArray(field.carousel_urls) ? field.carousel_urls : [])].filter(
         Boolean,
       ) as string[])
     : [];
