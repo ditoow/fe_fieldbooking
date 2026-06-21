@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Clock, Loader2, CheckCircle, XCircle } from "lucide-react";
 import Link from "next/link";
 import { getBookingById, BookingDetail } from "@/lib/api/booking";
+import { formatBookingNumber } from "@/lib/utils";
 import axios from "axios";
 
 function VerifikasiPendingContent() {
@@ -94,7 +95,7 @@ function VerifikasiPendingContent() {
         <div className="bg-[#F5F2E9]/80 p-6 rounded-2xl border border-green-200 text-left space-y-4 max-w-md mx-auto shadow-sm">
           <div className="flex justify-between items-center text-[10px] font-bold text-gray-500">
             <span>NOMOR BOOKING</span>
-            <span className="font-bold text-[#1B3627]">{booking.booking_number}</span>
+            <span className="font-bold text-[#1B3627]">{formatBookingNumber(booking.booking_number)}</span>
           </div>
           <div className="flex justify-between items-center text-[10px] font-bold text-gray-500">
             <span>LAPANGAN</span>
@@ -151,7 +152,7 @@ function VerifikasiPendingContent() {
         <div className="bg-[#F5F2E9]/80 p-6 rounded-2xl border border-red-200 text-left space-y-4 max-w-md mx-auto shadow-sm">
           <div className="flex justify-between items-center text-[10px] font-bold text-gray-500">
             <span>NOMOR BOOKING</span>
-            <span className="font-bold text-[#1B3627]">{booking.booking_number}</span>
+            <span className="font-bold text-[#1B3627]">{formatBookingNumber(booking.booking_number)}</span>
           </div>
           <div className="flex justify-between items-center text-[10px] font-bold text-gray-500">
             <span>LAPANGAN</span>
@@ -198,7 +199,7 @@ function VerifikasiPendingContent() {
       <div className="bg-[#F5F2E9]/80 p-6 rounded-2xl border border-[#E5C3A6]/30 text-left space-y-4 max-w-md mx-auto shadow-sm">
         <div className="flex justify-between items-center text-[10px] font-bold text-gray-500">
           <span>NOMOR BOOKING</span>
-          <span className="font-bold text-[#1B3627]">{booking.booking_number}</span>
+          <span className="font-bold text-[#1B3627]">{formatBookingNumber(booking.booking_number)}</span>
         </div>
         <div className="flex justify-between items-center text-[10px] font-bold text-gray-500">
           <span>LAPANGAN</span>

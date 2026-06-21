@@ -24,7 +24,7 @@ export interface Field {
   price_max: string | null;
   schedules: Schedule[];
   available_slots_today: number;
-  specifications: { label: string; value: string }[];
+  specifications: Record<string, string>;
 }
 
 export async function getAllFields(): Promise<Field[]> {

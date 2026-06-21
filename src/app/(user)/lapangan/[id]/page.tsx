@@ -127,7 +127,7 @@ export default function FieldDetailPage() {
 
   const iconMap: Record<string, React.ReactNode> = {
     "Ukuran Lapangan": <Maximize className="w-5 h-5" />,
-    Pencahayaan: <Lightbulb className="w-5 h-5" />,
+    "Fitur Unggulan": <Lightbulb className="w-5 h-5" />,
     "Kapasitas Pemain": <Users className="w-5 h-5" />,
     "Kapasitas Penonton": <Users className="w-5 h-5" />,
     "Tinggi Net": <Activity className="w-5 h-5" />,
@@ -135,7 +135,7 @@ export default function FieldDetailPage() {
   };
 
   const specifications =
-    (Array.isArray(field?.specifications) ? field.specifications : []).map((spec) => ({
+    (Array.isArray(field?.specifications) ? field.specifications : []).map((spec: any) => ({
       icon: iconMap[spec.label] || <Info className="w-5 h-5" />,
       label: spec.label,
       subLabel: spec.value,
