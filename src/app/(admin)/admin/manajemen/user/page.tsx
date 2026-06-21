@@ -14,6 +14,7 @@ export default function ManajemenUserPage() {
   const [activeFilters, setActiveFilters] = useState({ active: true, suspended: true });
   const [pendingFilters, setPendingFilters] = useState({ active: true, suspended: true });
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'mahasiswa' | 'umum'>('all');
+  const [pendingRoleFilter, setPendingRoleFilter] = useState<'all' | 'admin' | 'mahasiswa' | 'umum'>('all');
 
   const fetchUsers = async () => {
     try { setIsLoading(true); const data = await getAllUsers(); setUsers(data); }
@@ -76,41 +77,50 @@ export default function ManajemenUserPage() {
           <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white rounded-t-2xl">
             <div><p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1">DATA PENGGUNA</p><h2 className="text-xl font-bold text-[#1C2B1E]">Daftar Pengguna</h2></div>
             <div className="flex items-center gap-3">
-              <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
-                {(['all', 'admin', 'mahasiswa', 'umum'] as const).map(r => (
-                  <button key={r} onClick={() => setRoleFilter(r)}
-                    className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${roleFilter === r ? 'bg-white text-ugo-sidebar shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
-                    {r === 'all' ? 'Semua' : r.charAt(0).toUpperCase() + r.slice(1)}
-                  </button>
-                ))}
-              </div>
               <div className="relative w-64">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input type="text" placeholder="Cari ID, nama, atau email..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/20" />
               </div>
-              <button onClick={() => setShowFilter(!showFilter)} className="flex items-center gap-2 px-4 py-2 bg-ugo-primary text-white rounded-lg text-sm font-medium hover:bg-ugo-primary/90 transition-colors"><Filter className="w-4 h-4" />Filters</button>
-              {showFilter && (
-                <div className="absolute right-0 top-12 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 p-5 z-20">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-lg">Filter Status</h3>
-                    <button onClick={() => { setShowFilter(false); setPendingFilters(activeFilters); }} className="text-gray-400 hover:text-gray-600">&times;</button>
+              <div className="relative">
+                <button onClick={() => setShowFilter(!showFilter)} className="flex items-center gap-2 px-4 py-2 bg-ugo-primary text-white rounded-lg text-sm font-medium hover:bg-ugo-primary/90 transition-colors"><Filter className="w-4 h-4" />Filters</button>
+                {showFilter && (
+                  <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 p-5 z-20">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-bold text-lg">Filters</h3>
+                      <button onClick={() => { setShowFilter(false); setPendingFilters(activeFilters); setPendingRoleFilter(roleFilter); }} className="text-gray-400 hover:text-gray-600">&times;</button>
+                    </div>
+                    <div className="mb-4">
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kategori Pengguna</p>
+                      <div className="flex flex-col gap-1">
+                        {(['all', 'admin', 'mahasiswa', 'umum'] as const).map(r => (
+                          <button key={r} onClick={() => setPendingRoleFilter(r)}
+                            className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${pendingRoleFilter === r ? 'bg-ugo-primary/10 text-ugo-primary' : 'text-gray-600 hover:bg-gray-50'}`}>
+                            {r === 'all' ? 'Semua Kategori' : r.charAt(0).toUpperCase() + r.slice(1)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <hr className="my-4 border-gray-100" />
+                    <div className="mb-4">
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Status</p>
+                      <div className="flex flex-col gap-3">
+                        {[{ key: 'active' as const, label: 'Aktif' }, { key: 'suspended' as const, label: 'Suspended' }].map(f => (
+                          <label key={f.key} className="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" checked={pendingFilters[f.key]} onChange={(e) => setPendingFilters({ ...pendingFilters, [f.key]: e.target.checked })} className="w-4 h-4 accent-ugo-primary rounded" />
+                            <span className="text-sm font-medium">{f.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                    <hr className="my-4 border-gray-100" />
+                    <div className="flex justify-between items-center">
+                      <button onClick={() => { const reset = { active: true, suspended: true }; setPendingFilters(reset); setActiveFilters(reset); setRoleFilter('all'); setPendingRoleFilter('all'); }} className="text-sm text-ugo-sidebar font-medium hover:text-ugo-primary hover:underline transition-colors">Atur Ulang</button>
+                      <button onClick={() => { setActiveFilters(pendingFilters); setRoleFilter(pendingRoleFilter); setShowFilter(false); }} className="px-5 py-2 bg-ugo-primary hover:bg-ugo-primary/90 text-white rounded-full text-sm font-bold transition-colors">Terapkan</button>
+                    </div>
                   </div>
-                  <div className="mb-5 flex flex-col gap-3">
-                    {[{ key: 'active' as const, label: 'Aktif' }, { key: 'suspended' as const, label: 'Suspended' }].map(f => (
-                      <label key={f.key} className="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" checked={pendingFilters[f.key]} onChange={(e) => setPendingFilters({ ...pendingFilters, [f.key]: e.target.checked })} className="w-4 h-4 accent-ugo-primary rounded" />
-                        <span className="text-sm font-medium">{f.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                  <hr className="my-4 border-gray-100" />
-                  <div className="flex justify-between items-center">
-                    <button onClick={() => { const reset = { active: true, suspended: true }; setPendingFilters(reset); setActiveFilters(reset); }} className="text-sm text-ugo-sidebar font-medium hover:text-ugo-primary hover:underline transition-colors">Atur Ulang</button>
-                    <button onClick={() => { setActiveFilters(pendingFilters); setShowFilter(false); }} className="px-5 py-2 bg-ugo-primary hover:bg-ugo-primary/90 text-white rounded-full text-sm font-bold transition-colors">Terapkan</button>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
 

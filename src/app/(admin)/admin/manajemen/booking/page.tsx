@@ -124,7 +124,7 @@ export default function AdminBookingPage() {
             </div>
             <div className="relative">
               <button onClick={() => setShowFilter(!showFilter)}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+                className="flex items-center gap-2 px-4 py-2 bg-ugo-primary text-white rounded-lg text-sm font-medium hover:bg-ugo-primary/90 transition-colors">
                 <Filter className="w-4 h-4" /> Filter
               </button>
               {showFilter && (

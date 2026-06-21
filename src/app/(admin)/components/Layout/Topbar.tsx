@@ -1,15 +1,45 @@
 "use client";
 
-import { Bell, Box, Menu } from 'lucide-react';
-import { useState } from 'react';
+import { Bell, Box, Menu, Loader2, Check } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { logout } from '@/lib/api/auth/logout';
+import { getNotifications, markAsRead, markAllAsRead, AppNotification } from '@/lib/api/notification';
 
 export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [isLoadingNotif, setIsLoadingNotif] = useState(true);
   const router = useRouter();
+
+  useEffect(() => {
+    fetchNotifs();
+  }, []);
+
+  const fetchNotifs = async () => {
+    try {
+      setIsLoadingNotif(true);
+      const data = await getNotifications();
+      setNotifications(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoadingNotif(false);
+    }
+  };
+
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await markAsRead(id);
+      fetchNotifs();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.read_at).length;
 
   const handleLogout = async () => {
     await logout();
@@ -42,11 +72,11 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
         {/* Notification Bell */}
         <div className="relative">
           <button
-            onClick={() => setShowNotifications(!showNotifications)}
+            onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications) fetchNotifs(); }}
             className="p-2 rounded-full hover:bg-white/10 transition-colors relative"
           >
             <Bell className="w-6 h-6 text-white/90" />
-            <span className="absolute top-2 right-2.5 w-2 h-2 bg-ugo-status-ditolak-text rounded-full"></span>
+            {unreadCount > 0 && <span className="absolute top-2 right-2.5 w-2 h-2 bg-ugo-status-ditolak-text rounded-full"></span>}
           </button>
 
           {/* Simple Notification Dropdown */}
@@ -54,39 +84,37 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
             <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden text-gray-800">
               <div className="p-4 border-b border-gray-100 flex justify-between items-center">
                 <h3 className="font-bold text-lg">Notifikasi</h3>
-                <button onClick={() => setShowNotifications(false)} className="text-gray-400 hover:text-gray-600">×</button>
+                <div className="flex items-center gap-3">
+                   <button onClick={() => { markAllAsRead().then(() => fetchNotifs()) }} className="text-xs text-ugo-primary hover:underline font-medium">Tandai semua dibaca</button>
+                   <button onClick={() => setShowNotifications(false)} className="text-gray-400 hover:text-gray-600">×</button>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <div className="p-4 border-b border-gray-50 hover:bg-gray-50 flex gap-3">
-                  <div className="w-10 h-10 rounded-full bg-ugo-status-disetujui-bg flex items-center justify-center shrink-0">
-                    <span className="text-ugo-status-disetujui-text font-bold">👤</span>
+              <div className="flex flex-col max-h-[400px] overflow-y-auto">
+                {isLoadingNotif ? (
+                  <div className="p-8 flex justify-center items-center">
+                    <Loader2 className="w-6 h-6 text-ugo-primary animate-spin" />
                   </div>
-                  <div>
-                    <h4 className="font-bold text-sm">Verifikasi User Baru</h4>
-                    <p className="text-sm text-gray-600 mt-0.5">Bagus Setiawan menunggu verifikasi.</p>
-                    <span className="text-xs text-gray-400 mt-1 block">2m lalu</span>
-                  </div>
-                </div>
-                <div className="p-4 border-b border-gray-50 hover:bg-gray-50 flex gap-3">
-                  <div className="w-10 h-10 rounded-full bg-ugo-status-ditolak-bg flex items-center justify-center shrink-0">
-                    <span className="text-ugo-status-ditolak-text font-bold">⚠️</span>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm">Peringatan Maintenance</h4>
-                    <p className="text-sm text-gray-600 mt-0.5">Lapangan Basket 2 ditutup.</p>
-                    <span className="text-xs text-gray-400 mt-1 block">1j lalu</span>
-                  </div>
-                </div>
-                <div className="p-4 hover:bg-gray-50 flex gap-3">
-                  <div className="w-10 h-10 rounded-full bg-ugo-status-disetujui-bg flex items-center justify-center shrink-0">
-                    <span className="text-ugo-status-disetujui-text font-bold">✓</span>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm">Booking Dikonfirmasi</h4>
-                    <p className="text-sm text-gray-600 mt-0.5">Siti Aminah telah membayar.</p>
-                    <span className="text-xs text-gray-400 mt-1 block">3j lalu</span>
-                  </div>
-                </div>
+                ) : notifications.length === 0 ? (
+                  <div className="p-8 text-center text-gray-500 text-sm">Tidak ada notifikasi.</div>
+                ) : (
+                  notifications.map(n => (
+                    <div 
+                      key={n.id} 
+                      onClick={() => !n.read_at && handleMarkAsRead(n.id)}
+                      className={`p-4 border-b border-gray-50 flex gap-3 ${!n.read_at ? 'bg-blue-50/30 cursor-pointer' : ''} hover:bg-gray-50 transition-colors`}
+                    >
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${n.type === 'success' ? 'bg-ugo-status-disetujui-bg text-ugo-status-disetujui-text' : n.type === 'warning' ? 'bg-yellow-100 text-yellow-600' : n.type === 'error' ? 'bg-ugo-status-ditolak-bg text-ugo-status-ditolak-text' : 'bg-blue-100 text-blue-600'}`}>
+                        {n.type === 'success' ? <Check className="w-5 h-5" /> : n.type === 'warning' ? <span className="font-bold">⚠️</span> : n.type === 'error' ? <span className="font-bold">❌</span> : <span className="font-bold">ℹ️</span>}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className={`font-bold text-sm ${!n.read_at ? 'text-gray-900' : 'text-gray-600'}`}>{n.title}</h4>
+                        <p className={`text-sm mt-0.5 ${!n.read_at ? 'text-gray-700' : 'text-gray-500'}`}>{n.message}</p>
+                        <span className="text-xs text-gray-400 mt-1 block">{n.time_ago}</span>
+                      </div>
+                      {!n.read_at && <div className="w-2 h-2 bg-ugo-primary rounded-full mt-1.5 shrink-0"></div>}
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}

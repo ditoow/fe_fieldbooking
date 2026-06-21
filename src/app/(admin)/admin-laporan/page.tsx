@@ -286,10 +286,10 @@ function LaporanPage() {
                 </div>
                 <button 
                   onClick={() => setShowFilter(!showFilter)}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#F5E6D8] text-[#1C2B1E] rounded-lg text-sm font-bold hover:bg-[#ebd5c1] transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-ugo-primary text-white rounded-lg text-sm font-medium hover:bg-ugo-primary/90 transition-colors"
                 >
                   <Filter className="w-4 h-4" />
-                  Filters
+                  Filter
                 </button>
 
                 {/* Filter Popup Simulation */}
