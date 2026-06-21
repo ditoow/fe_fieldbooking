@@ -57,7 +57,7 @@ const parseDescription = (desc: string) => {
     if (parsed && typeof parsed === "object" && "long_description" in parsed) {
       return parsed;
     }
-  } catch (e) {}
+  } catch (e) { }
   return {
     long_description: desc,
     jam_buka: "08:00 - 22:00",
@@ -134,18 +134,17 @@ export default function FieldDetailPage() {
     Fasilitas: <Coffee className="w-5 h-5" />,
   };
 
-  const specifications = field?.specifications
-    ? Object.entries(field.specifications).map(([name, content]) => ({
-        icon: iconMap[name] || <Info className="w-5 h-5" />,
-        label: name,
-        subLabel: content,
-      }))
-    : [];
+  const specifications =
+    (Array.isArray(field?.specifications) ? field.specifications : []).map((spec: any) => ({
+      icon: iconMap[spec.label] || <Info className="w-5 h-5" />,
+      label: spec.label,
+      subLabel: spec.value,
+    })) || [];
 
   const galleryImages = field
-    ? ([field.image_url, ...(field.carousel_urls || [])].filter(
-        Boolean,
-      ) as string[])
+    ? ([field.image_url, ...(Array.isArray(field.carousel_urls) ? field.carousel_urls : [])].filter(
+      Boolean,
+    ) as string[])
     : [];
 
   return (
