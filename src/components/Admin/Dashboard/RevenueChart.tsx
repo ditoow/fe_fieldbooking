@@ -43,7 +43,7 @@ export function RevenueChart({ data, loading }: RevenueChartProps) {
           <CardDescription>Statistik performa lapangan minggu ini</CardDescription>
         </div>
         <Link 
-          href="/admin-laporan" 
+          href="/admin/laporan" 
           className="text-sm font-medium text-ugo-sidebar hover:text-opacity-80 flex items-center gap-1 bg-gray-50 px-3 py-1.5 rounded-lg transition-colors"
         >
           Lihat Selengkapnya

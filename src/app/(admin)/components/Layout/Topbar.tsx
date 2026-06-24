@@ -147,7 +147,7 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
                 </div>
               </div>
               <hr className="my-2 border-gray-100" />
-              <Link href="/admin-profile" onClick={() => setShowProfile(false)} className="block w-full text-left px-2 py-2 text-sm hover:bg-gray-50 rounded-md">Settings</Link>
+              <Link href="/admin/profile" onClick={() => setShowProfile(false)} className="block w-full text-left px-2 py-2 text-sm hover:bg-gray-50 rounded-md">Settings</Link>
               <button onClick={handleLogout} className="w-full text-left px-2 py-2 text-sm hover:bg-gray-50 rounded-md text-ugo-status-ditolak-text">Logout</button>
             </div>
           )}

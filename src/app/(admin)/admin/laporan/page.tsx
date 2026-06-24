@@ -8,9 +8,8 @@ import {
   ArrowLeft, 
   Search, 
   Filter, 
-  CircleDashed,
-  Activity,
-  Loader2
+  Loader2,
+  X
 } from 'lucide-react';
 import {
   AreaChart,
@@ -27,6 +26,7 @@ import {
   getTransactionsReport,
   getDemographicsReport,
   getPdfReportData,
+  exportPdfReport,
   TransactionReportItem,
   DemographicItem,
   PdfReportData
@@ -35,6 +35,9 @@ import { getRevenueTrend, RevenueTrendItem } from '@/lib/api/admin/dashboard';
 
 function LaporanPage() {
   const [showPDF, setShowPDF] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportMonth, setExportMonth] = useState(new Date().getMonth() + 1);
+  const [exportYear, setExportYear] = useState(new Date().getFullYear());
   const [showFilter, setShowFilter] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -141,7 +144,7 @@ function LaporanPage() {
               </p>
             </div>
             <button 
-              onClick={() => setShowPDF(true)}
+              onClick={() => setShowExportModal(true)}
               className="flex items-center gap-2 bg-[#F5E6D8] text-[#1C2B1E] px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-[#ebd5c1] transition-colors"
             >
               <FileText className="w-4 h-4" />
@@ -294,7 +297,12 @@ function LaporanPage() {
 
                 {/* Filter Popup Simulation */}
                 {showFilter && (
-                  <div className="absolute right-0 top-12 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 p-5 z-20">
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => {
+                      setShowFilter(false);
+                      setPendingFilters(activeFilters);
+                    }} />
+                    <div className="absolute right-0 top-12 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 p-5 z-20">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="font-bold text-lg">Filter</h3>
                       <button onClick={() => {
@@ -360,6 +368,7 @@ function LaporanPage() {
                       </button>
                     </div>
                   </div>
+                  </>
                 )}
               </div>
             </div>
@@ -582,8 +591,50 @@ function LaporanPage() {
           </div>
         )}
       </div>
-    )}
-  </div>
+      )}
+
+      {/* Export PDF Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ugo-sidebar/40 backdrop-blur-sm p-4 fade-in animate-in">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+            <div className="flex justify-between items-center mb-5">
+              <h2 className="text-lg font-bold text-ugo-sidebar">Ekspor Laporan PDF</h2>
+              <button onClick={() => setShowExportModal(false)} className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-bold text-gray-700 block mb-1.5">Bulan</label>
+                <select value={exportMonth} onChange={(e) => setExportMonth(Number(e.target.value))} className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium">
+                  {['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'].map((m, i) => (
+                    <option key={i} value={i + 1}>{m}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-bold text-gray-700 block mb-1.5">Tahun</label>
+                <select value={exportYear} onChange={(e) => setExportYear(Number(e.target.value))} className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium">
+                  {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+              </div>
+              <button
+                onClick={async () => {
+                  try {
+                    const json = await exportPdfReport(exportMonth, exportYear);
+                    if (json.success) window.open(json.url, '_blank');
+                    else alert('Gagal mengunduh laporan');
+                  } catch (e) { alert('Gagal mengunduh laporan'); }
+                  setShowExportModal(false);
+                }}
+                className="w-full py-3 bg-ugo-primary text-white rounded-xl text-sm font-bold hover:bg-ugo-primary/90 transition-colors flex items-center justify-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                Download Laporan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

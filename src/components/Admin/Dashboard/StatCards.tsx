@@ -53,7 +53,7 @@ export function StatCards({ stats, loading }: StatCardsProps) {
         </Card>
       </Link>
 
-      <Link href="/admin-laporan" className="block outline-none">
+      <Link href="/admin/laporan" className="block outline-none">
         <Card className="rounded-2xl shadow-sm border-gray-100 overflow-hidden hover:shadow-md transition-shadow cursor-pointer h-full">
           <CardContent className="p-6">
             <div className="flex justify-between items-start mb-4">

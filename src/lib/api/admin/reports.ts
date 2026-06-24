@@ -90,13 +90,26 @@ export const getTransactionsReport = async (search?: string, status?: string): P
   });
 };
 
-// 2. Get demographics data
+export interface ExportPdfResponse {
+  success: boolean;
+  url: string;
+}
+
+// 2. Export PDF to Supabase and return URL
+export const exportPdfReport = async (month: number, year: number): Promise<ExportPdfResponse> => {
+  const response = await api.get('/admin/reports/pdf', {
+    params: { month, year },
+  });
+  return response.data;
+};
+
+// 3. Get demographics data
 export const getDemographicsReport = async (): Promise<DemographicResponse> => {
   const response = await api.get('/admin/reports/demographics');
   return response.data;
 };
 
-// 3. Get PDF compilation report data
+// 4. Get PDF compilation report data
 export const getPdfReportData = async (): Promise<PdfReportData> => {
   const response = await api.get('/admin/reports/pdf-data');
   const rawData = response.data.data;

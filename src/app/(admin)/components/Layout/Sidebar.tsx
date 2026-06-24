@@ -26,7 +26,7 @@ const navItems = [
     ],
   },
   { name: 'Kelola Lapangan', href: '/admin/lapangan', icon: Building },
-  { name: 'Laporan', href: '/admin-laporan', icon: FileText },
+  { name: 'Laporan', href: '/admin/laporan', icon: FileText },
 ];
 
 export function Sidebar({ isOpen, onClose }: { isOpen?: boolean, onClose?: () => void }) {

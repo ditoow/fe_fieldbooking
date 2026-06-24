@@ -71,6 +71,20 @@ function PembayaranContent() {
     fetchData();
   }, [bookingId, user]);
 
+  useEffect(() => {
+    if (!booking || booking.booking_type !== 'payment') return;
+    (window as any).bayar = async () => {
+      try {
+        const res = await axios.post('/api/payment/simulate', { booking_id: booking.id });
+        alert('✅ Pembayaran berhasil!');
+        window.location.href = `/invoice?booking_id=${booking.id}`;
+      } catch (e: any) {
+        alert('❌ Gagal: ' + (e.response?.data?.message || e.message));
+      }
+    };
+    return () => { delete (window as any).bayar; };
+  }, [booking]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setSuratFile(e.target.files[0]);
