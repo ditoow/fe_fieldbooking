@@ -4,26 +4,80 @@ import { useState, useEffect } from "react";
 import { Camera, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+import { useAuth } from "@/lib/context/AuthContext";
+import { updateProfile, updatePassword } from "@/lib/api/auth/profile";
 
 export default function ProfileSettingsPage() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, updateUserContext, loading: authLoading } = useAuth();
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newPasswordConfirmation, setNewPasswordConfirmation] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    try {
-      const sessionStr = localStorage.getItem("user_session");
-      if (sessionStr) {
-        setUser(JSON.parse(sessionStr));
-      }
-    } catch (e) {
-      console.error("Gagal membaca profil dari sesi", e);
-    } finally {
-      setLoading(false);
+    if (user) {
+      setName(user.name || "");
+      setPhone(user.phone || "");
     }
-  }, []);
+  }, [user]);
 
-  if (loading) {
+  const handleSave = async () => {
+    if (!name.trim()) return;
+    try {
+      setSaving(true);
+      const payload: any = {
+        name,
+        email: user?.email || "",
+        phone: phone.trim() ? phone : null,
+      };
+
+      const res = await updateProfile(payload);
+      if (res.user) {
+        updateUserContext(res.user);
+      }
+
+      // Handle password update if user entered current password
+      if (currentPassword) {
+        if (newPassword !== newPasswordConfirmation) {
+          alert("Konfirmasi password baru tidak cocok.");
+          setSaving(false);
+          return;
+        }
+        await updatePassword({
+          current_password: currentPassword,
+          password: newPassword,
+          password_confirmation: newPasswordConfirmation
+        });
+        setCurrentPassword("");
+        setNewPassword("");
+        setNewPasswordConfirmation("");
+      }
+
+      alert("Profil berhasil diperbarui!");
+    } catch (e: any) {
+      console.error("Profile update error:", e);
+      let errMsg = "Gagal memperbarui profil.";
+      if (e.response?.data?.errors) {
+        const firstError = Object.values(e.response.data.errors)[0] as string[];
+        errMsg = firstError[0];
+      } else if (e.response?.data?.message) {
+        errMsg = e.response.data.message;
+      }
+      
+      // Fallback: show stringified data for debugging
+      if (errMsg === "Gagal memperbarui profil.") {
+        errMsg += " Detail: " + JSON.stringify(e.response?.data || e.message);
+      }
+      
+      alert(errMsg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (authLoading || !user) {
     return (
       <div className="w-full flex justify-center items-center py-20">
         <Loader2 className="w-8 h-8 animate-spin text-ugo-sidebar" />
@@ -57,7 +111,9 @@ export default function ProfileSettingsPage() {
           </div>
           <div>
             <h2 className="text-xl font-bold text-ugo-sidebar">{user?.name || 'Administrator'}</h2>
-            <p className="text-gray-500 text-sm mt-1">{user?.role?.toUpperCase() || 'ADMINISTRATOR'}</p>
+            <p className="text-gray-500 text-sm mt-1">
+              {user?.roles?.[0]?.name ? user.roles[0].name.toUpperCase() : 'ADMINISTRATOR'}
+            </p>
           </div>
         </div>
 
@@ -67,11 +123,29 @@ export default function ProfileSettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-ugo-sidebar mb-2">Full Name</label>
-              <Input type="text" defaultValue={user?.name || ''} className="bg-gray-50 border-gray-200" />
+              <Input 
+                type="text" 
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="bg-gray-50 border-gray-200" 
+              />
             </div>
             <div>
               <label className="block text-sm font-semibold text-ugo-sidebar mb-2">Email Address</label>
               <Input type="email" defaultValue={user?.email || ''} readOnly className="bg-gray-100 border-gray-200 cursor-not-allowed" />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <div>
+              <label className="block text-sm font-semibold text-ugo-sidebar mb-2">Phone Number</label>
+              <Input 
+                type="text" 
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="08xxxxxxxxxx atau +62xxxxxxxxxx"
+                className="bg-gray-50 border-gray-200" 
+              />
             </div>
           </div>
         </div>
@@ -81,8 +155,34 @@ export default function ProfileSettingsPage() {
           <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">Security & Access</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-semibold text-ugo-sidebar mb-2">Update Password</label>
-              <Input type="password" placeholder="Enter new password" className="bg-gray-50 border-gray-200" />
+              <label className="block text-sm font-semibold text-ugo-sidebar mb-2">Current Password</label>
+              <Input 
+                type="password" 
+                placeholder="Enter current password" 
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="bg-gray-50 border-gray-200" 
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-ugo-sidebar mb-2">New Password</label>
+              <Input 
+                type="password" 
+                placeholder="Enter new password" 
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="bg-gray-50 border-gray-200" 
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-ugo-sidebar mb-2">Confirm New Password</label>
+              <Input 
+                type="password" 
+                placeholder="Confirm new password" 
+                value={newPasswordConfirmation}
+                onChange={(e) => setNewPasswordConfirmation(e.target.value)}
+                className="bg-gray-50 border-gray-200" 
+              />
             </div>
           </div>
         </div>
@@ -92,8 +192,27 @@ export default function ProfileSettingsPage() {
         <hr className="border-gray-100 my-8" />
 
         <div className="flex items-center gap-4">
-          <Button className="bg-[#1C2B1E] hover:bg-[#152016] text-white px-8">Save Changes</Button>
-          <Button variant="ghost" className="text-gray-500 hover:text-gray-700">Discard</Button>
+          <Button 
+            onClick={handleSave} 
+            disabled={saving}
+            className="bg-[#1C2B1E] hover:bg-[#152016] text-white px-8"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+            Save Changes
+          </Button>
+          <Button 
+            variant="ghost" 
+            onClick={() => {
+              setName(user?.name || "");
+              setPhone(user?.phone || "");
+              setCurrentPassword("");
+              setNewPassword("");
+              setNewPasswordConfirmation("");
+            }}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            Discard
+          </Button>
         </div>
 
       </div>

@@ -74,10 +74,10 @@ export default function ManajemenUserPage() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-6">
-          <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white rounded-t-2xl">
+          <div className="p-6 border-b border-gray-100 flex flex-wrap justify-between items-end gap-4 bg-white rounded-t-2xl">
             <div><p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1">DATA PENGGUNA</p><h2 className="text-xl font-bold text-[#1C2B1E]">Daftar Pengguna</h2></div>
-            <div className="flex items-center gap-3">
-              <div className="relative w-64">
+            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+              <div className="relative flex-1 sm:flex-initial sm:w-64 min-w-[200px]">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input type="text" placeholder="Cari ID, nama, atau email..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/20" />

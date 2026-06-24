@@ -134,3 +134,18 @@ export const getPdfReportData = async (): Promise<PdfReportData> => {
     })),
   };
 };
+
+// 4. Download PDF report directly
+export const downloadPdfReport = async (): Promise<void> => {
+  const response = await api.get('/admin/reports/pdf');
+  
+  if (response.data && response.data.url) {
+    // Backend returns a JSON with the Supabase public URL
+    const pdfUrl = response.data.url;
+    
+    // Open in a new tab (or you could create a link to force download)
+    window.open(pdfUrl, '_blank');
+  } else {
+    throw new Error('Gagal mendapatkan URL PDF dari server');
+  }
+};

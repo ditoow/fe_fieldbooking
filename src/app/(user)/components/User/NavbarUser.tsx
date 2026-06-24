@@ -21,9 +21,9 @@ import { logout } from "@/lib/api/auth";
 import { useAuth } from "@/lib/context/AuthContext";
 // IMPORT FETCHER API NOTIFIKASI
 import {
-  getNotifications,
-  markAsRead,
-  markAllAsRead,
+  getUserNotifications as getNotifications,
+  markUserAsRead as markAsRead,
+  markAllUserAsRead as markAllAsRead,
   AppNotification,
 } from "@/lib/api/notification";
 

@@ -60,7 +60,7 @@ export default function ProfilePage() {
             const res = await updateProfile({
                 name: userData.nama,
                 email: userData.email,
-                phone: userData.phone || "",
+                phone: userData.phone?.trim() ? userData.phone : undefined,
             });
 
             // Update di konteks global (otomatis sync ke Navbar)

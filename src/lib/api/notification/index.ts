@@ -32,13 +32,40 @@ export const getNotifications = async (): Promise<AppNotification[]> => {
     }
 };
 
+export const getUserNotifications = async (): Promise<AppNotification[]> => {
+    try {
+        const response = await api.get('/notifications');
+        return response.data.data || response.data;
+    } catch (e) {
+        console.error(e);
+        return [];
+    }
+};
+
 export const markAsRead = async (id: string) => {
-    // Note: since these are live pending bookings, they cannot be 'marked as read' 
-    // in the traditional sense until they are approved/expired. We just return true.
     return true;
 };
 
-// Menandai SEMUA notifikasi user menjadi "sudah dibaca"
+export const markUserAsRead = async (id: string) => {
+    try {
+        await api.patch(`/notifications/${id}/read`);
+        return true;
+    } catch (e) {
+        console.error(e);
+        return false;
+    }
+};
+
 export const markAllAsRead = async () => {
     return true;
+};
+
+export const markAllUserAsRead = async () => {
+    try {
+        await api.patch(`/notifications/read-all`);
+        return true;
+    } catch (e) {
+        console.error(e);
+        return false;
+    }
 };

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { logout } from '@/lib/api/auth/logout';
 import { getNotifications, markAsRead, markAllAsRead, AppNotification } from '@/lib/api/notification';
+import { useAuth } from '@/lib/context/AuthContext';
 
 export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const [showNotifications, setShowNotifications] = useState(false);
@@ -13,6 +14,7 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [isLoadingNotif, setIsLoadingNotif] = useState(true);
   const router = useRouter();
+  const { user, logoutContext } = useAuth();
 
   useEffect(() => {
     fetchNotifs();
@@ -42,7 +44,7 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const unreadCount = notifications.filter(n => !n.read_at).length;
 
   const handleLogout = async () => {
-    await logout();
+    await logoutContext();
     router.push('/login');
   };
 
@@ -128,7 +130,7 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://api.dicebear.com/7.x/notionists/svg?seed=Julian"
+              src={`https://api.dicebear.com/7.x/notionists/svg?seed=${user?.name || 'Admin'}`}
               alt="Avatar"
               className="w-full h-full object-cover bg-gray-100"
             />
@@ -142,8 +144,10 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
                   <span className="text-2xl">📝</span>
                 </div>
                 <div>
-                  <h4 className="font-bold">Julian Rivers</h4>
-                  <p className="text-xs text-gray-500">Master Administrator</p>
+                  <h4 className="font-bold">{user?.name || 'Admin User'}</h4>
+                  <p className="text-xs text-gray-500">
+                    {user?.roles?.[0]?.name ? user.roles[0].name.toUpperCase() : 'ADMINISTRATOR'}
+                  </p>
                 </div>
               </div>
               <hr className="my-2 border-gray-100" />
