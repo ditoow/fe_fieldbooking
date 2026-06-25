@@ -124,13 +124,13 @@ export default function NavbarUser() {
     }
 
     // Redirect logic
-    setShowNotif(false); // Tutup popup setelah diklik
+    setShowNotif(false);
     const notifData = notif.data || (notif as any);
     if (notifData.booking_id) {
       if (notifData.type === "info") {
         router.push(`/invoice?booking_id=${notifData.booking_id}`);
       } else {
-        router.push(`/booking/${notifData.booking_id}`);
+        router.push(`/riwayat`);
       }
     }
   };
