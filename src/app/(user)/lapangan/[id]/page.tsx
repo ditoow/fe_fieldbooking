@@ -134,12 +134,23 @@ export default function FieldDetailPage() {
     Fasilitas: <Coffee className="w-5 h-5" />,
   };
 
-  const specifications =
-    (Array.isArray(field?.specifications) ? field.specifications : []).map((spec: any) => ({
-      icon: iconMap[spec.label] || <Info className="w-5 h-5" />,
-      label: spec.label,
-      subLabel: spec.value,
-    })) || [];
+  const specifications = (() => {
+    if (Array.isArray(field?.specifications)) {
+      return field.specifications.map((spec: any) => ({
+        icon: iconMap[spec.label] || <Info className="w-5 h-5" />,
+        label: spec.label,
+        subLabel: spec.value,
+      }));
+    }
+    if (field?.specifications && typeof field.specifications === 'object') {
+      return Object.entries(field.specifications).map(([key, value]) => ({
+        icon: iconMap[key] || <Info className="w-5 h-5" />,
+        label: key,
+        subLabel: value as string,
+      }));
+    }
+    return [];
+  })();
 
   const galleryImages = field
     ? ([field.image_url, ...(Array.isArray(field.carousel_urls) ? field.carousel_urls : [])].filter(
