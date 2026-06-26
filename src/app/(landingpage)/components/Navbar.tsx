@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Leaf, Menu, X } from "lucide-react";
+import { useAuth } from "@/lib/context/AuthContext";
 
 export default function Navbar() {
+  const { user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -41,12 +43,20 @@ export default function Navbar() {
 
           {/* Action Buttons - Desktop */}
           <div className="hidden md:flex flex-1 items-center justify-end gap-4">
-            <Link href="/login" className="text-sm font-semibold text-gray-300 hover:text-white transition-colors">
-              Masuk
-            </Link>
-            <Link href="/register" className="bg-[#EAD0B3] text-[#1B3627] font-bold px-5 py-2 rounded-lg text-sm hover:bg-[#d8bd9f] transition shadow-md">
-              Daftar Sekarang
-            </Link>
+            {!user ? (
+              <>
+                <Link href="/login" className="text-sm font-semibold text-gray-300 hover:text-white transition-colors">
+                  Masuk
+                </Link>
+                <Link href="/register" className="bg-[#EAD0B3] text-[#1B3627] font-bold px-5 py-2 rounded-lg text-sm hover:bg-[#d8bd9f] transition shadow-md">
+                  Daftar Sekarang
+                </Link>
+              </>
+            ) : (
+              <Link href="/dashboard" className="bg-[#EAD0B3] text-[#1B3627] font-bold px-5 py-2 rounded-lg text-sm hover:bg-[#d8bd9f] transition shadow-md">
+                Ke Dashboard
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -66,14 +76,22 @@ export default function Navbar() {
             <Link href="/riwayat" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-gray-300 hover:text-[#EAD0B3]">Riwayat</Link>
           </div>
           
-          <div className="pt-6 mt-6 border-t border-white/10 flex flex-col gap-4">
-            <Link href="/login" onClick={() => setIsMenuOpen(false)} className="text-sm font-bold text-white text-center w-full py-2 bg-white/10 rounded-lg">
-              Masuk
-            </Link>
-            <Link href="/register" onClick={() => setIsMenuOpen(false)} className="text-sm font-bold text-[#1B3627] text-center w-full py-2 bg-[#EAD0B3] rounded-lg shadow-md">
-              Daftar Sekarang
-            </Link>
-          </div>
+          {!user ? (
+            <div className="pt-6 mt-6 border-t border-white/10 flex flex-col gap-4">
+              <Link href="/login" onClick={() => setIsMenuOpen(false)} className="text-sm font-bold text-white text-center w-full py-2 bg-white/10 rounded-lg">
+                Masuk
+              </Link>
+              <Link href="/register" onClick={() => setIsMenuOpen(false)} className="text-sm font-bold text-[#1B3627] text-center w-full py-2 bg-[#EAD0B3] rounded-lg shadow-md">
+                Daftar Sekarang
+              </Link>
+            </div>
+          ) : (
+            <div className="pt-6 mt-6 border-t border-white/10 flex flex-col gap-4">
+              <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="text-sm font-bold text-[#1B3627] text-center w-full py-2 bg-[#EAD0B3] rounded-lg shadow-md">
+                Ke Dashboard
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </nav>

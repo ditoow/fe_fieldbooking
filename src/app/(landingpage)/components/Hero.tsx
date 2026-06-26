@@ -1,7 +1,12 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
+import { useAuth } from "@/lib/context/AuthContext";
 
 export default function Hero() {
+  const { user } = useAuth();
+
   return (
     /* Gunakan bg-[url('/nama-file-kamu.jpg')] 
        Pastikan nama filenya sama persis dengan yang ada di folder public 
@@ -23,12 +28,12 @@ export default function Hero() {
             bermain tanpa repot dengan sistem kami.
           </p>
           <div className="flex gap-4 pt-4">
-            <Link href="/register" className="bg-[#EAD0B3] text-[#1B3627] font-semibold px-6 py-3 rounded text-sm hover:bg-[#d8bd9f] transition flex items-center justify-center">
+            <Link href="/dashboard" className="bg-[#EAD0B3] text-[#1B3627] font-semibold px-6 py-3 rounded text-sm hover:bg-[#d8bd9f] transition flex items-center justify-center">
               MULAI BOOKING
             </Link>
-            <button className="border border-white/30 hover:bg-white/10 text-white font-semibold px-6 py-3 rounded text-sm transition">
+            <Link href="/dashboard" className="border border-white/30 hover:bg-white/10 text-white font-semibold px-6 py-3 rounded text-sm transition flex items-center justify-center">
               LIHAT JADWAL
-            </button>
+            </Link>
           </div>
         </div>
 
