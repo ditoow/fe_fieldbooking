@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, MapPin, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/context/AuthContext";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import ConfirmModal from "./ConfirmModal";
@@ -26,6 +28,8 @@ interface ScheduleCalendarProps {
 }
 
 export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
+    const router = useRouter();
+    const { user } = useAuth();
     const [weekOffset, setWeekOffset] = useState<number>(0);
     const [selectedDate, setSelectedDate] = useState<number>(0);
     const [selectedSlots, setSelectedSlots] = useState<Slot[]>([]);
@@ -339,7 +343,13 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
                     selectedDate={selectedDate}
                     selectedSlots={selectedSlots}
                     totalHarga={totalHarga}
-                    onConfirmClick={() => setIsModalOpen(true)}
+                    onConfirmClick={() => {
+                        if (!user) {
+                            router.push("/login");
+                        } else {
+                            setIsModalOpen(true);
+                        }
+                    }}
                 />
             </div>
 

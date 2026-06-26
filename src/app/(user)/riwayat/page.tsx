@@ -91,7 +91,7 @@ export default function RiwayatPage() {
     const [historyData, setHistoryData] = useState<HistoryItem[]>([]);
     const [filterStatus, setFilterStatus] = useState<string>("ALL");
     const [showFilterDropdown, setShowFilterDropdown] = useState<boolean>(false);
-    const { user } = useAuth();
+    const { user, loading } = useAuth();
     const [selectedDetailItem, setSelectedDetailItem] = useState<HistoryItem | null>(null);
     const [selectedRescheduleItem, setSelectedRescheduleItem] = useState<HistoryItem | null>(null);
     const [selectedRatingItem, setSelectedRatingItem] = useState<HistoryItem | null>(null);
@@ -126,8 +126,12 @@ export default function RiwayatPage() {
     };
 
     useEffect(() => {
-        fetchBookings();
-    }, []);
+        if (!loading && user) {
+            fetchBookings();
+        } else if (!loading && !user) {
+            setIsLoading(false);
+        }
+    }, [loading, user]);
 
     // FUNGSI UNTUK MEMBATALKAN PESANAN
     const handleCancelBooking = async (bookingId: string) => {
@@ -195,6 +199,21 @@ export default function RiwayatPage() {
 
     return (
         <div className="w-full pb-20 font-sans min-h-screen bg-[#FDFBF5]">
+            {!user && !loading ? (
+                <div className="flex flex-col items-center justify-center pt-32 pb-20 px-4 text-center">
+                    <div className="w-24 h-24 bg-[#E5C3A6]/30 rounded-full flex items-center justify-center mb-6 shadow-sm">
+                        <ShoppingBag className="w-12 h-12 text-[#8b5a2b]" />
+                    </div>
+                    <h2 className="text-3xl font-bold text-[#1B3627] mb-3">Lihat Riwayat Pemesanan Anda</h2>
+                    <p className="text-gray-500 max-w-md mx-auto mb-8">
+                        Silakan masuk ke akun Anda terlebih dahulu untuk melihat riwayat lengkap pemesanan lapangan olahraga yang pernah Anda lakukan.
+                    </p>
+                    <Link href="/login" className="bg-[#1B3627] hover:bg-[#132A1D] text-white px-8 py-3 rounded-xl font-bold transition shadow-lg inline-flex items-center gap-2">
+                        Masuk Sekarang <ArrowRight className="w-4 h-4" />
+                    </Link>
+                </div>
+            ) : (
+                <>
 
             {/* HEADER SECTION */}
             <section className="bg-[#1B3627] pt-16 pb-36 px-4 relative overflow-hidden">
@@ -345,6 +364,8 @@ export default function RiwayatPage() {
             />
 
             <ConfirmModal />
+                </>
+            )}
         </div>
     );
 }
