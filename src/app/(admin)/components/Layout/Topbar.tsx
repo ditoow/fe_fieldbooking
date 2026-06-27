@@ -19,8 +19,8 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   useEffect(() => {
     fetchNotifs();
 
-    // Polling setiap 30 detik (30000ms)
-    const notifInterval = setInterval(fetchNotifs, 30000);
+    // Polling setiap 5 detik (5000ms)
+    const notifInterval = setInterval(fetchNotifs, 5000);
 
     return () => clearInterval(notifInterval);
   }, []);
