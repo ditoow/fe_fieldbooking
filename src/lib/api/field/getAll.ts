@@ -32,3 +32,13 @@ export async function getAllFields(): Promise<Field[]> {
   // Sekarang BE wrap di 'data', bukan 'message' lagi!
   return Array.isArray(res.data?.data) ? res.data.data : [];
 }
+
+export async function getFieldStats() {
+  const res = await api.get("/fields");
+  return res.data?.meta?.stats || {
+    total_bookings: 0,
+    total_fields: 0,
+    active_users: 0,
+    satisfaction_rate: 0
+  };
+}

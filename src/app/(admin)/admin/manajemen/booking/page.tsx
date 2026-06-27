@@ -179,7 +179,7 @@ export default function AdminBookingPage() {
                       </div></td>
                       <td className="py-4 px-6"><p className="font-semibold text-sm text-ugo-sidebar">{b.field_name}</p><p className="text-xs text-gray-500">{b.formatted_time}</p></td>
                       <td className="py-4 px-6 text-sm text-gray-600">{b.formatted_date}</td>
-                      <td className="py-4 px-6 font-semibold text-sm">Rp {b.total_price.toLocaleString('id-ID')}</td>
+                      <td className="py-4 px-6 font-semibold text-sm">Rp {b.booking_type === 'requirement' ? '0' : b.total_price.toLocaleString('id-ID')}</td>
                       <td className="py-4 px-6">{b.file_url ? <span className="inline-flex items-center gap-1.5 text-xs font-medium text-ugo-primary bg-ugo-primary/5 px-3 py-1.5 rounded-full"><Eye className="w-3.5 h-3.5" />Lihat</span> : <span className="text-xs text-gray-400">-</span>}</td>
                     </tr>;
                   })}</tbody>
@@ -233,7 +233,7 @@ export default function AdminBookingPage() {
                 <div className="bg-gray-50 rounded-xl p-4"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Mahasiswa</p><p className="font-bold text-ugo-sidebar text-sm">{(selectedBooking.user as { name?: string })?.name || '-'}</p><p className="text-xs text-gray-500">{(selectedBooking.user as { email?: string })?.email || ''}</p></div>
                 <div className="bg-gray-50 rounded-xl p-4"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Lapangan</p><p className="font-bold text-ugo-sidebar text-sm">{selectedBooking.field_name}</p><p className="text-xs text-gray-500">{selectedBooking.field_category}</p></div>
                 <div className="bg-gray-50 rounded-xl p-4"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Tanggal & Waktu</p><p className="font-bold text-ugo-sidebar text-sm">{selectedBooking.formatted_date}</p><p className="text-xs text-gray-500">{selectedBooking.formatted_time}</p></div>
-                <div className="bg-gray-50 rounded-xl p-4"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Harga</p><p className="font-bold text-ugo-sidebar text-sm">Rp {selectedBooking.total_price.toLocaleString('id-ID')}</p></div>
+                <div className="bg-gray-50 rounded-xl p-4"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Harga</p><p className="font-bold text-ugo-sidebar text-sm">Rp {selectedBooking.booking_type === 'requirement' ? '0' : selectedBooking.total_price.toLocaleString('id-ID')}</p></div>
               </div>
               <div><p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Dokumen Persyaratan</p>
                 {selectedBooking.file_url ? <div className="border border-gray-200 rounded-xl overflow-hidden bg-gray-50"><iframe src={selectedBooking.file_url} className="w-full h-[400px]" title="Document Preview" /></div>

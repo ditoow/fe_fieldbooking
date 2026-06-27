@@ -37,6 +37,7 @@ const parseDescription = (desc: string) => {
 
 export default function UserDashboard() {
     const router = useRouter();
+    const [searchInput, setSearchInput] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 9;
@@ -75,7 +76,11 @@ export default function UserDashboard() {
     const currentItems = filteredFields.slice(startIndex, startIndex + itemsPerPage);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchQuery(e.target.value);
+        setSearchInput(e.target.value);
+    };
+
+    const handleSearchSubmit = () => {
+        setSearchQuery(searchInput);
         setCurrentPage(1);
     };
 
@@ -107,12 +112,18 @@ export default function UserDashboard() {
                         <input
                             type="text"
                             placeholder="Cari nama fasilitas"
-                            value={searchQuery}
+                            value={searchInput}
                             onChange={handleSearchChange}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSearchSubmit();
+                            }}
                             className="w-full bg-transparent border-none focus:ring-0 text-[#1B3627] outline-none placeholder:text-gray-400 font-medium text-sm md:text-base px-3 py-3"
                         />
                     </div>
-                    <button className="bg-[#1B3627] hover:bg-[#132A1D] text-white px-10 py-4 rounded-xl font-bold transition-all w-full sm:w-auto shrink-0">
+                    <button 
+                        onClick={handleSearchSubmit}
+                        className="bg-[#1B3627] hover:bg-[#132A1D] text-white px-10 py-4 rounded-xl font-bold transition-all w-full sm:w-auto shrink-0"
+                    >
                         Cari
                     </button>
                 </div>

@@ -7,6 +7,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { getBookingById, BookingDetail } from "@/lib/api/booking";
 import { formatBookingNumber } from "@/lib/utils";
 import axios from "axios";
+import { useAuth } from "@/lib/context/AuthContext";
 
 function InvoiceContent() {
   const router = useRouter();
@@ -17,6 +18,9 @@ function InvoiceContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [timeLeft, setTimeLeft] = useState(600);
+  
+  const { user } = useAuth();
+  const role = user?.roles?.[0]?.name || "umum";
 
   const isSandbox =
     !process.env.NEXT_PUBLIC_API_URL ||
@@ -198,7 +202,7 @@ function InvoiceContent() {
               TOTAL DIBAYAR
             </span>
             <span className="text-lg font-black text-[#1B3627]">
-              Rp {formatRupiah(booking.total_price)}
+              {role === "mahasiswa" ? "Rp 0" : `Rp ${formatRupiah(booking.total_price)}`}
             </span>
           </div>
         </div>
@@ -312,7 +316,7 @@ function InvoiceContent() {
               TOTAL TAGIHAN
             </span>
             <span className="text-2xl font-black text-[#1B3627]">
-              Rp {formatRupiah(booking.total_price)}
+              {role === "mahasiswa" ? "Rp 0" : `Rp ${formatRupiah(booking.total_price)}`}
             </span>
           </div>
 

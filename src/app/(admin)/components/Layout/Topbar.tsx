@@ -18,6 +18,11 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
 
   useEffect(() => {
     fetchNotifs();
+
+    // Polling setiap 30 detik (30000ms)
+    const notifInterval = setInterval(fetchNotifs, 30000);
+
+    return () => clearInterval(notifInterval);
   }, []);
 
   const fetchNotifs = async () => {

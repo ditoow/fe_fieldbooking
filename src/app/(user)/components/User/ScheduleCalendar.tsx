@@ -113,7 +113,11 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
 
     const selectedDateISO = dates[selectedDate]?.fullDateISO;
     const currentSlots = schedules.find(s => s.date === selectedDateISO)?.slots ?? [];
-    const totalHarga = selectedSlots.reduce((acc, slot) => acc + Number(slot.price), 0);
+    
+    // Ambil role user
+    const role = user?.roles?.[0]?.name || "umum";
+    const baseTotalHarga = selectedSlots.reduce((acc, slot) => acc + Number(slot.price), 0);
+    const totalHarga = role === 'mahasiswa' ? 0 : baseTotalHarga;
 
     const isSlotPast = (slot: Slot): boolean => {
         const today = new Date();

@@ -60,7 +60,7 @@ function mapStatus(status: string, schedules: BookingDetail['schedules']): "DIPE
     return statusMap[status] ?? 'TERTUNDA';
 }
 
-function mapToHistoryItem(booking: BookingDetail): HistoryItem {
+function mapToHistoryItem(booking: BookingDetail, role: string): HistoryItem {
     let defaultImage = "https://images.unsplash.com/photo-1518605368461-1e1e367803ba?q=80&w=600&auto=format&fit=crop"; // futsal
     if (booking.field_name && booking.field_name.toLowerCase().includes('basket')) {
         defaultImage = "https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=600&auto=format&fit=crop";
@@ -72,7 +72,7 @@ function mapToHistoryItem(booking: BookingDetail): HistoryItem {
         id: String(booking.id),
         title: booking.field_name || "Lapangan",
         category: booking.field_category || booking.field_name || "Umum",
-        price: booking.total_price || 0,
+        price: role === 'mahasiswa' ? 0 : (booking.total_price || 0),
         date: booking.formatted_date || "-",
         time: booking.formatted_time || "-",
         status: mapStatus(booking.status, booking.schedules),
@@ -105,7 +105,7 @@ export default function RiwayatPage() {
             setIsLoading(true);
             setError(null);
             const bookings = await getAllBookings();
-            const mapped = bookings.map(mapToHistoryItem);
+            const mapped = bookings.map(b => mapToHistoryItem(b, userRole));
 
             // Urutkan dari yang terbaru
             mapped.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));

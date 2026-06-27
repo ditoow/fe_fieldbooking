@@ -67,6 +67,9 @@ export default function NavbarUser() {
     };
     fetchNotifs();
 
+    // Polling setiap 30 detik (30000ms)
+    const notifInterval = setInterval(fetchNotifs, 30000);
+
     // Handle Click Outside
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -88,6 +91,7 @@ export default function NavbarUser() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      clearInterval(notifInterval);
     };
   }, []);
 
@@ -209,11 +213,6 @@ export default function NavbarUser() {
           })
         )}
       </div>
-      {notifications.length > 0 && (
-        <button className="w-full py-3 text-[10px] font-bold text-gray-400 hover:text-[#1B3627] bg-gray-50 uppercase tracking-widest transition">
-          Lihat Semua Notifikasi
-        </button>
-      )}
     </div>
   );
 
