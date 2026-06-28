@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 // Konfigurasi dasar
 const api = axios.create({
@@ -35,7 +36,10 @@ api.interceptors.response.use(
         if (!isAuthPage) {
           localStorage.removeItem('jwt_token');
           localStorage.removeItem('user_session'); // hapus session juga
-          window.location.href = '/login';
+          toast.error('Sesi Anda telah berakhir. Silakan login kembali.');
+          setTimeout(() => {
+            window.location.href = '/login';
+          }, 2000);
         }
       }
     }
