@@ -17,30 +17,30 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { user, logoutContext } = useAuth();
 
   useEffect(() => {
-    fetchNotifs();
+    fetchNotifs(false);
 
-    // Polling setiap 5 detik (5000ms)
-    const notifInterval = setInterval(fetchNotifs, 5000);
+    // Polling setiap 5 detik (5000ms) (silent mode agar tidak kedap-kedip)
+    const notifInterval = setInterval(() => fetchNotifs(true), 5000);
 
     return () => clearInterval(notifInterval);
   }, []);
 
-  const fetchNotifs = async () => {
+  const fetchNotifs = async (isSilent = false) => {
     try {
-      setIsLoadingNotif(true);
+      if (!isSilent) setIsLoadingNotif(true);
       const data = await getNotifications();
       setNotifications(data);
     } catch (e) {
       console.error(e);
     } finally {
-      setIsLoadingNotif(false);
+      if (!isSilent) setIsLoadingNotif(false);
     }
   };
 
   const handleMarkAsRead = async (id: string) => {
     try {
       await markAsRead(id);
-      fetchNotifs();
+      fetchNotifs(true);
     } catch (e) {
       console.error(e);
     }
@@ -79,7 +79,7 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
         {/* Notification Bell */}
         <div className="relative">
           <button
-            onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications) fetchNotifs(); }}
+            onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications) fetchNotifs(true); }}
             className="p-2 rounded-full hover:bg-white/10 transition-colors relative"
           >
             <Bell className="w-6 h-6 text-white/90" />
@@ -92,7 +92,7 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
               <div className="p-4 border-b border-gray-100 flex justify-between items-center">
                 <h3 className="font-bold text-lg">Notifikasi</h3>
                 <div className="flex items-center gap-3">
-                   <button onClick={() => { markAllAsRead().then(() => fetchNotifs()) }} className="text-xs text-ugo-primary hover:underline font-medium">Tandai semua dibaca</button>
+                   <button onClick={() => { markAllAsRead().then(() => fetchNotifs(true)) }} className="text-xs text-ugo-primary hover:underline font-medium">Tandai semua dibaca</button>
                    <button onClick={() => setShowNotifications(false)} className="text-gray-400 hover:text-gray-600">×</button>
                 </div>
               </div>
