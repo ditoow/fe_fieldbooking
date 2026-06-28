@@ -6,7 +6,7 @@ import { Loader2, UploadCloud, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import BiodataForm from "../components/Pembayaran/BiodataForm";
 import OrderSummary from "../components/Pembayaran/OrderSummary";
-import { getBookingById, uploadBookingFile, BookingDetail } from "@/lib/api/booking";
+import { getBookingById, uploadBookingFile, notifyPayment, BookingDetail } from "@/lib/api/booking";
 import { useAuth } from "@/lib/context/AuthContext";
 import axios from "axios";
 
@@ -108,6 +108,7 @@ function PembayaranContent() {
         router.push(`/verifikasi-pending?booking_id=${booking.id}`);
       } else {
         // Umum langsung ke invoice dengan QRIS
+        await notifyPayment(booking.id).catch(console.error); // Panggil API notifikasi
         router.push(`/invoice?booking_id=${booking.id}`);
       }
     } catch (err) {
