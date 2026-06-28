@@ -125,7 +125,7 @@ export default function NavbarUser() {
 
     // Redirect logic
     setShowNotif(false); // Tutup popup setelah diklik
-    const notifData = notif.data || (notif as any);
+    const notifData = (notif as any).data || notif;
     if (notifData.booking_id) {
       if (notifData.type === "info") {
         router.push(`/invoice?booking_id=${notifData.booking_id}`);
@@ -171,7 +171,7 @@ export default function NavbarUser() {
         ) : (
           notifications.map((n) => {
             const isUnread = n.read_at === null;
-            const notifData = n.data || (n as any);
+            const notifData = (n as any).data || n;
             return (
               <div
                 key={n.id}

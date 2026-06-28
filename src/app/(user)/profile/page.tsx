@@ -96,8 +96,8 @@ export default function ProfilePage() {
         try {
             const res = await updatePassword({
                 current_password: passwordData.currentPassword,
-                new_password: passwordData.newPassword,
-                new_password_confirmation: passwordData.confirmPassword,
+                password: passwordData.newPassword,
+                password_confirmation: passwordData.confirmPassword,
             });
 
             toast.success(res.message || "Password berhasil diubah!");
