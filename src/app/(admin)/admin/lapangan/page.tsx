@@ -600,27 +600,59 @@ export default function KelolaLapanganPage() {
               )}
 
               {activeTab === "spesifikasi" && (
-                <div className="space-y-3 fade-in animate-in duration-300">
-                  {specsList.length === 0 ? (
-                    <p className="text-sm text-gray-500">
-                      Simpan lapangan terlebih dahulu untuk menambahkan
-                      spesifikasi.
-                    </p>
-                  ) : (
-                    specsList.map((spec, i) => (
-                      <div key={i}>
-                        <label className="text-sm font-bold text-gray-700 block mb-1">
-                          {spec.name}
+                <div className="space-y-4 fade-in animate-in duration-300">
+                  {specsList.map((spec, i) => (
+                    <div key={i} className="flex gap-3 items-end">
+                      <div className="flex-1">
+                        <label className="text-xs font-bold text-gray-600 block mb-1">
+                          Nama Spesifikasi
+                        </label>
+                        <input
+                          type="text"
+                          value={spec.name}
+                          onChange={(e) => {
+                            const newSpecs = [...specsList];
+                            newSpecs[i].name = e.target.value;
+                            setSpecsList(newSpecs);
+                          }}
+                          placeholder="Contoh: Ukuran Lapangan"
+                          className="w-full px-3 py-2 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
+                        />
+                      </div>
+                      <div className="flex-[2]">
+                        <label className="text-xs font-bold text-gray-600 block mb-1">
+                          Nilai / Keterangan
                         </label>
                         <input
                           type="text"
                           value={spec.content}
                           onChange={(e) => handleSpecChange(i, e.target.value)}
+                          placeholder="Contoh: 15m x 25m"
                           className="w-full px-3 py-2 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
                         />
                       </div>
-                    ))
-                  )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newSpecs = [...specsList];
+                          newSpecs.splice(i, 1);
+                          setSpecsList(newSpecs);
+                        }}
+                        className="h-[38px] w-[38px] flex items-center justify-center text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors flex-shrink-0"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  
+                  <button
+                    type="button"
+                    onClick={() => setSpecsList([...specsList, { name: "", content: "" }])}
+                    className="w-full py-2.5 border-2 border-dashed border-gray-300 text-gray-500 hover:text-ugo-primary hover:border-ugo-primary hover:bg-ugo-primary/5 rounded-lg text-sm font-bold transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Tambah Spesifikasi
+                  </button>
                 </div>
               )}
 
