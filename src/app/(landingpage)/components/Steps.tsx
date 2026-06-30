@@ -10,7 +10,7 @@ export default function Steps() {
   ];
 
   return (
-    <section className="bg-white py-24">
+    <section id="pesan-lapangan" className="bg-white py-24">
       <div className="max-w-6xl mx-auto px-6 text-center">
         <p className="text-xs text-gray-500 uppercase tracking-widest mb-2">Alur Booking</p>
         <h2 className="text-3xl font-bold text-[#1B3627] mb-16">4 LANGKAH MUDAH MENUJU LAPANGAN</h2>

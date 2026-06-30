@@ -44,7 +44,7 @@ export default function Exploration() {
   }, []);
 
   return (
-    <section className="max-w-7xl mx-auto px-6 py-24">
+    <section id="fasilitas" className="max-w-7xl mx-auto px-6 py-24">
       <div className="flex justify-between items-end mb-10">
         <div>
           <p className="text-xs text-gray-500 uppercase tracking-widest mb-2">Fasilitas Udinus</p>

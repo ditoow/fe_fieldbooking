@@ -25,8 +25,8 @@ export default function FooterUser() {
                         <ul className="space-y-4">
                             {[
                                 { label: "Beranda", href: "/dashboard" },
-                                { label: "Fasilitas", href: "/dashboard" },
-                                { label: "Pesan Lapangan", href: "/dashboard" },
+                                { label: "Fasilitas", href: "/dashboard#fasilitas" },
+                                { label: "Pesan Lapangan", href: "/dashboard#fasilitas" },
                             ].map((item) => (
                                 <li key={item.label}>
                                     <Link href={item.href} className="text-sm text-gray-400 hover:text-white transition">
