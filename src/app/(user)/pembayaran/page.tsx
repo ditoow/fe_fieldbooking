@@ -195,7 +195,7 @@ function PembayaranContent() {
                 <input 
                   type="file" 
                   id="suratTU" 
-                  accept=".pdf, .jpg, .jpeg, .png" 
+                  accept=".pdf" 
                   className="hidden" 
                   onChange={handleFileChange} 
                 />
@@ -217,7 +217,7 @@ function PembayaranContent() {
                         <UploadCloud className="w-6 h-6 text-[#1b3627]" />
                       </div>
                       <span className="font-bold text-[#1B3627] text-sm mb-1">Unggah Surat TU</span>
-                      <span className="text-xs text-gray-400">Mendukung format .PDF, .JPG, .JPEG, .PNG</span>
+                      <span className="text-xs text-gray-400">Mendukung format .PDF</span>
                     </>
                   )}
                 </label>
