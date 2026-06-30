@@ -440,13 +440,7 @@ export default function NavbarUser() {
                 >
                   <User className="w-4 h-4" /> Profil Saya
                 </Link>
-                <Link
-                  href="/user/settings"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="text-sm font-medium text-gray-300 hover:text-white flex items-center gap-3"
-                >
-                  <Settings className="w-4 h-4" /> Pengaturan
-                </Link>
+
                 <button
                   onClick={handleLogout}
                   className="text-sm font-bold text-red-400 hover:text-red-300 flex items-center gap-3 text-left w-full"
