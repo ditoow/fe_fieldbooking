@@ -25,8 +25,8 @@ export default function Footer() {
                         <ul className="space-y-4">
                             {[
                                 { label: "Beranda", href: "/" },
-                                { label: "Fasilitas", href: "/#fasilitas" },
-                                { label: "Pesan Lapangan", href: "/#pesan-lapangan" },
+                                { label: "Pesan Lapangan", href: "/dashboard" },
+                                { label: "Riwayat", href: "/riwayat" },
                             ].map((item) => (
                                 <li key={item.label}>
                                     <Link href={item.href} className="text-sm text-gray-400 hover:text-white transition">
@@ -42,7 +42,7 @@ export default function Footer() {
                         <h4 className="font-semibold text-sm text-white">Hubungi Kami</h4>
                         <ul className="space-y-4">
                             <li>
-                                <Link href="mailto:admin@udinus.ac.id" className="text-sm text-gray-400 hover:text-white transition">
+                                <Link href="https://wa.me/628112685577" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-400 hover:text-white transition">
                                     Kontak
                                 </Link>
                             </li>
