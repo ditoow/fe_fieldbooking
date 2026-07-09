@@ -96,8 +96,8 @@ export default function NavbarUser() {
   }, []);
 
   const navLinks = [
-    { name: "Booking", href: "/dashboard" },
-    { name: "Riwayat", href: "/riwayat" },
+    { name: "Sewa Lapangan", href: "/dashboard" },
+    { name: "Riwayat Sewa", href: "/riwayat" },
   ];
 
   const handleLogout = async () => {
