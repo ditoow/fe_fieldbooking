@@ -73,10 +73,32 @@ function LaporanPage() {
           getDemographicsReport(),
           getRevenueTrend()
         ]);
-        setTransactions(txList);
-        setDemographics(demoRes.data);
+        
+        // Translate categories in transactions
+        const mappedTx = txList.map(tx => ({
+          ...tx,
+          kategori: tx.kategori === 'PUBLIC' ? 'UMUM' : (tx.kategori === 'STUDENT' ? 'MAHASISWA' : tx.kategori)
+        }));
+        setTransactions(mappedTx);
+        
+        // Translate demographics names
+        const demoData = demoRes.data.map(d => ({
+          ...d,
+          name: d.name === 'Public' ? 'Umum' : (d.name === 'Student' ? 'Mahasiswa' : d.name)
+        }));
+        setDemographics(demoData);
         setTotalUsers(demoRes.total_users);
-        setRevenueTrend(trendRes);
+        
+        // Translate trend days
+        const dayMap: Record<string, string> = {
+          'MONDAY': 'SENIN', 'TUESDAY': 'SELASA', 'WEDNESDAY': 'RABU',
+          'THURSDAY': 'KAMIS', 'FRIDAY': 'JUMAT', 'SATURDAY': 'SABTU', 'SUNDAY': 'MINGGU'
+        };
+        const mappedTrend = trendRes.map(item => ({
+          ...item,
+          name: dayMap[item.name.toUpperCase()] || item.name
+        }));
+        setRevenueTrend(mappedTrend);
       } catch (error) {
         console.error("Gagal memuat data laporan:", error);
       } finally {
@@ -121,8 +143,8 @@ function LaporanPage() {
     });
   }, [transactions, activeFilters]);
 
-  const publicData = demographics.find(d => d.name === 'Public');
-  const studentData = demographics.find(d => d.name === 'Student');
+  const publicData = demographics.find(d => d.name === 'Umum');
+  const studentData = demographics.find(d => d.name === 'Mahasiswa');
   const publicValue = publicData?.value || 0;
   const studentValue = studentData?.value || 0;
   const publicPercent = totalUsers > 0 ? Math.round((publicValue / totalUsers) * 100) : 0;
@@ -211,8 +233,8 @@ function LaporanPage() {
             {/* KOLOM KANAN: User Demographics (40% approx -> col-span-2) */}
             <div className="lg:col-span-2 bg-[#1C2B1E] p-6 rounded-2xl shadow-sm flex flex-col items-center justify-between">
               <div className="w-full text-left mb-6">
-                <p className="text-[10px] uppercase font-bold text-white/45 tracking-widest mb-1">USER DEMOGRAPHICS</p>
-                <h2 className="text-[18px] font-bold text-white">User Types</h2>
+                <p className="text-[10px] uppercase font-bold text-white/45 tracking-widest mb-1">DEMOGRAFI PENGGUNA</p>
+                <h2 className="text-[18px] font-bold text-white">Tipe Pengguna</h2>
               </div>
               
               <div className="flex flex-col items-center justify-center flex-1 w-full gap-8">
@@ -245,19 +267,19 @@ function LaporanPage() {
                         <span className="text-[32px] font-bold text-white leading-none">
                           {totalUsers >= 1000 ? `${(totalUsers / 1000).toFixed(1)}k` : totalUsers}
                         </span>
-                        <span className="text-[12px] text-white/55 font-bold mt-1">TOTAL USERS</span>
+                        <span className="text-[12px] text-white/55 font-bold mt-1">TOTAL PENGGUNA</span>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-center gap-8 w-full mt-2">
                       <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-xl">
                         <span className="w-3 h-3 rounded-full bg-[#D4A574]"></span>
-                        <span className="text-white text-sm font-medium">Public</span>
+                        <span className="text-white text-sm font-medium">Umum</span>
                         <span className="text-white/80 text-sm font-bold ml-2">{publicPercent}%</span>
                       </div>
                       <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-xl">
                         <span className="w-3 h-3 rounded-full bg-[#2D6A4F]"></span>
-                        <span className="text-white text-sm font-medium">Student</span>
+                        <span className="text-white text-sm font-medium">Mahasiswa</span>
                         <span className="text-white/80 text-sm font-bold ml-2">{studentPercent}%</span>
                       </div>
                     </div>
@@ -272,8 +294,8 @@ function LaporanPage() {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
             <div className="p-6 border-b border-gray-100 flex justify-between items-end bg-white rounded-t-2xl relative">
               <div>
-                <p className="text-[10px] uppercase font-bold text-[#6B7280] tracking-widest mb-1">DATA LOGS</p>
-                <h2 className="text-[20px] font-bold text-[#1C2B1E]">Recent Transactions</h2>
+                <p className="text-[10px] uppercase font-bold text-[#6B7280] tracking-widest mb-1">LOG DATA</p>
+                <h2 className="text-[20px] font-bold text-[#1C2B1E]">Transaksi Terbaru</h2>
               </div>
               
               <div className="flex gap-3 relative">
@@ -377,7 +399,7 @@ function LaporanPage() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-[#F5F0EB]">
-                    <th className="py-4 px-6 text-[11px] uppercase font-bold text-[#6B7280]">Order ID</th>
+                    <th className="py-4 px-6 text-[11px] uppercase font-bold text-[#6B7280]">ID Pemesanan</th>
                     <th className="py-4 px-6 text-[11px] uppercase font-bold text-[#6B7280]">Fasilitas</th>
                     <th className="py-4 px-6 text-[11px] uppercase font-bold text-[#6B7280]">Pengguna</th>
                     <th className="py-4 px-6 text-[11px] uppercase font-bold text-[#6B7280]">Jadwal Main</th>
