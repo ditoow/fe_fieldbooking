@@ -68,7 +68,7 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
             <Box className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-white font-bold text-lg leading-tight group-hover:text-gray-200 transition-colors">Dasbor Admin</h1>
+            <h1 className="text-white font-bold text-lg leading-tight group-hover:text-gray-200 transition-colors">Beranda Admin</h1>
             <p className="text-white/60 text-[10px] uppercase font-semibold tracking-wider group-hover:text-white/80 transition-colors">Manajemen Fasilitas</p>
           </div>
         </Link>

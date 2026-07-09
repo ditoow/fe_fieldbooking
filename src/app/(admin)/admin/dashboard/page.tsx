@@ -39,7 +39,20 @@ export default function DashboardPage() {
     // 2. Fetch Revenue Trend
     getRevenueTrend()
       .then((res) => {
-        setTrendData(res);
+        const dayMap: Record<string, string> = {
+          'MONDAY': 'SENIN',
+          'TUESDAY': 'SELASA',
+          'WEDNESDAY': 'RABU',
+          'THURSDAY': 'KAMIS',
+          'FRIDAY': 'JUMAT',
+          'SATURDAY': 'SABTU',
+          'SUNDAY': 'MINGGU'
+        };
+        const mappedData = res.map(item => ({
+          ...item,
+          name: dayMap[item.name.toUpperCase()] || item.name
+        }));
+        setTrendData(mappedData);
       })
       .catch((err) => console.error("Error fetching revenue trend:", err))
       .finally(() => setTrendLoading(false));
@@ -47,7 +60,30 @@ export default function DashboardPage() {
     // 3. Fetch Activity Logs
     getActivityLogs()
       .then((res) => {
-        setActivityLogs(res);
+        const translateLog = (text: string) => {
+          if (!text) return text;
+          let t = text;
+          t = t.replace(/Booking Expired/ig, 'Pemesanan Kedaluwarsa');
+          t = t.replace(/New Booking/ig, 'Pemesanan Baru');
+          t = t.replace(/Payment Success/ig, 'Pembayaran Berhasil');
+          t = t.replace(/Booking Verified/ig, 'Pemesanan Diverifikasi');
+          t = t.replace(/Booking Rejected/ig, 'Pemesanan Ditolak');
+          t = t.replace(/has expired/ig, 'telah kedaluwarsa');
+          t = t.replace(/was created by/ig, 'dibuat oleh');
+          t = t.replace(/ for /ig, ' untuk ');
+          t = t.replace(/has been verified/ig, 'telah diverifikasi');
+          t = t.replace(/has been rejected/ig, 'telah ditolak');
+          t = t.replace(/Booking/g, 'Pemesanan');
+          t = t.replace(/booking/g, 'pemesanan');
+          return t;
+        };
+
+        const mappedLogs = res.map(log => ({
+          ...log,
+          title: translateLog(log.title),
+          description: translateLog(log.description)
+        }));
+        setActivityLogs(mappedLogs);
       })
       .catch((err) => console.error("Error fetching activity logs:", err))
       .finally(() => setLogsLoading(false));
@@ -56,7 +92,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-8 fade-in animate-in pb-10">
       <div>
-        <h1 className="text-[30px] font-bold text-ugo-sidebar leading-tight mb-2">Dasbor</h1>
+        <h1 className="text-[30px] font-bold text-ugo-sidebar leading-tight mb-2">Beranda</h1>
         <p className="text-gray-500 text-sm">
           Ringkasan performa dan aktivitas fasilitas olahraga secara keseluruhan.
         </p>
