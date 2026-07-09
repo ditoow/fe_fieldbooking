@@ -575,7 +575,7 @@ function LaporanPage() {
                         <td className="py-3 px-3 border-r border-gray-300 text-gray-600">{trx.tanggal}</td>
                         <td className="py-3 px-3 text-right font-semibold border-r border-gray-300">{trx.nominal}</td>
                         <td className="py-3 px-3 text-center">
-                          <span className={`font-bold ${trx.status === 'SUCCESS' ? 'text-green-600' : 'text-[#C4622D]'}`}>{trx.status}</span>
+                          <span className={`font-bold ${trx.status === 'SUCCESS' ? 'text-green-600' : 'text-[#C4622D]'}`}>{trx.status === 'SUCCESS' ? 'BERHASIL' : (trx.status === 'PENDING' ? 'MENUNGGU' : (trx.status === 'FAILED' ? 'GAGAL' : trx.status))}</span>
                         </td>
                       </tr>
                     )) || (
