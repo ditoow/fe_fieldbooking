@@ -79,7 +79,7 @@ function LaporanPage() {
           ...tx,
           kategori: tx.kategori === 'PUBLIC' ? 'UMUM' : (tx.kategori === 'STUDENT' ? 'MAHASISWA' : tx.kategori)
         }));
-        setTransactions(mappedTx);
+        setTransactions(mappedTx as any);
         
         // Translate demographics names
         const demoData = demoRes.data.map(d => ({
