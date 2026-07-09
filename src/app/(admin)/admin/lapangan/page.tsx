@@ -82,7 +82,12 @@ export default function KelolaLapanganPage() {
   });
   const [specsList, setSpecsList] = useState<
     { name: string; content: string }[]
-  >([]);
+  >([
+    { name: "", content: "" },
+    { name: "", content: "" },
+    { name: "", content: "" },
+    { name: "", content: "" },
+  ]);
   const [maintenances, setMaintenances] = useState<MaintenanceItem[]>([]);
   const [newMaintenance, setNewMaintenance] = useState({
     date: "",
@@ -132,14 +137,16 @@ export default function KelolaLapanganPage() {
       additionalImageFiles: [],
       additionalImageUrls: facility.carousel_urls || [],
     });
-    setSpecsList(
-      facility.specifications
-        ? Object.entries(facility.specifications).map(([name, content]) => ({
-            name,
-            content,
-          }))
-        : [],
-    );
+    const initialSpecs = facility.specifications
+      ? Object.entries(facility.specifications).map(([name, content]) => ({
+          name,
+          content: content as string,
+        }))
+      : [];
+    while (initialSpecs.length < 4) {
+      initialSpecs.push({ name: "", content: "" });
+    }
+    setSpecsList(initialSpecs.slice(0, 4));
     setMaintenances([]);
     setNewMaintenance({ date: "", start_time: "", end_time: "", reason: "" });
     setIsAddingMaintenance(false);
@@ -162,7 +169,12 @@ export default function KelolaLapanganPage() {
       additionalImageFiles: [],
       additionalImageUrls: [],
     });
-    setSpecsList([]);
+    setSpecsList([
+      { name: "", content: "" },
+      { name: "", content: "" },
+      { name: "", content: "" },
+      { name: "", content: "" },
+    ]);
     setMaintenances([]);
     setNewMaintenance({ date: "", start_time: "", end_time: "", reason: "" });
     setIsAddingMaintenance(false);
@@ -631,30 +643,8 @@ export default function KelolaLapanganPage() {
                           className="w-full px-3 py-2 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
                         />
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newSpecs = [...specsList];
-                          newSpecs.splice(i, 1);
-                          setSpecsList(newSpecs);
-                        }}
-                        className="h-[38px] w-[38px] flex items-center justify-center text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors flex-shrink-0"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
                     </div>
                   ))}
-                  
-                  {specsList.length < 4 && (
-                    <button
-                    type="button"
-                    onClick={() => setSpecsList([...specsList, { name: "", content: "" }])}
-                    className="w-full py-2.5 border-2 border-dashed border-gray-300 text-gray-500 hover:text-ugo-primary hover:border-ugo-primary hover:bg-ugo-primary/5 rounded-lg text-sm font-bold transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Tambah Spesifikasi
-                  </button>
-                  )}
                 </div>
               )}
 
