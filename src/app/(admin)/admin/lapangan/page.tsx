@@ -645,7 +645,8 @@ export default function KelolaLapanganPage() {
                     </div>
                   ))}
                   
-                  <button
+                  {specsList.length < 4 && (
+                    <button
                     type="button"
                     onClick={() => setSpecsList([...specsList, { name: "", content: "" }])}
                     className="w-full py-2.5 border-2 border-dashed border-gray-300 text-gray-500 hover:text-ugo-primary hover:border-ugo-primary hover:bg-ugo-primary/5 rounded-lg text-sm font-bold transition-colors flex items-center justify-center gap-2"
@@ -653,6 +654,7 @@ export default function KelolaLapanganPage() {
                     <Plus className="w-4 h-4" />
                     Tambah Spesifikasi
                   </button>
+                  )}
                 </div>
               )}
 
