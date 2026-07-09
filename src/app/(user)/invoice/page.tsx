@@ -180,7 +180,7 @@ function InvoiceContent() {
 
         <div className="bg-[#F5F2E9]/80 p-6 rounded-2xl border border-[#E5C3A6]/30 text-left space-y-4 max-w-md mx-auto shadow-sm">
           <div className="flex justify-between items-center text-[10px] font-bold text-gray-500">
-            <span>NOMOR BOOKING</span>
+            <span>NOMOR PESANAN</span>
             <span className="font-bold text-[#1B3627]">
               {formatBookingNumber(booking.booking_number)}
             </span>

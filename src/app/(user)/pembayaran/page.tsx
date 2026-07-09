@@ -6,7 +6,8 @@ import { Loader2, UploadCloud, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import BiodataForm from "../components/Pembayaran/BiodataForm";
 import OrderSummary from "../components/Pembayaran/OrderSummary";
-import { getBookingById, uploadBookingFile, notifyPayment, BookingDetail } from "@/lib/api/booking";
+import { uploadBookingFile, notifyPayment, createBooking } from "@/lib/api/booking";
+import { getFieldById, Field } from "@/lib/api/field";
 import { useAuth } from "@/lib/context/AuthContext";
 import axios from "axios";
 
@@ -19,10 +20,13 @@ interface FormDataTypes {
 function PembayaranContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const bookingId = parseInt(searchParams.get("booking_id") || "0");
+  const fieldId = parseInt(searchParams.get("field_id") || "0");
+  const dateStr = searchParams.get("date") || "";
+  const slotsStr = searchParams.get("slots") || "";
+  const totalHarga = parseInt(searchParams.get("totalHarga") || "0");
   const { user } = useAuth();
 
-  const [booking, setBooking] = useState<BookingDetail | null>(null);
+  const [field, setField] = useState<Field | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -36,18 +40,18 @@ function PembayaranContent() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!bookingId) {
-        setError("Booking ID tidak ditemukan.");
+      if (!fieldId) {
+        setError("Data booking tidak lengkap.");
         setIsLoading(false);
         return;
       }
 
       try {
-        const data = await getBookingById(bookingId);
-        setBooking(data);
+        const data = await getFieldById(fieldId);
+        setField(data);
       } catch (err) {
         if (axios.isAxiosError(err)) {
-          setError(err.response?.data?.message || "Gagal memuat data booking.");
+          setError(err.response?.data?.message || "Gagal memuat data lapangan.");
         } else {
           setError("Terjadi kesalahan.");
         }
@@ -56,34 +60,20 @@ function PembayaranContent() {
       }
     };
 
-    // Ambil data user dari AuthContext
     if (user) {
       setFormData({
         nama: user.name || "",
         phone: user.phone || "",
         email: user.email || "",
       });
-      // Ambil role dari Spatie roles array
       const userRole = user.roles?.[0]?.name || "umum";
       setRole(userRole);
     }
 
     fetchData();
-  }, [bookingId, user]);
+  }, [fieldId, user]);
 
-  useEffect(() => {
-    if (!booking || booking.booking_type !== 'payment') return;
-    (window as any).bayar = async () => {
-      try {
-        const res = await axios.post('/api/payment/simulate', { booking_id: booking.id });
-        alert('✅ Pembayaran berhasil!');
-        window.location.href = `/invoice?booking_id=${booking.id}`;
-      } catch (e: any) {
-        alert('❌ Gagal: ' + (e.response?.data?.message || e.message));
-      }
-    };
-    return () => { delete (window as any).bayar; };
-  }, [booking]);
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -92,24 +82,32 @@ function PembayaranContent() {
   };
 
   const handleProses = async () => {
-    if (!booking) return;
+    if (!field) return;
     setIsSubmitting(true);
     setError("");
 
     try {
+      if (role === "mahasiswa" && !suratFile) {
+        setError("Harap unggah Surat Pengantar TU terlebih dahulu!");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const payload = {
+        field_id: field.id,
+        date: dateStr,
+        time_slots: slotsStr.split(",").filter(s => s)
+      };
+
+      const result = await createBooking(payload);
+      const newBookingId = result.data.id;
+
       if (role === "mahasiswa") {
-        // Mahasiswa harus upload surat dulu
-        if (!suratFile) {
-          setError("Harap unggah Surat Pengantar TU terlebih dahulu!");
-          setIsSubmitting(false);
-          return;
-        }
-        await uploadBookingFile(booking.id, suratFile);
-        router.push(`/verifikasi-pending?booking_id=${booking.id}`);
+        await uploadBookingFile(newBookingId, suratFile!);
+        router.push(`/verifikasi-pending?booking_id=${newBookingId}`);
       } else {
-        // Umum langsung ke invoice dengan QRIS
-        await notifyPayment(booking.id).catch(console.error); // Panggil API notifikasi
-        router.push(`/invoice?booking_id=${booking.id}`);
+        await notifyPayment(newBookingId).catch(console.error);
+        router.push(`/invoice?booking_id=${newBookingId}`);
       }
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -136,7 +134,7 @@ function PembayaranContent() {
     );
   }
 
-  if (error && !booking) {
+  if (error && !field) {
     return (
       <div className="text-center py-20">
         <p className="text-lg font-bold text-red-500">{error}</p>
@@ -150,10 +148,10 @@ function PembayaranContent() {
     );
   }
 
-  if (!booking) return null;
+  if (!field) return null;
 
-  // Hitung jumlah jam dari schedules
-  const jumlahJam = booking.schedules?.length || 1;
+  // Hitung jumlah jam dari slots
+  const jumlahJam = slotsStr ? slotsStr.split(",").length : 0;
 
   return (
     <div className="space-y-12">
@@ -228,7 +226,7 @@ function PembayaranContent() {
           <div className="w-full aspect-[3/1] h-36 rounded-2xl overflow-hidden relative shadow-md mt-auto">
             <img
               src={
-                booking.field_image_url ||
+                field.image_url ||
                 "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?q=80&w=1000"
               }
               alt="Venue Experience"
@@ -236,25 +234,25 @@ function PembayaranContent() {
             />
             <div className="absolute inset-0 bg-black/40 flex items-end p-4">
               <p className="text-[12px] font-bold text-white uppercase tracking-widest">
-                {booking.field_name}
+                {field.name}
               </p>
             </div>
           </div>
         </div>
 
         <OrderSummary
-          namaLapangan={booking.field_name}
-          dateParam={booking.formatted_date}
-          selectedTimesArray={[booking.formatted_time]}
+          namaLapangan={field.name}
+          dateParam={dateStr}
+          selectedTimesArray={slotsStr.split(",").filter(s => s)}
           jumlahJam={jumlahJam}
-          lokasiLapangan={booking.field_name}
+          lokasiLapangan={field.name}
           role={role}
-          totalHarga={booking.total_price}
+          totalHarga={totalHarga}
           formatRupiah={formatRupiah}
           handleProses={handleProses}
           isSubmitting={isSubmitting}
           imageLapangan={
-            booking.field_image_url ||
+            field.image_url ||
             "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?q=80&w=1000"
           }
         />

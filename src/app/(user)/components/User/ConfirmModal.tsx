@@ -6,9 +6,7 @@ import { useRouter } from "next/navigation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Field } from "@/lib/api/field";
 import { Slot } from "@/lib/api/schedule";
-import { createBooking } from "@/lib/api/booking";
 import { formatRupiah } from "@/lib/utils/price";
-import axios from "axios";
 
 interface DateItem {
     id: number;
@@ -46,33 +44,16 @@ export default function ConfirmModal({
         setError("");
 
         try {
-            // Membentuk payload baru sesuai skema on-demand
             const payload = {
-                field_id: field.id,
+                field_id: field.id.toString(),
                 date: dates[selectedDate].fullDateISO,
-                time_slots: selectedSlots.map(s => s.start_time)
+                slots: selectedSlots.map(s => s.start_time).join(","),
+                totalHarga: totalHarga.toString(),
             };
-
-            // DEBUG — lihat apa yang dikirim ke BE
-            console.log('payload yang dikirim:', payload);
-
-            const result = await createBooking(payload);
-
-            // DEBUG — lihat response dari BE
-            console.log('result booking:', result);
-
-            router.push(`/pembayaran?booking_id=${result.data.id}`);
+            const query = new URLSearchParams(payload).toString();
+            router.push(`/pembayaran?${query}`);
         } catch (err) {
-            if (axios.isAxiosError(err)) {
-                // DEBUG — lihat detail error dari BE
-                console.log('status:', err.response?.status);
-                console.log('error response:', err.response?.data);
-
-                setError(err.response?.data?.message || "Booking gagal, coba lagi.");
-            } else {
-                console.log('unknown error:', err);
-                setError("Terjadi kesalahan.");
-            }
+            setError("Terjadi kesalahan.");
         } finally {
             setIsLoading(false);
         }

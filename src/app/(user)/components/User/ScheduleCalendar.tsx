@@ -157,14 +157,31 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
         return `${dates[0].dateNum} ${dates[0].monthName} — ${dates[6].dateNum} ${dates[6].monthName} 2026`;
     };
 
+    const checkContiguous = (slots: Slot[]) => {
+        if (slots.length <= 1) return true;
+        const sorted = [...slots].sort((a, b) => a.start_time.localeCompare(b.start_time));
+        for (let i = 0; i < sorted.length - 1; i++) {
+            if (sorted[i].end_time !== sorted[i+1].start_time) return false;
+        }
+        return true;
+    };
+
     const toggleSlot = (slot: Slot) => {
         // Tracker sekarang menggunakan start_time alih-alih ID
         const isSelected = selectedSlots.some(s => s.start_time === slot.start_time);
+        let newSlots = [];
         if (isSelected) {
-            setSelectedSlots(selectedSlots.filter(s => s.start_time !== slot.start_time));
+            newSlots = selectedSlots.filter(s => s.start_time !== slot.start_time);
         } else {
-            setSelectedSlots([...selectedSlots, slot]);
+            newSlots = [...selectedSlots, slot];
         }
+
+        if (!checkContiguous(newSlots)) {
+            alert("Jadwal harus berurutan, tidak boleh ada jeda waktu.");
+            return;
+        }
+
+        setSelectedSlots(newSlots);
     };
 
     const hargaTampil = getCurrentPrice(field.price_min, field.price_max);
@@ -185,7 +202,7 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
                         />
                     ) : (
                         <div className="w-full h-full bg-[#F5F2E9] flex items-center justify-center">
-                            <span className="text-gray-400 text-sm">No Image</span>
+                            <span className="text-gray-400 text-sm">Tidak Ada Gambar</span>
                         </div>
                     )}
                 </div>
@@ -199,7 +216,7 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
                         {hargaTampil ? (
                             <p className="text-2xl font-black text-[#1B3627]">
                                 Rp {formatRupiah(hargaTampil)}{" "}
-                                <span className="text-xs font-normal text-gray-400">/ hour</span>
+                                <span className="text-xs font-normal text-gray-400">/ jam</span>
                             </p>
                         ) : (
                             <p className="text-sm text-gray-400 italic">Harga belum tersedia</p>
@@ -213,7 +230,7 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
                     {/* Header kalender */}
                     <div className="flex justify-between items-center mb-6">
                         <div>
-                            <h3 className="text-base font-extrabold text-[#1B3627]">Field Availability</h3>
+                            <h3 className="text-base font-extrabold text-[#1B3627]">Ketersediaan Lapangan</h3>
                             <p className="text-[10px] text-gray-400 font-bold uppercase mt-0.5">{labelPeriodeMinggu()}</p>
                         </div>
                         <div className="flex gap-1">
@@ -260,23 +277,23 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
                     <div className="flex gap-4 mb-4 flex-wrap">
                         <div className="flex items-center gap-1.5">
                             <div className="w-3 h-3 rounded-sm bg-white border border-gray-200"></div>
-                            <span className="text-[9px] text-gray-400 font-bold uppercase">Available</span>
+                            <span className="text-[9px] text-gray-400 font-bold uppercase">Tersedia</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                             <div className="w-3 h-3 rounded-sm bg-[#EFEFEF]"></div>
-                            <span className="text-[9px] text-gray-400 font-bold uppercase">Booked</span>
+                            <span className="text-[9px] text-gray-400 font-bold uppercase">Dipesan</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                             <div className="w-3 h-3 rounded-sm bg-red-100 border border-red-200"></div>
-                            <span className="text-[9px] text-gray-400 font-bold uppercase">Maintenance</span>
+                            <span className="text-[9px] text-gray-400 font-bold uppercase">Perawatan</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                             <div className="w-3 h-3 rounded-sm bg-[#F5F2E9] opacity-50"></div>
-                            <span className="text-[9px] text-gray-400 font-bold uppercase">Past</span>
+                            <span className="text-[9px] text-gray-400 font-bold uppercase">Terlewat</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                             <div className="w-3 h-3 rounded-sm bg-[#8b5a2b]"></div>
-                            <span className="text-[9px] text-gray-400 font-bold uppercase">Selected</span>
+                            <span className="text-[9px] text-gray-400 font-bold uppercase">Dipilih</span>
                         </div>
                     </div>
 
@@ -333,7 +350,7 @@ export default function ScheduleCalendar({ field }: ScheduleCalendarProps) {
                                                         ? "bg-white/20 text-white"
                                                         : "text-gray-400 bg-gray-50"
                                             }`}>
-                                            {isMaintenance ? "MAINTENANCE" : isBooked ? "BOOKED" : isPast ? "PAST" : isSelected ? "SELECTED" : "AVAILABLE"}
+                                            {isMaintenance ? "PERAWATAN" : isBooked ? "DIPESAN" : isPast ? "TERLEWAT" : isSelected ? "DIPILIH" : "TERSEDIA"}
                                         </span>
                                     </Button>
                                 );

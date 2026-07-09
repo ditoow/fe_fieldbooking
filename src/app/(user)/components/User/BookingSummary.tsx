@@ -27,14 +27,14 @@ export default function BookingSummary({
     return (
         <div className="lg:col-span-4 space-y-6">
             <div className="bg-[#F5F2E9]/60 border border-gray-100 rounded-2xl p-6 text-[#1B3627]">
-                <h4 className="text-sm font-black uppercase tracking-wider mb-6">Booking Summary</h4>
+                <h4 className="text-sm font-black uppercase tracking-wider mb-6">Ringkasan Pesanan</h4>
                 <div className="space-y-4 mb-6">
                     <div className="flex gap-3 items-center">
                         <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center text-[#8b5a2b]">
                             <CalendarIcon className="w-4 h-4" />
                         </div>
                         <div>
-                            <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Date</p>
+                            <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Tanggal</p>
                             <p className="text-xs font-bold">{dates[selectedDate]?.fullDate}</p>
                         </div>
                     </div>
@@ -43,9 +43,9 @@ export default function BookingSummary({
                             <Clock className="w-4 h-4" />
                         </div>
                         <div className="flex-1">
-                            <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Time Slots ({selectedSlots.length})</p>
+                            <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Sesi Waktu ({selectedSlots.length})</p>
                             {selectedSlots.length === 0 ? (
-                                <p className="text-xs text-gray-400 italic mt-0.5">No slots selected</p>
+                                <p className="text-xs text-gray-400 italic mt-0.5">Belum ada sesi yang dipilih</p>
                             ) : (
                                 <div className="flex flex-wrap gap-1 mt-1">
                                     {selectedSlots.map((slot) => (
@@ -63,10 +63,10 @@ export default function BookingSummary({
                 </div>
 
                 <div className="border-t border-gray-200/60 pt-4 mb-6">
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Total Price</p>
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Total Harga</p>
                     <div className="flex justify-between items-baseline">
                         <p className="text-xl font-black">Rp {formatRupiah(String(totalHarga))}</p>
-                        <span className="text-[9px] text-gray-400 font-medium">Tax included</span>
+                        <span className="text-[9px] text-gray-400 font-medium">Termasuk pajak</span>
                     </div>
                 </div>
                 <button
@@ -77,15 +77,15 @@ export default function BookingSummary({
                         : "bg-gray-300 cursor-not-allowed"
                         }`}
                 >
-                    Confirm & Book Now →
+                    Konfirmasi & Pesan Sekarang →
                 </button>
                 <p className="text-[9px] text-center text-gray-400 mt-4 leading-relaxed">
-                    By clicking "Book Now", you agree to our Terms of Service regarding online cancellations.
+                    Dengan menekan "Pesan Sekarang", Anda menyetujui Ketentuan Layanan kami terkait pembatalan.
                 </p>
             </div>
             <div className="bg-[#132A1D] rounded-2xl p-5 border border-white/5 text-white">
-                <h5 className="text-xs font-bold flex items-center gap-2 mb-2 text-[#8CB954]"><span>🌿</span> Botanica Member Perk</h5>
-                <p className="text-[11px] text-gray-300 leading-relaxed">Members receive a 15% discount on all morning bookings (08:00 - 11:00). Sign in to apply.</p>
+                <h5 className="text-xs font-bold flex items-center gap-2 mb-2 text-[#8CB954]"><span>🌿</span> Keuntungan Mahasiswa</h5>
+                <p className="text-[11px] text-gray-300 leading-relaxed">Mahasiswa UDINUS dapat menggunakan fasilitas olahraga secara GRATIS untuk keperluan akademik atau UKM.</p>
             </div>
         </div>
     );

@@ -86,14 +86,14 @@ export default function OrderSummary({
             </span>
           </div>
           <div className="flex justify-between items-center text-xs">
-            <span className="text-gray-400">Tax (11%)</span>
-            <span className="font-bold">Included</span>
+            <span className="text-gray-400">Pajak (11%)</span>
+            <span className="font-bold">Termasuk</span>
           </div>
         </div>
 
         <div className="flex justify-between items-end mb-8 relative z-10">
           <span className="text-[9px] text-gray-400 uppercase tracking-widest font-bold mb-1">
-            TOTAL PAYABLE
+            TOTAL PEMBAYARAN
           </span>
           <span className="text-3xl font-black text-white">
             {role === "mahasiswa" ? "Rp 0" : `Rp ${formatRupiah(totalHarga)}`}
