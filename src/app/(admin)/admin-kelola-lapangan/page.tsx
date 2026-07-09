@@ -40,7 +40,7 @@ export default function KelolaLapanganPage() {
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [editingFacility, setEditingFacility] = useState<Field | null>(null);
   const [isAddingFacility, setIsAddingFacility] = useState(false);
-  const [activeTab, setActiveTab] = useState<'umum' | 'detail' | 'media'>('umum');
+  const [activeTab, setActiveTab] = useState<'umum' | 'spesifikasi' | 'media' | 'maintenance'>('umum');
 
   // Form states
   const [editForm, setEditForm] = useState({
@@ -48,7 +48,7 @@ export default function KelolaLapanganPage() {
     description: '',
     jam_buka: '08:00 - 22:00',
     kapasitas: 'Tim Standar',
-    spesifikasi: 'Ukuran Standar Internasional, Material Lantai Premium, Pencahayaan LED Terang, Level Kompetisi',
+    spesifikasi: ['Ukuran Standar Internasional', 'Material Lantai Premium', 'Pencahayaan LED Terang', 'Level Kompetisi'],
     category: '',
     surface_type: 'vinyl',
     status: 'available',
@@ -84,7 +84,7 @@ export default function KelolaLapanganPage() {
       description: parsed.long_description || '',
       jam_buka: parsed.jam_buka || '08:00 - 22:00',
       kapasitas: parsed.kapasitas || 'Tim Standar',
-      spesifikasi: parsed.spesifikasi || 'Ukuran Standar Internasional, Material Lantai Premium, Pencahayaan LED Terang, Level Kompetisi',
+      spesifikasi: parsed.spesifikasi ? parsed.spesifikasi.split(',').map((s: string) => s.trim()).filter((s: string) => s) : [],
       category: facility.category || '',
       surface_type: facility.surface_type || 'vinyl',
       status: facility.status || 'available',
@@ -105,7 +105,7 @@ export default function KelolaLapanganPage() {
       description: '',
       jam_buka: '08:00 - 22:00',
       kapasitas: 'Tim Standar',
-      spesifikasi: 'Ukuran Standar Internasional, Material Lantai Premium, Pencahayaan LED Terang, Level Kompetisi',
+      spesifikasi: [],
       category: '',
       surface_type: 'vinyl',
       status: 'available',
@@ -191,7 +191,7 @@ export default function KelolaLapanganPage() {
         editForm.description,
         editForm.jam_buka,
         editForm.kapasitas,
-        editForm.spesifikasi
+        editForm.spesifikasi.filter(s => s.trim() !== '').join(', ')
       ].join('|||');
       formData.append('description', dataToSave);
       
@@ -383,10 +383,10 @@ export default function KelolaLapanganPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setActiveTab('detail')}
-                  className={`flex-1 py-2 text-sm font-bold border-b-2 transition-colors ${activeTab === 'detail' ? 'border-ugo-primary text-ugo-primary' : 'border-transparent text-gray-400 hover:text-gray-700'}`}
+                  onClick={() => setActiveTab('spesifikasi')}
+                  className={`flex-1 py-2 text-sm font-bold border-b-2 transition-colors ${activeTab === 'spesifikasi' ? 'border-ugo-primary text-ugo-primary' : 'border-transparent text-gray-400 hover:text-gray-700'}`}
                 >
-                  Spesifikasi & Detail
+                  Spesifikasi
                 </button>
                 <button
                   type="button"
@@ -394,6 +394,13 @@ export default function KelolaLapanganPage() {
                   className={`flex-1 py-2 text-sm font-bold border-b-2 transition-colors ${activeTab === 'media' ? 'border-ugo-primary text-ugo-primary' : 'border-transparent text-gray-400 hover:text-gray-700'}`}
                 >
                   Galeri Foto
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('maintenance')}
+                  className={`flex-1 py-2 text-sm font-bold border-b-2 transition-colors ${activeTab === 'maintenance' ? 'border-ugo-primary text-ugo-primary' : 'border-transparent text-gray-400 hover:text-gray-700'}`}
+                >
+                  Maintenance
                 </button>
               </div>
 
@@ -421,6 +428,29 @@ export default function KelolaLapanganPage() {
                         placeholder="Deskripsi fasilitas lapangan..."
                         className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium custom-scrollbar"
                       />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-bold text-gray-700 block mb-1.5">Jam Buka</label>
+                        <input 
+                          type="text" 
+                          value={editForm.jam_buka}
+                          onChange={(e) => setEditForm({...editForm, jam_buka: e.target.value})}
+                          placeholder="08:00 - 22:00"
+                          className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-bold text-gray-700 block mb-1.5">Kapasitas</label>
+                        <input 
+                          type="text" 
+                          value={editForm.kapasitas}
+                          onChange={(e) => setEditForm({...editForm, kapasitas: e.target.value})}
+                          placeholder="Contoh: 10 Orang"
+                          className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
+                        />
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -493,41 +523,52 @@ export default function KelolaLapanganPage() {
                   </div>
                 )}
 
-                {/* TAB DETAIL & SPESIFIKASI */}
-                {activeTab === 'detail' && (
+                {/* TAB SPESIFIKASI */}
+                {activeTab === 'spesifikasi' && (
                   <div className="space-y-4 fade-in animate-in duration-300">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm font-bold text-gray-700 block mb-1.5">Jam Buka</label>
-                        <input 
-                          type="text" 
-                          value={editForm.jam_buka}
-                          onChange={(e) => setEditForm({...editForm, jam_buka: e.target.value})}
-                          placeholder="08:00 - 22:00"
-                          className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm font-bold text-gray-700 block mb-1.5">Kapasitas</label>
-                        <input 
-                          type="text" 
-                          value={editForm.kapasitas}
-                          onChange={(e) => setEditForm({...editForm, kapasitas: e.target.value})}
-                          placeholder="Contoh: 10 Orang"
-                          className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
-                        />
-                      </div>
-                    </div>
-
                     <div>
-                      <label className="text-sm font-bold text-gray-700 block mb-1.5">Spesifikasi Tambahan (Pisahkan dengan koma)</label>
-                      <textarea 
-                        value={editForm.spesifikasi}
-                        onChange={(e) => setEditForm({...editForm, spesifikasi: e.target.value})}
-                        rows={4}
-                        placeholder="Ukuran Lapangan, Jenis Bola, Pencahayaan..."
-                        className="w-full px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium custom-scrollbar"
-                      />
+                      <div className="space-y-3">
+                        {editForm.spesifikasi.map((spec, index) => (
+                          <div key={index} className="flex gap-2 items-center">
+                            <input 
+                              type="text"
+                              value={spec}
+                              onChange={(e) => {
+                                const newSpecs = [...editForm.spesifikasi];
+                                newSpecs[index] = e.target.value;
+                                setEditForm({...editForm, spesifikasi: newSpecs});
+                              }}
+                              placeholder={`Spesifikasi ${index + 1}`}
+                              className="flex-1 px-4 py-2.5 bg-ugo-bg border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/50 text-ugo-sidebar font-medium"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newSpecs = editForm.spesifikasi.filter((_, i) => i !== index);
+                                setEditForm({...editForm, spesifikasi: newSpecs});
+                              }}
+                              className="w-10 h-10 flex items-center justify-center bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-colors shrink-0"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                        
+                        {editForm.spesifikasi.length < 4 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (editForm.spesifikasi.length < 4) {
+                                setEditForm({...editForm, spesifikasi: [...editForm.spesifikasi, '']});
+                              }
+                            }}
+                            className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 font-bold text-sm hover:border-ugo-primary hover:text-ugo-primary transition-colors flex items-center justify-center gap-2"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Tambah Spesifikasi
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -609,6 +650,15 @@ export default function KelolaLapanganPage() {
                         )}
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {/* TAB MAINTENANCE */}
+                {activeTab === 'maintenance' && (
+                  <div className="space-y-4 fade-in animate-in duration-300">
+                    <p className="text-sm text-gray-500 text-center py-8">
+                      Pengaturan maintenance atau jadwal perawatan lapangan (Dalam pengembangan).
+                    </p>
                   </div>
                 )}
               </div>
