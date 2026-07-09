@@ -110,15 +110,29 @@ export default function TransactionModal({
                             )}
                             
                             {isRescheduleAvailable && onReschedule && (
-                                <button
-                                    onClick={() => {
-                                        onReschedule(item);
-                                        onClose();
-                                    }}
-                                    className="w-full py-2.5 bg-[#f6ebd7]/60 text-[#8b5a2b] border border-amber-200 text-xs font-bold rounded hover:bg-[#ebd5c1]/60 transition tracking-wide"
-                                >
-                                    RESCHEDULE JADWAL
-                                </button>
+                                <div className="w-full flex flex-col gap-1">
+                                    <button
+                                        onClick={() => {
+                                            if (!item.is_rescheduled) {
+                                                onReschedule(item);
+                                                onClose();
+                                            }
+                                        }}
+                                        disabled={item.is_rescheduled}
+                                        className={`w-full py-2.5 text-xs font-bold rounded transition tracking-wide border ${
+                                            item.is_rescheduled 
+                                                ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed shadow-none" 
+                                                : "bg-[#f6ebd7]/60 text-[#8b5a2b] border-amber-200 hover:bg-[#ebd5c1]/60"
+                                        }`}
+                                    >
+                                        RESCHEDULE JADWAL
+                                    </button>
+                                    {item.is_rescheduled && (
+                                        <span className="text-[10px] text-red-500 font-medium text-center italic">
+                                            *Sudah pernah dijadwalkan ulang
+                                        </span>
+                                    )}
+                                </div>
                             )}
 
                             {item.status === 'SELESAI' && !item.is_reviewed && onRate && (

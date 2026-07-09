@@ -14,6 +14,7 @@ export interface BookingDetail {
     attended_at: string | null;
     expires_at: string | null;
     is_reviewed?: boolean;
+    is_rescheduled?: boolean;
     field_name: string;
     field_image_url?: string | null;
     field_category?: string;

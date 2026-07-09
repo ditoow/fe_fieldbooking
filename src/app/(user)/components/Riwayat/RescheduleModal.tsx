@@ -31,7 +31,7 @@ export default function RescheduleModal({
 }: RescheduleModalProps) {
     const [dates, setDates] = useState<DateItem[]>([]);
     const [selectedDateIndex, setSelectedDateIndex] = useState<number>(0);
-    const [selectedNewTimeSlot, setSelectedNewTimeSlot] = useState<string | null>(null);
+    const [selectedNewTimeSlots, setSelectedNewTimeSlots] = useState<string[]>([]);
     const [schedules, setSchedules] = useState<ScheduleDay[]>([]);
     const [isLoadingSchedules, setIsLoadingSchedules] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,14 +58,14 @@ export default function RescheduleModal({
         }
         setDates(datesList);
         setSelectedDateIndex(0);
-        setSelectedNewTimeSlot(null);
+        setSelectedNewTimeSlots([]);
     }, [isOpen]);
  
     // Clear state
     useEffect(() => {
         setError("");
         setSuccessMsg("");
-        setSelectedNewTimeSlot(null);
+        setSelectedNewTimeSlots([]);
     }, [bookingItem, isOpen]);
  
     // Fetch schedules available pada tanggal yang dipilih
@@ -77,7 +77,7 @@ export default function RescheduleModal({
  
             setIsLoadingSchedules(true);
             setError("");
-            setSelectedNewTimeSlot(null);
+            setSelectedNewTimeSlots([]);
  
             try {
                 // Fetch untuk single day
@@ -115,26 +115,40 @@ export default function RescheduleModal({
         return slotHour < currentHour || (slotHour === currentHour && slotMinute <= currentMinute);
     };
  
-    // Helper check ketersediaan N slot berurutan
-    const canSelectSlotAsStart = (startIndex: number): boolean => {
-        if (startIndex + numSlots > currentSlots.length) return false;
- 
-        for (let k = 0; k < numSlots; k++) {
-            const slot = currentSlots[startIndex + k];
-            const isBooked = slot.status === "booked";
-            const isMaintenance = slot.status === "maintenance";
-            const isPast = isSlotPast(slot);
- 
-            if (isBooked || isMaintenance || isPast) {
-                return false;
-            }
+    const checkContiguous = (slots: string[]) => {
+        if (slots.length <= 1) return true;
+        const sorted = [...slots].sort();
+        for (let i = 0; i < sorted.length - 1; i++) {
+            const currentHour = parseInt(sorted[i].split(":")[0]);
+            const nextHour = parseInt(sorted[i+1].split(":")[0]);
+            if (nextHour !== currentHour + 1) return false;
         }
         return true;
     };
- 
+
+    const toggleSlot = (slotTime: string) => {
+        let newSlots = [...selectedNewTimeSlots];
+        if (newSlots.includes(slotTime)) {
+            newSlots = newSlots.filter(s => s !== slotTime);
+        } else {
+            if (newSlots.length >= numSlots) {
+                alert(`Anda hanya dapat memilih ${numSlots} jam sesuai dengan durasi booking awal.`);
+                return;
+            }
+            newSlots.push(slotTime);
+        }
+
+        if (!checkContiguous(newSlots)) {
+            alert("Jadwal harus berurutan, tidak boleh ada jeda waktu.");
+            return;
+        }
+
+        setSelectedNewTimeSlots(newSlots);
+    };
+
     const handleRescheduleSubmit = async () => {
-        if (!selectedNewTimeSlot || !selectedDateISO) {
-            setError("Harap pilih waktu baru.");
+        if (selectedNewTimeSlots.length !== numSlots || !selectedDateISO) {
+            setError(`Harap pilih tepat ${numSlots} jam.`);
             return;
         }
  
@@ -162,10 +176,12 @@ export default function RescheduleModal({
         setSuccessMsg("");
  
         try {
+            const earliestSlot = [...selectedNewTimeSlots].sort()[0];
+
             await rescheduleBookingApi(bookingItem.id, {
                 field_id: bookingItem.facilityId || 1,
                 date: selectedDateISO,
-                new_time_slot: selectedNewTimeSlot
+                new_time_slot: earliestSlot
             });
  
             setSuccessMsg("Reschedule berhasil dilakukan!");
@@ -226,7 +242,18 @@ export default function RescheduleModal({
  
                     {/* PILIHAN WAKTU BARU */}
                     <div>
-                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">PILIH JAM BARU</p>
+                        <div className="flex justify-between items-center mb-2">
+                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">PILIH JAM BARU</p>
+                            {numSlots > 0 && (
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                                    selectedNewTimeSlots.length === numSlots 
+                                    ? "bg-green-100 text-green-700" 
+                                    : "bg-orange-100 text-orange-700"
+                                }`}>
+                                    {selectedNewTimeSlots.length}/{numSlots} jam dipilih
+                                </span>
+                            )}
+                        </div>
                         {isLoadingSchedules ? (
                             <div className="flex flex-col items-center justify-center py-6 bg-white border border-gray-100 rounded-xl">
                                 <Loader2 className="w-6 h-6 text-[#1B3627] animate-spin mb-2" />
@@ -241,19 +268,17 @@ export default function RescheduleModal({
                                 Tidak ada jadwal tersedia untuk tanggal ini.
                             </div>
                         ) : (
-                            <div className={`grid gap-2 max-h-40 overflow-y-auto p-1 ${numSlots > 1 ? 'grid-cols-2' : 'grid-cols-3'}`}>
-                                {currentSlots.map((slot, index) => {
-                                    const isDisabled = !canSelectSlotAsStart(index);
-                                    const isSelected = selectedNewTimeSlot === slot.start_time;
-                                    const endStr = currentSlots[index + numSlots - 1]?.end_time || "";
-                                    const label = numSlots > 1 ? `${slot.start_time} - ${endStr}` : slot.start_time;
+                            <div className="grid gap-2 max-h-40 overflow-y-auto p-1 grid-cols-3">
+                                {currentSlots.map((slot) => {
+                                    const isDisabled = slot.status === "booked" || slot.status === "maintenance" || isSlotPast(slot);
+                                    const isSelected = selectedNewTimeSlots.includes(slot.start_time);
  
                                     return (
                                         <button
                                             key={slot.start_time}
                                             type="button"
                                             disabled={isDisabled}
-                                            onClick={() => setSelectedNewTimeSlot(slot.start_time)}
+                                            onClick={() => toggleSlot(slot.start_time)}
                                             className={`py-2 px-1 text-[11px] font-bold rounded-lg border text-center transition-all ${
                                                 isDisabled
                                                     ? "bg-gray-100 text-gray-300 border-transparent cursor-not-allowed opacity-50"
@@ -262,7 +287,7 @@ export default function RescheduleModal({
                                                         : "bg-white text-gray-700 border-gray-100 hover:border-gray-300"
                                             }`}
                                         >
-                                            {label}
+                                            {slot.start_time}
                                         </button>
                                     );
                                 })}
@@ -288,10 +313,10 @@ export default function RescheduleModal({
                     {/* TOMBOL AKSI */}
                     <div className="flex flex-col gap-2 pt-2 border-t border-gray-200/60">
                         <button
-                            disabled={isSubmitting || !selectedNewTimeSlot}
+                            disabled={isSubmitting || selectedNewTimeSlots.length !== numSlots}
                             onClick={handleRescheduleSubmit}
                             className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition shadow-md ${
-                                selectedNewTimeSlot && !isSubmitting
+                                selectedNewTimeSlots.length === numSlots && !isSubmitting
                                     ? "bg-[#1B3627] hover:bg-[#132A1D] text-white shadow-green-950/20"
                                     : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
                             }`}

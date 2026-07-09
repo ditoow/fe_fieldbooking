@@ -29,6 +29,7 @@ export interface HistoryItem {
     facilityId?: number;
     schedules?: BookingDetail['schedules'];
     is_reviewed?: boolean;
+    is_rescheduled?: boolean;
 }
 
 function getBookingEndTime(schedules: BookingDetail['schedules']) {
@@ -83,6 +84,7 @@ function mapToHistoryItem(booking: BookingDetail, role: string): HistoryItem {
         facilityId: booking.schedules?.[0]?.field_id || 1,
         schedules: booking.schedules,
         is_reviewed: booking.is_reviewed,
+        is_rescheduled: booking.is_rescheduled,
     };
 }
 
