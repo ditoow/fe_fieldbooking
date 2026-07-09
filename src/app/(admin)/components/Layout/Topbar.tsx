@@ -68,8 +68,8 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
             <Box className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-white font-bold text-lg leading-tight group-hover:text-gray-200 transition-colors">MyUGO Admin</h1>
-            <p className="text-white/60 text-[10px] uppercase font-semibold tracking-wider group-hover:text-white/80 transition-colors">Facility Management</p>
+            <h1 className="text-white font-bold text-lg leading-tight group-hover:text-gray-200 transition-colors">Dasbor Admin</h1>
+            <p className="text-white/60 text-[10px] uppercase font-semibold tracking-wider group-hover:text-white/80 transition-colors">Manajemen Fasilitas</p>
           </div>
         </Link>
       </div>
@@ -156,8 +156,8 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
                 </div>
               </div>
               <hr className="my-2 border-gray-100" />
-              <Link href="/admin/profile" onClick={() => setShowProfile(false)} className="block w-full text-left px-2 py-2 text-sm hover:bg-gray-50 rounded-md">Settings</Link>
-              <button onClick={handleLogout} className="w-full text-left px-2 py-2 text-sm hover:bg-gray-50 rounded-md text-ugo-status-ditolak-text">Logout</button>
+              <Link href="/admin/profile" onClick={() => setShowProfile(false)} className="block w-full text-left px-2 py-2 text-sm hover:bg-gray-50 rounded-md">Pengaturan</Link>
+              <button onClick={handleLogout} className="w-full text-left px-2 py-2 text-sm hover:bg-gray-50 rounded-md text-ugo-status-ditolak-text">Keluar</button>
             </div>
           )}
         </div>

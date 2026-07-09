@@ -57,18 +57,18 @@ export default function ManajemenUserPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <div className="flex flex-col gap-6 fade-in animate-in">
-        <div><h1 className="text-[30px] font-bold text-ugo-sidebar leading-tight mb-2">Manajemen User</h1>
+        <div><h1 className="text-[30px] font-bold text-ugo-sidebar leading-tight mb-2">Manajemen Pengguna</h1>
           <p className="text-gray-500 text-sm">Daftar semua pengguna — klik baris untuk melihat detail.</p></div>
 
         <div className="bg-ugo-sidebar rounded-2xl p-6 text-white flex justify-between items-end shadow-lg">
           <div className="flex flex-col gap-5">
             <h2 className="text-xl font-bold text-white tracking-wide">Statistik Pengguna</h2>
             <div className="flex items-center gap-8">
-              <div><p className="text-[11px] text-[#D4A574] uppercase tracking-widest font-bold mb-1">TOTAL USER</p><p className="text-3xl font-bold text-white">{users.length}</p></div>
+              <div><p className="text-[11px] text-[#D4A574] uppercase tracking-widest font-bold mb-1">TOTAL PENGGUNA</p><p className="text-3xl font-bold text-white">{users.length}</p></div>
               <div className="w-[1px] h-10 bg-white/10" />
               <div><p className="text-[11px] text-[#D4A574] uppercase tracking-widest font-bold mb-1">AKTIF</p><p className="text-3xl font-bold text-white">{totalActive}</p></div>
               <div className="w-[1px] h-10 bg-white/10" />
-              <div><p className="text-[11px] text-[#D4A574] uppercase tracking-widest font-bold mb-1">SUSPENDED</p><p className="text-3xl font-bold text-white">{totalSuspended}</p></div>
+              <div><p className="text-[11px] text-[#D4A574] uppercase tracking-widest font-bold mb-1">DITANGGUHKAN</p><p className="text-3xl font-bold text-white">{totalSuspended}</p></div>
             </div>
           </div>
         </div>
@@ -83,11 +83,11 @@ export default function ManajemenUserPage() {
                   className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/20" />
               </div>
               <div className="relative">
-                <button onClick={() => setShowFilter(!showFilter)} className="flex items-center gap-2 px-4 py-2 bg-ugo-primary text-white rounded-lg text-sm font-medium hover:bg-ugo-primary/90 transition-colors"><Filter className="w-4 h-4" />Filters</button>
+                <button onClick={() => setShowFilter(!showFilter)} className="flex items-center gap-2 px-4 py-2 bg-ugo-primary text-white rounded-lg text-sm font-medium hover:bg-ugo-primary/90 transition-colors"><Filter className="w-4 h-4" />Filter</button>
                 {showFilter && (
                   <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 p-5 z-20">
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="font-bold text-lg">Filters</h3>
+                      <h3 className="font-bold text-lg">Filter</h3>
                       <button onClick={() => { setShowFilter(false); setPendingFilters(activeFilters); setPendingRoleFilter(roleFilter); }} className="text-gray-400 hover:text-gray-600">&times;</button>
                     </div>
                     <div className="mb-4">
@@ -105,7 +105,7 @@ export default function ManajemenUserPage() {
                     <div className="mb-4">
                       <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Status</p>
                       <div className="flex flex-col gap-3">
-                        {[{ key: 'active' as const, label: 'Aktif' }, { key: 'suspended' as const, label: 'Suspended' }].map(f => (
+                        {[{ key: 'active' as const, label: 'Aktif' }, { key: 'suspended' as const, label: 'Ditangguhkan' }].map(f => (
                           <label key={f.key} className="flex items-center gap-3 cursor-pointer">
                             <input type="checkbox" checked={pendingFilters[f.key]} onChange={(e) => setPendingFilters({ ...pendingFilters, [f.key]: e.target.checked })} className="w-4 h-4 accent-ugo-primary rounded" />
                             <span className="text-sm font-medium">{f.label}</span>
@@ -129,7 +129,7 @@ export default function ManajemenUserPage() {
             : <table className="w-full text-left border-collapse">
                 <thead><tr className="bg-gray-50 border-b border-gray-100">
                   <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">ID / NIM</th>
-                  <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Nama User</th>
+                  <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Nama Pengguna</th>
                   <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Kategori</th>
                   <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Status</th>
                   <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500 text-center">Aksi</th>
@@ -143,7 +143,7 @@ export default function ManajemenUserPage() {
                       <div><p className="font-bold text-sm text-ugo-sidebar">{v.name}</p><p className="text-xs text-gray-500">{v.email}</p></div>
                     </div></td>
                     <td className="py-4 px-6"><span className={`${getKategoriBadge(k)} px-3 py-1 rounded-full text-xs font-bold inline-flex`}>{k}</span></td>
-                    <td className="py-4 px-6">{v.status === 'active' ? <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold inline-flex">Aktif</span> : <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold inline-flex uppercase">Suspended</span>}</td>
+                    <td className="py-4 px-6">{v.status === 'active' ? <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold inline-flex">Aktif</span> : <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold inline-flex uppercase">Ditangguhkan</span>}</td>
                     <td className="py-4 px-6 text-center"><button onClick={() => router.push(`/admin/manajemen/user/${v.id}`)} className="inline-flex items-center gap-1.5 px-4 py-2 bg-ugo-primary text-white rounded-lg text-xs font-bold hover:bg-ugo-primary/90 transition-colors"><Eye className="w-3.5 h-3.5" />Lihat Detail</button></td>
                   </tr>;
                 }) : <tr><td colSpan={5} className="py-12 text-center text-gray-500 font-medium">Tidak ada pengguna yang sesuai.</td></tr>}</tbody>

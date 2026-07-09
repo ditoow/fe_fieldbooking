@@ -75,18 +75,18 @@ export default function AdminBookingPage() {
   }, [activeTab]);
 
   const handleApprove = async (id: number) => {
-    const ok = await confirm({ title: 'Setujui Booking', message: 'Yakin ingin menyetujui booking ini?' });
+    const ok = await confirm({ title: 'Setujui Pemesanan', message: 'Yakin ingin menyetujui pemesanan ini?' });
     if (!ok) return;
-    try { setIsProcessingApprove(true); await approveBooking(id); setSelectedBooking(null); toast.success('Booking berhasil disetujui'); await fetchPendingBookings(); }
-    catch (error) { if (axios.isAxiosError(error)) toast.error(error.response?.data?.message || "Gagal menyetujui booking."); else toast.error("Terjadi kesalahan."); }
+    try { setIsProcessingApprove(true); await approveBooking(id); setSelectedBooking(null); toast.success('Pemesanan berhasil disetujui'); await fetchPendingBookings(); }
+    catch (error) { if (axios.isAxiosError(error)) toast.error(error.response?.data?.message || "Gagal menyetujui pemesanan."); else toast.error("Terjadi kesalahan."); }
     finally { setIsProcessingApprove(false); }
   };
 
   const handleReject = async (id: number) => {
-    const ok = await confirm({ title: 'Tolak Booking', message: 'Yakin ingin menolak booking ini?', variant: 'destructive' });
+    const ok = await confirm({ title: 'Tolak Pemesanan', message: 'Yakin ingin menolak pemesanan ini?', variant: 'destructive' });
     if (!ok) return;
-    try { setIsProcessingReject(true); await rejectBooking(id); setSelectedBooking(null); toast.success('Booking ditolak'); await fetchPendingBookings(); }
-    catch (error) { if (axios.isAxiosError(error)) toast.error(error.response?.data?.message || "Gagal menolak booking."); else toast.error("Terjadi kesalahan."); }
+    try { setIsProcessingReject(true); await rejectBooking(id); setSelectedBooking(null); toast.success('Pemesanan ditolak'); await fetchPendingBookings(); }
+    catch (error) { if (axios.isAxiosError(error)) toast.error(error.response?.data?.message || "Gagal menolak pemesanan."); else toast.error("Terjadi kesalahan."); }
     finally { setIsProcessingReject(false); }
   };
 
@@ -103,8 +103,8 @@ export default function AdminBookingPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <div className="flex flex-col gap-6 fade-in animate-in">
-        <div><h1 className="text-[30px] font-bold text-ugo-sidebar leading-tight mb-2">Booking</h1>
-          <p className="text-gray-500 text-sm">Kelola booking mahasiswa — verifikasi persyaratan dan catat kehadiran.</p></div>
+        <div><h1 className="text-[30px] font-bold text-ugo-sidebar leading-tight mb-2">Pemesanan</h1>
+          <p className="text-gray-500 text-sm">Kelola pemesanan mahasiswa — verifikasi persyaratan dan catat kehadiran.</p></div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
@@ -119,7 +119,7 @@ export default function AdminBookingPage() {
           <div className="flex items-center gap-3">
             <div className="relative w-64">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input type="text" placeholder="Cari No. Booking, nama, lapangan..." value={searchQuery}
+              <input type="text" placeholder="Cari No. Pemesanan, nama, lapangan..." value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ugo-primary/20" />
             </div>
@@ -138,7 +138,7 @@ export default function AdminBookingPage() {
                     </button>
                   ))}
                   <hr className="my-2 border-gray-100" />
-                  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tipe Booking</p>
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tipe Pemesanan</p>
                   {(['all', 'requirement', 'payment'] as const).map(opt => (
                     <button key={opt} onClick={() => setBookingTypeFilter(opt)}
                       className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${bookingTypeFilter === opt ? 'bg-ugo-primary/10 text-ugo-primary' : 'text-gray-600 hover:bg-gray-50'}`}>
@@ -154,7 +154,7 @@ export default function AdminBookingPage() {
         {activeTab === 'verifikasi' ? (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-6">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white rounded-t-2xl">
-              <div><p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1">MENUNGGU VERIFIKASI</p><h2 className="text-xl font-bold text-[#1C2B1E]">Booking Mahasiswa</h2></div>
+              <div><p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1">MENUNGGU VERIFIKASI</p><h2 className="text-xl font-bold text-[#1C2B1E]">Pemesanan Mahasiswa</h2></div>
               <span className="text-xs text-gray-500">Total menunggu: {filteredPending.length}</span>
             </div>
             <div className="overflow-x-auto min-h-[300px]">
@@ -162,7 +162,7 @@ export default function AdminBookingPage() {
               : filteredPending.length === 0 ? <div className="flex flex-col items-center justify-center h-[300px] text-gray-400 gap-3"><FileCheck className="w-12 h-12" /><p className="font-medium">Tidak ada booking yang cocok</p></div>
               : <table className="w-full text-left border-collapse">
                   <thead><tr className="bg-gray-50 border-b border-gray-100">
-                    <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">No. Booking</th>
+                    <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">No. Pemesanan</th>
                     <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Mahasiswa</th>
                     <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Lapangan & Waktu</th>
                     <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Tanggal</th>
@@ -197,7 +197,7 @@ export default function AdminBookingPage() {
               : filteredApproved.length === 0 ? <div className="flex flex-col items-center justify-center h-[300px] text-gray-400 gap-3"><UserCheck className="w-12 h-12" /><p className="font-medium">Belum ada booking yang disetujui</p></div>
               : <table className="w-full text-left border-collapse">
                   <thead><tr className="bg-gray-50 border-b border-gray-100">
-                    <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">No. Booking</th><th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Nama</th>
+                    <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">No. Pemesanan</th><th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Nama</th>
                     <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Lapangan & Waktu</th><th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Tanggal</th>
                     <th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Status Hadir</th><th className="py-3 px-6 text-xs uppercase font-semibold text-gray-500 text-center">Aksi</th>
                   </tr></thead>
@@ -225,7 +225,7 @@ export default function AdminBookingPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95">
             <div className="sticky top-0 bg-white z-10 flex items-center justify-between p-6 border-b border-gray-100 rounded-t-3xl">
-              <div><p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Preview Booking</p><h2 className="text-lg font-bold text-ugo-sidebar mt-0.5">{selectedBooking.booking_number}</h2></div>
+              <div><p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pratinjau Pemesanan</p><h2 className="text-lg font-bold text-ugo-sidebar mt-0.5">{selectedBooking.booking_number}</h2></div>
               <button onClick={() => setSelectedBooking(null)} className="w-8 h-8 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"><X className="w-4 h-4 text-gray-500" /></button>
             </div>
             <div className="p-6 space-y-6">
@@ -240,8 +240,8 @@ export default function AdminBookingPage() {
                 : <div className="border border-dashed border-gray-300 rounded-xl p-8 text-center text-gray-400"><FileCheck className="w-8 h-8 mx-auto mb-2 opacity-50" /><p className="text-sm font-medium">Belum ada dokumen yang diunggah</p></div>}
               </div>
               <div className="flex gap-3 pt-2">
-                <button onClick={() => handleApprove(selectedBooking.id)} disabled={isProcessingApprove || isProcessingReject} className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-3.5 px-6 rounded-xl font-bold text-sm transition-colors disabled:opacity-50">{isProcessingApprove ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}Setujui Booking</button>
-                <button onClick={() => handleReject(selectedBooking.id)} disabled={isProcessingApprove || isProcessingReject} className="flex-1 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white py-3.5 px-6 rounded-xl font-bold text-sm transition-colors disabled:opacity-50">{isProcessingReject ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ban className="w-4 h-4" />}Tolak Booking</button>
+                <button onClick={() => handleApprove(selectedBooking.id)} disabled={isProcessingApprove || isProcessingReject} className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-3.5 px-6 rounded-xl font-bold text-sm transition-colors disabled:opacity-50">{isProcessingApprove ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}Setujui Pemesanan</button>
+                <button onClick={() => handleReject(selectedBooking.id)} disabled={isProcessingApprove || isProcessingReject} className="flex-1 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white py-3.5 px-6 rounded-xl font-bold text-sm transition-colors disabled:opacity-50">{isProcessingReject ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ban className="w-4 h-4" />}Tolak Pemesanan</button>
               </div>
             </div>
           </div>

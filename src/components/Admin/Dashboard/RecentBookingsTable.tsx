@@ -188,7 +188,7 @@ export function RecentBookingsTable() {
             <PopoverTrigger asChild>
               <Button variant="default" className="bg-ugo-primary text-white hover:bg-ugo-primary/90 flex items-center gap-2">
                 <Filter className="w-4 h-4" />
-                Filters
+                Filter
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-72 p-5 rounded-2xl shadow-xl" align="end">
@@ -271,8 +271,8 @@ export function RecentBookingsTable() {
           <Table className="min-w-[800px]">
             <TableHeader className="bg-gray-50">
               <TableRow className="border-b border-gray-100 hover:bg-transparent">
-                <TableHead className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Booking ID</TableHead>
-                <TableHead className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Nama User</TableHead>
+                <TableHead className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">ID Pemesanan</TableHead>
+                <TableHead className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Nama Pengguna</TableHead>
                 <TableHead className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Lapangan</TableHead>
                 <TableHead className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Tanggal</TableHead>
                 <TableHead className="py-3 px-6 text-xs uppercase font-semibold text-gray-500">Jam</TableHead>

@@ -16,13 +16,13 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 
 const navItems = [
-  { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+  { name: 'Dasbor', href: '/admin/dashboard', icon: LayoutDashboard },
   {
     name: 'Manajemen',
     icon: FileCheck,
     children: [
-      { name: 'Booking', href: '/admin/manajemen/booking', icon: FileCheck },
-      { name: 'User', href: '/admin/manajemen/user', icon: Users },
+      { name: 'Pemesanan', href: '/admin/manajemen/booking', icon: FileCheck },
+      { name: 'Pengguna', href: '/admin/manajemen/user', icon: Users },
     ],
   },
   { name: 'Kelola Lapangan', href: '/admin/lapangan', icon: Building },
@@ -121,7 +121,7 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean, onClose?: () =>
       <div className="flex flex-col gap-2 pt-6 border-t border-white/10 mt-6">
         <Button onClick={handleLogout} variant="ghost" className="w-full justify-start gap-3 h-11 px-3 text-white/60 hover:text-white hover:bg-white/10">
           <LogOut className="w-5 h-5 shrink-0" />
-          <span className="font-medium text-sm">Logout</span>
+          <span className="font-medium text-sm">Keluar</span>
         </Button>
       </div>
     </aside>
