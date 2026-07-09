@@ -7,25 +7,42 @@ import { Leaf } from "lucide-react";
 // Pakai tipe union biar jelas statusnya ada 3 kemungkinan
 type AuthStatus = "idle" | "authorized" | "unauthorized";
 
-export default function AuthGuard({ children }: { children: React.ReactNode }) {
+export default function AuthGuard({ children, requireAdmin = false }: { children: React.ReactNode, requireAdmin?: boolean }) {
     const router = useRouter();
     const [status, setStatus] = useState<AuthStatus>("idle");
 
     useEffect(() => {
         const token = localStorage.getItem("jwt_token");
-        const session = localStorage.getItem("user_session");
+        const sessionStr = localStorage.getItem("user_session");
 
         // Wrap di setTimeout(0) — ini trick yang valid untuk menghindari
         // setState synchronous di dalam effect body
         // Eksekusinya tetap cepat (next tick), tapi React tidak anggap ini cascading
         setTimeout(() => {
-            if (!token || !session) {
+            if (!token || !sessionStr) {
                 setStatus("unauthorized");
+                return;
+            }
+
+            if (requireAdmin) {
+                try {
+                    const session = JSON.parse(sessionStr);
+                    // Cek properti role langsung atau dari array roles bawaan Spatie Laravel Permission
+                    const userRole = session?.role || session?.roles?.[0]?.name;
+                    
+                    if (userRole !== "admin") {
+                        setStatus("unauthorized");
+                    } else {
+                        setStatus("authorized");
+                    }
+                } catch (e) {
+                    setStatus("unauthorized");
+                }
             } else {
                 setStatus("authorized");
             }
         }, 0);
-    }, []);
+    }, [requireAdmin]);
 
     // Unauthorized → redirect ke login
     useEffect(() => {

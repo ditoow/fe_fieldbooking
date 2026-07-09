@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// Konfigurasi dasar
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
@@ -8,31 +9,37 @@ const api = axios.create({
   },
 });
 
-// Otomatis sisipkan JWT token ke setiap request
+// INTERCEPTOR REQUEST: Otomatis sisipkan JWT token ke setiap request
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('jwt_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('jwt_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
   }
   return config;
 });
 
+// INTERCEPTOR RESPONSE: Tangkap error global seperti 401 Unauthorized
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      const currentPath = window.location.pathname;
+      if (typeof window !== 'undefined') {
+        const currentPath = window.location.pathname;
 
-      // Jangan redirect kalau lagi di halaman auth
-      // Biar error login/register ditangani oleh halaman itu sendiri
-      const isAuthPage = currentPath === '/login' || currentPath === '/register';
+        // Jangan redirect kalau lagi di halaman auth
+        // Biar error login/register ditangani oleh halaman itu sendiri
+        const isAuthPage = currentPath === '/login' || currentPath === '/register';
 
-      if (!isAuthPage) {
-        localStorage.removeItem('jwt_token');
-        localStorage.removeItem('user_session'); // hapus session juga
-        window.location.href = '/login';
+        if (!isAuthPage) {
+          localStorage.removeItem('jwt_token');
+          localStorage.removeItem('user_session'); // hapus session juga
+          window.location.href = '/login';
+        }
       }
     }
+    // Lemparkan error ke block try-catch di komponen
     return Promise.reject(error);
   }
 );

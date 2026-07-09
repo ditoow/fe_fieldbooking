@@ -4,10 +4,39 @@ import React, { useState, useEffect } from "react";
 import { Search, CheckCircle, XCircle, ChevronLeft, ChevronRight, Loader2, Star } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { getAllFields, Field } from "@/lib/api/field";
 import axios from "axios";
 
+const parseDescription = (desc: string) => {
+  if (!desc) return { long_description: '', jam_buka: '08:00 - 22:00', kapasitas: 'Tim Standar', spesifikasi: 'Ukuran Standar Internasional, Material Lantai Premium, Pencahayaan LED Terang, Level Kompetisi' };
+  
+  if (desc.includes('|||')) {
+    const parts = desc.split('|||');
+    return {
+      long_description: parts[0] || '',
+      jam_buka: parts[1] || '08:00 - 22:00',
+      kapasitas: parts[2] || 'Tim Standar',
+      spesifikasi: parts[3] || 'Ukuran Standar Internasional, Material Lantai Premium, Pencahayaan LED Terang, Level Kompetisi'
+    };
+  }
+
+  try {
+    const parsed = JSON.parse(desc);
+    if (parsed && typeof parsed === 'object' && 'long_description' in parsed) {
+      return parsed;
+    }
+  } catch(e) {}
+  return {
+    long_description: desc,
+    jam_buka: '08:00 - 22:00',
+    kapasitas: 'Tim Standar',
+    spesifikasi: 'Ukuran Standar Internasional, Material Lantai Premium, Pencahayaan LED Terang, Level Kompetisi'
+  };
+};
+
 export default function UserDashboard() {
+    const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 9;
@@ -124,7 +153,11 @@ export default function UserDashboard() {
                 {!isLoading && !error && currentItems.length > 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {currentItems.map((item) => (
-                            <div key={item.id} className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group">
+                            <div 
+                                key={item.id} 
+                                onClick={() => router.push(`/lapangan/${item.id}`)}
+                                className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group cursor-pointer"
+                            >
 
                                 {/* Image Area */}
                                 <div className="h-48 bg-[#F5F2E9] relative flex items-center justify-center overflow-hidden">
@@ -159,7 +192,9 @@ export default function UserDashboard() {
                                     </div>
 
                                     {/* Deskripsi */}
-                                    <p className="text-sm text-gray-500 mb-4 line-clamp-2">{item.description}</p>
+                                    <p className="text-sm text-gray-500 mb-4 line-clamp-2">
+                                        {parseDescription(item.description || '').long_description}
+                                    </p>
 
                                     {/* Status */}
                                     <div className={`flex items-center text-sm font-medium mb-4 ${item.status === "available" ? "text-green-600" : "text-red-500"}`}>
@@ -190,6 +225,7 @@ export default function UserDashboard() {
                                         </div>
                                         <Link
                                             href={`/booking/${item.id}`}
+                                            onClick={(e) => e.stopPropagation()}
                                             className="bg-[#E5C3A6] hover:bg-[#d5b090] text-[#1B3627] text-sm font-bold px-6 py-2.5 rounded-xl transition-colors"
                                         >
                                             Booking

@@ -1,11 +1,21 @@
 import React from "react";
 import { Building2, QrCode, UploadCloud, CheckCircle2 } from "lucide-react";
 
-export default function PaymentMethod({ role, paymentMethod, setPaymentMethod, suratFile, handleFileChange }: any) {
+interface PaymentMethodProps {
+    role: string;
+    paymentMethod: "bank" | "qris";
+    setPaymentMethod: (method: "bank" | "qris") => void;
+    suratFile: File | null;
+    handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+export default function PaymentMethod({
+    role, paymentMethod, setPaymentMethod, suratFile, handleFileChange
+}: PaymentMethodProps) {
     return (
         <div>
             <div className="flex items-center gap-4 mb-6">
-                <div className="h-[1px] w-6 bg-gray-300"></div>
+                <div className="h-px w-6 bg-gray-300"></div>
                 <h3 className="text-xs font-black uppercase tracking-widest text-gray-800">
                     {role === "mahasiswa" ? "Verifikasi Akademik" : "Metode Pembayaran"}
                 </h3>

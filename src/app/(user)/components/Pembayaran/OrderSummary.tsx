@@ -1,9 +1,24 @@
 import React from "react";
-import { Calendar, Clock, MapPin, ArrowRight, ShieldCheck } from "lucide-react";
+import { Calendar, Clock, MapPin, ArrowRight, ShieldCheck, Loader2 } from "lucide-react";
+
+interface OrderSummaryProps {
+    namaLapangan: string;
+    dateParam: string;
+    selectedTimesArray: string[];
+    jumlahJam: number;
+    lokasiLapangan: string;
+    role: string;
+    totalHarga: number;
+    formatRupiah: (angka: number) => string;
+    handleProses: () => void;
+    isSubmitting: boolean;
+    imageLapangan: string;
+}
 
 export default function OrderSummary({
-    namaLapangan, dateParam, selectedTimesArray, jumlahJam, lokasiLapangan, role, totalHarga, formatRupiah, handleProses, imageLapangan
-}: any) {
+    namaLapangan, dateParam, selectedTimesArray, jumlahJam, lokasiLapangan,
+    role, totalHarga, formatRupiah, handleProses, isSubmitting, imageLapangan
+}: OrderSummaryProps) {
     return (
         <div className="lg:col-span-5 xl:col-span-4 mt-12 lg:mt-0">
             <div className="bg-[#1B3627] text-white rounded-2xl p-8 shadow-xl relative overflow-hidden flex flex-col mb-4">
@@ -34,7 +49,10 @@ export default function OrderSummary({
                     <div className="flex justify-between items-center text-xs">
                         <span className="text-gray-400">Subtotal ({jumlahJam} Jam)</span>
                         <span className="font-bold">
-                            {role === "mahasiswa" ? <span className="text-[#8CB954]">GRATIS</span> : `Rp ${formatRupiah(totalHarga)}`}
+                            {role === "mahasiswa"
+                                ? <span className="text-[#8CB954]">GRATIS</span>
+                                : `Rp ${formatRupiah(totalHarga)}`
+                            }
                         </span>
                     </div>
                     <div className="flex justify-between items-center text-xs">
@@ -50,8 +68,16 @@ export default function OrderSummary({
                     </span>
                 </div>
 
-                <button onClick={handleProses} className="w-full bg-[#8b5a2b] hover:bg-[#724a23] text-white py-4 rounded-xl font-bold text-xs uppercase tracking-wider transition-colors shadow-lg shadow-[#8b5a2b]/20 flex justify-center items-center gap-2 relative z-10">
-                    {role === "mahasiswa" ? "Ajukan Verifikasi" : "Bayar Sekarang"} <ArrowRight className="w-4 h-4" />
+                <button
+                    onClick={handleProses}
+                    disabled={isSubmitting}
+                    className="w-full bg-[#8b5a2b] hover:bg-[#724a23] disabled:opacity-60 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold text-xs uppercase tracking-wider transition-colors shadow-lg shadow-[#8b5a2b]/20 flex justify-center items-center gap-2 relative z-10"
+                >
+                    {isSubmitting ? (
+                        <><Loader2 className="w-4 h-4 animate-spin" /> Memproses...</>
+                    ) : (
+                        <>{role === "mahasiswa" ? "Ajukan Verifikasi" : "Bayar Sekarang"} <ArrowRight className="w-4 h-4" /></>
+                    )}
                 </button>
 
                 <p className="text-[7px] text-center text-gray-400 mt-4 tracking-widest uppercase flex items-center justify-center gap-1.5 relative z-10">

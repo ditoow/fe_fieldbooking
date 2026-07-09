@@ -17,6 +17,7 @@ export interface Field {
     surface_type: string;
     rating: number;
     image_url: string;
+    carousel_urls?: string[];
     category: string;
     status: string;         // "available" / "maintenance"
     price_min: string | null;

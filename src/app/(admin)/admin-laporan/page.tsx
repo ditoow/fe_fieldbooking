@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { 
   FileText, 
   Download, 
@@ -8,11 +9,12 @@ import {
   Search, 
   Filter, 
   CircleDashed,
-  Activity
+  Activity,
+  Loader2
 } from 'lucide-react';
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
@@ -21,58 +23,32 @@ import {
   Pie,
   Cell
 } from 'recharts';
+import {
+  getTransactionsReport,
+  getDemographicsReport,
+  getPdfReportData,
+  TransactionReportItem,
+  DemographicItem,
+  PdfReportData
+} from '@/lib/api/admin/reports';
+import { getRevenueTrend, RevenueTrendItem } from '@/lib/api/admin/dashboard';
 
-const recentTransactions = [
-  {
-    id: '#MYU-2938',
-    icon: '⚽',
-    fasilitas: 'Lapangan Futsal A',
-    pengguna: 'Ahmad Fauzi',
-    kategori: 'PUBLIC',
-    tanggal: '24 Okt, 2023',
-    nominal: 'Rp 150.000',
-    status: 'BERHASIL'
-  },
-  {
-    id: '#MYU-2940',
-    icon: '🏸',
-    fasilitas: 'Lapangan Badminton 3',
-    pengguna: 'Riana Putri',
-    kategori: 'STUDENT',
-    tanggal: '24 Okt, 2023',
-    nominal: 'Rp 45.000',
-    status: 'BERHASIL'
-  },
-  {
-    id: '#MYU-2941',
-    icon: '🏀',
-    fasilitas: 'Basket Indoor Main',
-    pengguna: 'Budi Santoso',
-    kategori: 'PUBLIC',
-    tanggal: '23 Okt, 2023',
-    nominal: 'Rp 200.000',
-    status: 'MENUNGGU'
-  }
-];
-
-const lineData = [
-  { name: 'SENIN', realisasi: 20, target: 40 },
-  { name: 'SELASA', realisasi: 35, target: 50 },
-  { name: 'RABU', realisasi: 65, target: 55 },
-  { name: 'KAMIS', realisasi: 45, target: 52 },
-  { name: 'JUMAT', realisasi: 55, target: 58 },
-  { name: 'SABTU', realisasi: 80, target: 62 },
-];
-
-const pieData = [
-  { name: 'Public', value: 65, color: '#D4A574' },
-  { name: 'Student', value: 35, color: '#2D6A4F' },
-];
-
-export default function LaporanPage() {
+function LaporanPage() {
   const [showPDF, setShowPDF] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // State data dinamis dari API
+  const [transactions, setTransactions] = useState<TransactionReportItem[]>([]);
+  const [demographics, setDemographics] = useState<DemographicItem[]>([]);
+  const [totalUsers, setTotalUsers] = useState<number>(0);
+  const [revenueTrend, setRevenueTrend] = useState<RevenueTrendItem[]>([]);
+  const [pdfData, setPdfData] = useState<PdfReportData | null>(null);
+  
+  // State Loading
+  const [loading, setLoading] = useState(true);
+  const [pdfLoading, setPdfLoading] = useState(false);
+
   const [activeFilters, setActiveFilters] = useState({
     menunggu: true,
     berhasil: true,
@@ -84,15 +60,51 @@ export default function LaporanPage() {
     gagal: true
   });
 
+  // Fetch data laporan utama & tren pendapatan mingguan
+  useEffect(() => {
+    const fetchBaseData = async () => {
+      setLoading(true);
+      try {
+        const [txList, demoRes, trendRes] = await Promise.all([
+          getTransactionsReport(searchQuery),
+          getDemographicsReport(),
+          getRevenueTrend()
+        ]);
+        setTransactions(txList);
+        setDemographics(demoRes.data);
+        setTotalUsers(demoRes.total_users);
+        setRevenueTrend(trendRes);
+      } catch (error) {
+        console.error("Gagal memuat data laporan:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBaseData();
+  }, [searchQuery]);
+
+  // Fetch data PDF secara on-demand saat layer PDF diaktifkan
+  useEffect(() => {
+    if (showPDF) {
+      const fetchPdfReport = async () => {
+        setPdfLoading(true);
+        try {
+          const data = await getPdfReportData();
+          setPdfData(data);
+        } catch (error) {
+          console.error("Gagal memuat data laporan PDF:", error);
+        } finally {
+          setPdfLoading(false);
+        }
+      };
+      fetchPdfReport();
+    }
+  }, [showPDF]);
+
   const filteredTransactions = useMemo(() => {
-    return recentTransactions.filter(trx => {
-      // Filter by search
-      const searchLower = searchQuery.toLowerCase();
-      const matchesSearch = trx.pengguna.toLowerCase().includes(searchLower) || 
-                            trx.id.toLowerCase().includes(searchLower) ||
-                            trx.fasilitas.toLowerCase().includes(searchLower);
-      
-      // Filter by status
+    return transactions.filter(trx => {
+      // Filter status di client side agar instant & responsive
       const noFilterSelected = !activeFilters.menunggu && !activeFilters.berhasil && !activeFilters.gagal;
       let matchesStatus = noFilterSelected;
       
@@ -102,9 +114,16 @@ export default function LaporanPage() {
         if (activeFilters.gagal && trx.status === 'GAGAL') matchesStatus = true;
       }
       
-      return matchesSearch && matchesStatus;
+      return matchesStatus;
     });
-  }, [searchQuery, activeFilters]);
+  }, [transactions, activeFilters]);
+
+  const publicData = demographics.find(d => d.name === 'Public');
+  const studentData = demographics.find(d => d.name === 'Student');
+  const publicValue = publicData?.value || 0;
+  const studentValue = studentData?.value || 0;
+  const publicPercent = totalUsers > 0 ? Math.round((publicValue / totalUsers) * 100) : 0;
+  const studentPercent = totalUsers > 0 ? Math.round((studentValue / totalUsers) * 100) : 0;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -138,98 +157,109 @@ export default function LaporanPage() {
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <h2 className="font-bold text-lg text-[#1C2B1E]">Tren Pendapatan & Utilisasi</h2>
-                  <p className="text-sm text-[#6B7280]">Perbandingan mingguan antara target dan realisasi.</p>
+                  <p className="text-sm text-[#6B7280]">Perbandingan mingguan realisasi pendapatan.</p>
                 </div>
                 <div className="flex items-center gap-4 text-[10px] font-bold tracking-wider">
-                  <div className="flex items-center gap-1.5 text-[#1C2B1E]">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#1C2B1E]"></span>
+                  <div className="flex items-center gap-1.5 text-[#2D6A4F]">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#2D6A4F]"></span>
                     REALISASI
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[#D4A574]">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#D4A574]"></span>
-                    TARGET
                   </div>
                 </div>
               </div>
-              <div className="h-[220px] w-full mt-auto">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={lineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <XAxis 
-                      dataKey="name" 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fontSize: 10, fill: '#6B7280', fontWeight: 500 }} 
-                      dy={10} 
-                    />
-                    <YAxis hide domain={['dataMin - 10', 'dataMax + 10']} />
-                    <Tooltip 
-                      contentStyle={{ borderRadius: '12px', border: '1px solid #f3f4f6', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="realisasi" 
-                      stroke="#1C2B1E" 
-                      strokeWidth={3}
-                      dot={{ r: 4, strokeWidth: 0, fill: '#1C2B1E' }}
-                      activeDot={{ r: 6 }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="target" 
-                      stroke="#D4A574" 
-                      strokeWidth={3}
-                      dot={{ r: 4, strokeWidth: 0, fill: '#D4A574' }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+              <div className="h-[220px] w-full mt-auto flex items-center justify-center">
+                {loading ? (
+                  <Loader2 className="w-8 h-8 animate-spin text-[#2D6A4F]" />
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={revenueTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorRealisasiLaporan" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#2D6A4F" stopOpacity={0.6}/>
+                          <stop offset="95%" stopColor="#2D6A4F" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <XAxis 
+                        dataKey="name" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fontSize: 10, fill: '#6B7280', fontWeight: 500 }} 
+                        dy={10} 
+                      />
+                      <YAxis hide domain={['dataMin - 10', 'dataMax + 10']} />
+                      <Tooltip 
+                        contentStyle={{ borderRadius: '12px', border: '1px solid #f3f4f6', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="realisasi" 
+                        stroke="#2D6A4F" 
+                        strokeWidth={3}
+                        fillOpacity={1}
+                        fill="url(#colorRealisasiLaporan)"
+                        dot={{ r: 5, strokeWidth: 2, stroke: '#2D6A4F', fill: 'white' }}
+                        activeDot={{ r: 7, fill: '#2D6A4F', stroke: 'white', strokeWidth: 2 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
               </div>
             </div>
 
             {/* KOLOM KANAN: User Demographics (40% approx -> col-span-2) */}
-            <div className="lg:col-span-2 bg-[#1C2B1E] p-6 rounded-2xl shadow-sm flex flex-col justify-between">
-              <div>
+            <div className="lg:col-span-2 bg-[#1C2B1E] p-6 rounded-2xl shadow-sm flex flex-col items-center justify-between">
+              <div className="w-full text-left mb-6">
                 <p className="text-[10px] uppercase font-bold text-white/45 tracking-widest mb-1">USER DEMOGRAPHICS</p>
                 <h2 className="text-[18px] font-bold text-white">User Types</h2>
               </div>
               
-              <div className="flex items-center justify-between mt-4">
-                <div className="relative w-[150px] h-[150px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={pieData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={46}
-                        outerRadius={70}
-                        stroke="none"
-                        dataKey="value"
-                      >
-                        {pieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                  {/* Custom Center Label */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-[22px] font-bold text-white leading-none">1.2k</span>
-                    <span className="text-[10px] text-white/55 font-bold mt-1">TOTAL USERS</span>
+              <div className="flex flex-col items-center justify-center flex-1 w-full gap-8">
+                {loading ? (
+                  <div className="h-[220px] flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-white" />
                   </div>
-                </div>
+                ) : (
+                  <>
+                    <div className="relative w-[220px] h-[220px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={demographics}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={75}
+                            outerRadius={105}
+                            stroke="none"
+                            dataKey="value"
+                          >
+                            {demographics.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                        </PieChart>
+                      </ResponsiveContainer>
+                      {/* Custom Center Label */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span className="text-[32px] font-bold text-white leading-none">
+                          {totalUsers >= 1000 ? `${(totalUsers / 1000).toFixed(1)}k` : totalUsers}
+                        </span>
+                        <span className="text-[12px] text-white/55 font-bold mt-1">TOTAL USERS</span>
+                      </div>
+                    </div>
 
-                <div className="flex flex-col gap-3 pr-4">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#D4A574]"></span>
-                    <span className="text-white text-sm font-medium">Public</span>
-                    <span className="text-white/60 text-sm ml-2">65%</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#2D6A4F]"></span>
-                    <span className="text-white text-sm font-medium">Student</span>
-                    <span className="text-white/60 text-sm ml-2">35%</span>
-                  </div>
-                </div>
+                    <div className="flex items-center justify-center gap-8 w-full mt-2">
+                      <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-xl">
+                        <span className="w-3 h-3 rounded-full bg-[#D4A574]"></span>
+                        <span className="text-white text-sm font-medium">Public</span>
+                        <span className="text-white/80 text-sm font-bold ml-2">{publicPercent}%</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-xl">
+                        <span className="w-3 h-3 rounded-full bg-[#2D6A4F]"></span>
+                        <span className="text-white text-sm font-medium">Student</span>
+                        <span className="text-white/80 text-sm font-bold ml-2">{studentPercent}%</span>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
@@ -341,19 +371,28 @@ export default function LaporanPage() {
                     <th className="py-4 px-6 text-[11px] uppercase font-bold text-[#6B7280]">Order ID</th>
                     <th className="py-4 px-6 text-[11px] uppercase font-bold text-[#6B7280]">Fasilitas</th>
                     <th className="py-4 px-6 text-[11px] uppercase font-bold text-[#6B7280]">Pengguna</th>
-                    <th className="py-4 px-6 text-[11px] uppercase font-bold text-[#6B7280]">Tanggal</th>
-                    <th className="py-4 px-6 text-[11px] uppercase font-bold text-[#6B7280]">Nominal</th>
+                    <th className="py-4 px-6 text-[11px] uppercase font-bold text-[#6B7280]">Jadwal Main</th>
+                    <th className="py-4 px-6 text-[11px] uppercase font-bold text-[#6B7280]">Pembayaran</th>
                     <th className="py-4 px-6 text-[11px] uppercase font-bold text-[#6B7280]">Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTransactions.length > 0 ? (
+                  {loading ? (
+                    <tr>
+                      <td colSpan={6} className="py-12 text-center">
+                        <div className="flex justify-center items-center gap-2 text-gray-500">
+                          <Loader2 className="w-5 h-5 animate-spin text-[#2D6A4F]" />
+                          <span className="font-semibold text-sm">Memuat data transaksi...</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : filteredTransactions.length > 0 ? (
                     filteredTransactions.map(trx => (
                       <tr key={trx.id} className="border-b border-[#F5F0EB] hover:bg-gray-50/50 transition-colors">
-                        <td className="py-[18px] px-6 text-[16px] font-bold text-[#1C2B1E]">{trx.id}</td>
+                        <td className="py-[18px] px-6 text-[14px] font-bold text-[#1C2B1E]">{trx.id}</td>
                         <td className="py-[18px] px-6">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-[#F0EDE8] flex items-center justify-center text-[14px]">{trx.icon}</div>
+                            <div className="w-8 h-8 rounded-lg bg-[#F0EDE8] flex items-center justify-center text-[14px] shrink-0">{trx.icon}</div>
                             <span className="font-medium text-sm text-[#1C2B1E]">{trx.fasilitas}</span>
                           </div>
                         </td>
@@ -361,8 +400,14 @@ export default function LaporanPage() {
                           <p className="font-bold text-sm text-[#1C2B1E]">{trx.pengguna}</p>
                           <p className="text-[10px] uppercase font-bold text-[#6B7280] tracking-wider mt-0.5">{trx.kategori}</p>
                         </td>
-                        <td className="py-[18px] px-6 text-sm text-[#6B7280] font-medium">{trx.tanggal}</td>
-                        <td className="py-[18px] px-6 text-sm font-bold text-[#1C2B1E]">{trx.nominal}</td>
+                        <td className="py-[18px] px-6">
+                          <p className="text-sm font-semibold text-[#1C2B1E]">{trx.tanggal}</p>
+                          <p className="text-xs text-[#6B7280] font-medium mt-0.5">{trx.waktu} <span className="text-[10px] font-bold bg-gray-100 px-1.5 py-0.5 rounded ml-1">{trx.durasi}</span></p>
+                        </td>
+                        <td className="py-[18px] px-6">
+                          <p className="text-sm font-bold text-[#1C2B1E]">{trx.nominal}</p>
+                          <p className="text-[11px] font-medium text-[#6B7280] mt-0.5">{trx.metodePembayaran}</p>
+                        </td>
                         <td className="py-[18px] px-6">
                           {trx.status === 'BERHASIL' && <span className="bg-[#D4EDDA] text-[#2D6A4F] px-3 py-1.5 rounded-full text-xs font-bold inline-flex">BERHASIL</span>}
                           {trx.status === 'MENUNGGU' && <span className="bg-[#FDE8D8] text-[#C4622D] px-3 py-1.5 rounded-full text-xs font-bold inline-flex">MENUNGGU</span>}
@@ -399,148 +444,117 @@ export default function LaporanPage() {
               Unduh PDF
             </button>
           </div>
-
-          {/* PDF Document Container */}
-          <div className="w-full max-w-[850px] mx-auto bg-white shadow-xl min-h-[1100px] p-[40px] text-gray-800 rounded-sm">
-            
-            {/* Header Document */}
-            <div className="flex justify-between items-start mb-8">
-              <div>
-                <h1 className="text-2xl font-bold text-[#1C2B1E] tracking-tight mb-1">MyUGO</h1>
-                <p className="font-bold text-sm text-gray-800">UNIVERSITAS DIAN NUSWANTORO</p>
-                <p className="text-xs text-gray-600 mt-0.5">Jl. Imam Bonjol No.207, Semarang</p>
-              </div>
-              <div className="text-right">
-                <h2 className="text-lg font-bold text-[#1C2B1E] uppercase tracking-wider mb-3">LAPORAN MANAJEMEN FASILITAS</h2>
-                <div className="text-xs text-gray-600 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-left inline-grid">
-                  <span className="font-medium text-right">ID Laporan:</span>
-                  <span className="font-semibold text-[#1C2B1E]">#UGO-2024-05-99</span>
-                  <span className="font-medium text-right">Tanggal Cetak:</span>
-                  <span className="font-semibold text-[#1C2B1E]">31 Mei 2024</span>
-                  <span className="font-medium text-right">Periode:</span>
-                  <span className="font-semibold text-[#1C2B1E]">Mei 2024</span>
-                  <span className="font-medium text-right">Disusun Oleh:</span>
-                  <span className="font-semibold text-[#1C2B1E]">System Admin</span>
-                </div>
+          {pdfLoading ? (
+            <div className="w-full max-w-[850px] mx-auto bg-white shadow-xl min-h-[500px] flex justify-center items-center rounded-sm">
+              <div className="flex flex-col items-center gap-3">
+                <Loader2 className="w-8 h-8 animate-spin text-[#1C2B1E]" />
+                <span className="text-sm font-medium text-gray-500">Mengompilasi data laporan...</span>
               </div>
             </div>
-
-            <hr className="border-t border-gray-300 mb-8" />
-
-            {/* RINGKASAN EKSEKUTIF */}
-            <div className="mb-10">
-              <h3 className="font-bold text-sm uppercase tracking-widest text-[#1C2B1E] mb-4">Ringkasan Eksekutif</h3>
-              <div className="grid grid-cols-3 gap-6">
+          ) : (
+            /* PDF Document Container */
+            <div className="w-full max-w-[850px] mx-auto bg-white shadow-xl min-h-[1100px] p-[40px] text-gray-800 rounded-sm">
+              
+              {/* Header Document */}
+              <div className="flex justify-between items-start mb-8">
                 <div>
-                  <p className="text-xs text-gray-500 font-medium mb-1">Total Pendapatan</p>
-                  <p className="text-xl font-bold text-[#1C2B1E]">Rp 42.850.000</p>
-                  <p className="text-xs font-bold text-green-600 mt-1">▲ 12.5% vs Bulan Sebelumnya</p>
+                  <h1 className="text-2xl font-bold text-[#1C2B1E] tracking-tight mb-1">MyUGO</h1>
+                  <p className="font-bold text-sm text-gray-800">UNIVERSITAS DIAN NUSWANTORO</p>
+                  <p className="text-xs text-gray-600 mt-0.5">Jl. Imam Bonjol No.207, Semarang</p>
                 </div>
-                <div>
-                  <p className="text-xs text-gray-500 font-medium mb-1">Total Sesi Booking</p>
-                  <p className="text-xl font-bold text-[#1C2B1E]">1.248 <span className="text-sm font-medium">Sesi</span></p>
-                  <p className="text-xs text-gray-500 mt-1">Rata-rata 41 sesi/hari</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 font-medium mb-1">Pengguna Aktif</p>
-                  <p className="text-xl font-bold text-[#1C2B1E]">856 <span className="text-sm font-medium">Mahasiswa</span></p>
-                  <p className="text-xs text-gray-500 mt-1">412 Free Bookings &bull; 62 Baru</p>
-                </div>
-              </div>
-            </div>
-
-            {/* UTILISASI FASILITAS UTAMA */}
-            <div className="mb-10">
-              <h3 className="font-bold text-sm uppercase tracking-widest text-[#1C2B1E] mb-4">Utilisasi Fasilitas Utama</h3>
-              <div className="space-y-4 max-w-lg">
-                <div>
-                  <div className="flex justify-between items-end mb-1.5">
-                    <span className="text-sm font-semibold text-gray-800">Lapangan Futsal</span>
-                    <span className="text-sm font-bold text-[#1C2B1E]">92%</span>
-                  </div>
-                  <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-black rounded-full" style={{ width: '92%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between items-end mb-1.5">
-                    <span className="text-sm font-semibold text-gray-800">Gor Basket</span>
-                    <span className="text-sm font-bold text-[#1C2B1E]">84%</span>
-                  </div>
-                  <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#1C2B1E] rounded-full" style={{ width: '84%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between items-end mb-1.5">
-                    <span className="text-sm font-semibold text-gray-800">Badminton Court</span>
-                    <span className="text-sm font-bold text-[#1C2B1E]">76%</span>
-                  </div>
-                  <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#1C2B1E] opacity-70 rounded-full" style={{ width: '76%' }}></div>
+                <div className="text-right">
+                  <h2 className="text-lg font-bold text-[#1C2B1E] uppercase tracking-wider mb-3">LAPORAN MANAJEMEN FASILITAS</h2>
+                  <div className="text-xs text-gray-600 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-left inline-grid">
+                    <span className="font-medium text-right">ID Laporan:</span>
+                    <span className="font-semibold text-[#1C2B1E]">{pdfData?.report_id || '-'}</span>
+                    <span className="font-medium text-right">Tanggal Cetak:</span>
+                    <span className="font-semibold text-[#1C2B1E]">{pdfData?.print_date || '-'}</span>
+                    <span className="font-medium text-right">Periode:</span>
+                    <span className="font-semibold text-[#1C2B1E]">{pdfData?.print_date ? pdfData.print_date.split(' ').slice(1).join(' ') : '-'}</span>
+                    <span className="font-medium text-right">Disusun Oleh:</span>
+                    <span className="font-semibold text-[#1C2B1E]">System Admin</span>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* RINCIAN TRANSAKSI TERAKHIR */}
-            <div className="mb-16">
-              <h3 className="font-bold text-sm uppercase tracking-widest text-[#1C2B1E] mb-4">Rincian Transaksi Terakhir</h3>
-              <table className="w-full text-left text-[12px] border border-gray-300">
-                <thead>
-                  <tr className="border-b border-gray-300 bg-gray-50">
-                    <th className="py-2.5 px-3 font-bold border-r border-gray-300 text-gray-700">ID TRX</th>
-                    <th className="py-2.5 px-3 font-bold border-r border-gray-300 text-gray-700">DETAIL PENGGUNA</th>
-                    <th className="py-2.5 px-3 font-bold border-r border-gray-300 text-gray-700">LAYANAN</th>
-                    <th className="py-2.5 px-3 font-bold border-r border-gray-300 text-gray-700">TANGGAL</th>
-                    <th className="py-2.5 px-3 font-bold border-r border-gray-300 text-gray-700 text-right">NOMINAL</th>
-                    <th className="py-2.5 px-3 font-bold text-center text-gray-700">STATUS</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b border-gray-300">
-                    <td className="py-3 px-3 font-mono border-r border-gray-300">TRX-94821</td>
-                    <td className="py-3 px-3 border-r border-gray-300">Aditya Pratama (A11.2021.12345)</td>
-                    <td className="py-3 px-3 border-r border-gray-300">Futsal A (2 Jam)</td>
-                    <td className="py-3 px-3 border-r border-gray-300 text-gray-600">30 Mei 2024</td>
-                    <td className="py-3 px-3 text-right font-semibold border-r border-gray-300">Rp 150.000</td>
-                    <td className="py-3 px-3 text-center">
-                      <span className="text-green-600 font-bold">SUCCESS</span>
-                    </td>
-                  </tr>
-                  <tr className="border-b border-gray-300">
-                    <td className="py-3 px-3 font-mono border-r border-gray-300">TRX-94822</td>
-                    <td className="py-3 px-3 border-r border-gray-300">Siti Aminah (A11.2022.67890)</td>
-                    <td className="py-3 px-3 border-r border-gray-300">Badminton Court 3</td>
-                    <td className="py-3 px-3 border-r border-gray-300 text-gray-600">30 Mei 2024</td>
-                    <td className="py-3 px-3 text-right font-semibold border-r border-gray-300">Rp 45.000</td>
-                    <td className="py-3 px-3 text-center">
-                      <span className="text-green-600 font-bold">SUCCESS</span>
-                    </td>
-                  </tr>
-                  <tr className="border-b border-gray-300">
-                    <td className="py-3 px-3 font-mono border-r border-gray-300">TRX-94823</td>
-                    <td className="py-3 px-3 border-r border-gray-300">Budi Sudarsono (B12.2020.11223)</td>
-                    <td className="py-3 px-3 border-r border-gray-300">Sewa Bola Basket MAHASISWA(FREE)</td>
-                    <td className="py-3 px-3 border-r border-gray-300 text-gray-600">29 Mei 2024</td>
-                    <td className="py-3 px-3 text-right font-semibold border-r border-gray-300">Rp 0</td>
-                    <td className="py-3 px-3 text-center">
-                      <span className="text-green-600 font-bold">FREE BOOKING</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="py-3 px-3 font-mono border-r border-gray-300">TRX-94824</td>
-                    <td className="py-3 px-3 border-r border-gray-300">Rina Wijaya (C13.2023.55443)</td>
-                    <td className="py-3 px-3 border-r border-gray-300">Gor Basket (Full)</td>
-                    <td className="py-3 px-3 border-r border-gray-300 text-gray-600">29 Mei 2024</td>
-                    <td className="py-3 px-3 text-right font-semibold border-r border-gray-300">Rp 250.000</td>
-                    <td className="py-3 px-3 text-center">
-                      <span className="text-red-600 font-bold">REFUNDED</span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+              <hr className="border-t border-gray-300 mb-8" />
+
+              {/* RINGKASAN EKSEKUTIF */}
+              <div className="mb-10">
+                <h3 className="font-bold text-sm uppercase tracking-widest text-[#1C2B1E] mb-4">Ringkasan Eksekutif</h3>
+                <div className="grid grid-cols-3 gap-6">
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium mb-1">Total Pendapatan</p>
+                    <p className="text-xl font-bold text-[#1C2B1E]">
+                      Rp {pdfData?.summary.total_revenue.toLocaleString('id-ID') || '0'}
+                    </p>
+                    <p className="text-xs font-bold text-green-600 mt-1">{pdfData?.summary.revenue_trend}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium mb-1">Total Sesi Booking</p>
+                    <p className="text-xl font-bold text-[#1C2B1E]">{pdfData?.summary.total_bookings || 0} <span className="text-sm font-medium">Sesi</span></p>
+                    <p className="text-xs text-gray-500 mt-1">Operasional GOR Aktif</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium mb-1">Pengguna Aktif</p>
+                    <p className="text-xl font-bold text-[#1C2B1E]">{pdfData?.summary.active_users || 0} <span className="text-sm font-medium">Pengguna</span></p>
+                    <p className="text-xs text-gray-500 mt-1">Bulan Berjalan</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* UTILISASI FASILITAS UTAMA */}
+              <div className="mb-10">
+                <h3 className="font-bold text-sm uppercase tracking-widest text-[#1C2B1E] mb-4">Utilisasi Fasilitas Utama</h3>
+                <div className="space-y-4 max-w-lg">
+                  {pdfData?.utilization.map((item, idx) => (
+                    <div key={idx}>
+                      <div className="flex justify-between items-end mb-1.5">
+                        <span className="text-sm font-semibold text-gray-800">{item.field_name}</span>
+                        <span className="text-sm font-bold text-[#1C2B1E]">{item.rate}%</span>
+                      </div>
+                      <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-black rounded-full" style={{ width: `${item.rate}%` }}></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* RINCIAN TRANSAKSI TERAKHIR */}
+              <div className="mb-16">
+                <h3 className="font-bold text-sm uppercase tracking-widest text-[#1C2B1E] mb-4">Rincian Transaksi Terakhir</h3>
+                <table className="w-full text-left text-[12px] border border-gray-300">
+                  <thead>
+                    <tr className="border-b border-gray-300 bg-gray-50">
+                      <th className="py-2.5 px-3 font-bold border-r border-gray-300 text-gray-700">ID TRX</th>
+                      <th className="py-2.5 px-3 font-bold border-r border-gray-300 text-gray-700">DETAIL PENGGUNA</th>
+                      <th className="py-2.5 px-3 font-bold border-r border-gray-300 text-gray-700">LAYANAN</th>
+                      <th className="py-2.5 px-3 font-bold border-r border-gray-300 text-gray-700">TANGGAL</th>
+                      <th className="py-2.5 px-3 font-bold border-r border-gray-300 text-gray-700 text-right">NOMINAL</th>
+                      <th className="py-2.5 px-3 font-bold text-center text-gray-700">STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pdfData?.transactions.map((trx, idx) => (
+                      <tr key={idx} className="border-b border-gray-300">
+                        <td className="py-3 px-3 font-mono border-r border-gray-300">{trx.id}</td>
+                        <td className="py-3 px-3 border-r border-gray-300">{trx.user_detail}</td>
+                        <td className="py-3 px-3 border-r border-gray-300">{trx.layanan}</td>
+                        <td className="py-3 px-3 border-r border-gray-300 text-gray-600">{trx.tanggal}</td>
+                        <td className="py-3 px-3 text-right font-semibold border-r border-gray-300">{trx.nominal}</td>
+                        <td className="py-3 px-3 text-center">
+                          <span className={`font-bold ${trx.status === 'SUCCESS' ? 'text-green-600' : 'text-[#C4622D]'}`}>{trx.status}</span>
+                        </td>
+                      </tr>
+                    )) || (
+                      <tr>
+                        <td colSpan={6} className="py-3 text-center text-gray-500">Tidak ada transaksi.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
             {/* Footer Signatures */}
             <div className="grid grid-cols-2 gap-12 mt-20 mb-8">
@@ -566,8 +580,11 @@ export default function LaporanPage() {
             </div>
 
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    )}
+  </div>
   );
 }
+
+export default dynamic(() => Promise.resolve(LaporanPage), { ssr: false });

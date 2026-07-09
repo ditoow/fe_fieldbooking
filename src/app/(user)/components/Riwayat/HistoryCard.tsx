@@ -7,14 +7,22 @@ export default function HistoryCard({
     getDeadlineText,
     onDetail,
     onPayNow,
-    onBookAgain
+    onBookAgain,
+    // onCancel dihapus dari sini karena pindah ke modal
 }: any) {
     return (
         <div className="bg-[#FDFBF5] rounded-xl overflow-hidden shadow-sm hover:shadow-md border border-gray-200/60 transition-all flex flex-col sm:flex-row h-auto sm:h-56">
 
             {/* Gambar & Badge */}
-            <div className="w-full sm:w-[40%] h-48 sm:h-full relative shrink-0">
-                <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+            <div className="w-full sm:w-[40%] h-48 sm:h-full relative shrink-0 bg-gray-100">
+                <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-full object-cover text-transparent"
+                    onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1518605368461-1e1e367803ba?q=80&w=600&auto=format&fit=crop';
+                    }}
+                />
                 <div className="absolute inset-0 bg-black/5"></div>
                 <span className={`absolute top-4 left-4 px-3 py-1.5 text-[10px] font-bold rounded shadow-sm tracking-wider uppercase
           ${item.status === 'SELESAI' ? 'bg-[#8CB954] text-white' : ''}
@@ -52,7 +60,7 @@ export default function HistoryCard({
                 </div>
 
                 {/* Tombol Aksi */}
-                <div className="flex gap-3 mt-auto pt-2">
+                <div className="flex gap-2 mt-auto pt-2">
                     <button
                         onClick={() => onDetail(item)}
                         className="flex-1 py-2.5 text-xs font-bold text-[#1B3627] border border-gray-200 rounded hover:bg-gray-50 transition tracking-wide text-center"
@@ -65,7 +73,7 @@ export default function HistoryCard({
                             onClick={() => onPayNow(item.price)}
                             className="flex-1 py-2.5 text-xs font-bold bg-black text-white rounded hover:bg-gray-800 transition shadow-md shadow-black/20 tracking-wide text-center"
                         >
-                            BAYAR SEKARANG
+                            BAYAR
                         </button>
                     ) : (
                         <button
