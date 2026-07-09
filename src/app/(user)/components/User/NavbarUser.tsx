@@ -53,6 +53,15 @@ export default function NavbarUser() {
   const router = useRouter();
 
   useEffect(() => {
+    if (user) {
+      const role = user?.roles?.[0]?.name || (user as any)?.role;
+      if (role?.toLowerCase() === "admin") {
+        router.replace("/admin/dashboard");
+      }
+    }
+  }, [user, router]);
+
+  useEffect(() => {
     // FETCHING NOTIFIKASI
     const fetchNotifs = async () => {
       try {
