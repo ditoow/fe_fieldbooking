@@ -33,7 +33,7 @@ export function StatCards({ stats, loading }: StatCardsProps) {
                 <Users className="w-6 h-6 text-white" />
               </div>
             </div>
-            <h3 className="text-gray-500 text-sm font-medium">Total User</h3>
+            <h3 className="text-gray-500 text-sm font-medium">Total Pengguna</h3>
             <p className="text-3xl font-bold mt-1 text-ugo-sidebar">{stats?.total_users || 0}</p>
           </CardContent>
         </Card>
@@ -61,7 +61,7 @@ export function StatCards({ stats, loading }: StatCardsProps) {
                 <CalendarDays className="w-6 h-6 text-white" />
               </div>
             </div>
-            <h3 className="text-gray-500 text-sm font-medium">Total Booking</h3>
+            <h3 className="text-gray-500 text-sm font-medium">Total Pemesanan</h3>
             <p className="text-3xl font-bold mt-1 text-ugo-sidebar">{stats?.total_bookings || 0}</p>
           </CardContent>
         </Card>
