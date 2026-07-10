@@ -34,10 +34,10 @@ export default function Navbar() {
           {/* Desktop Links */}
           <div className="hidden md:flex items-center gap-8">
             <Link href="/dashboard" className="text-sm font-medium text-gray-300 hover:text-[#EAD0B3] transition-colors">
-              Booking
+              Sewa Lapangan
             </Link>
             <Link href="/riwayat" className="text-sm font-medium text-gray-300 hover:text-[#EAD0B3] transition-colors">
-              Riwayat
+              Riwayat Lapangan
             </Link>
           </div>
 
@@ -72,8 +72,8 @@ export default function Navbar() {
       {isMenuOpen && (
         <div className="md:hidden absolute top-[100%] left-0 w-full bg-[#132A1D] border-t border-white/5 px-4 py-6 shadow-2xl z-40">
           <div className="space-y-4">
-            <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-gray-300 hover:text-[#EAD0B3]">Booking</Link>
-            <Link href="/riwayat" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-gray-300 hover:text-[#EAD0B3]">Riwayat</Link>
+            <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-gray-300 hover:text-[#EAD0B3]">Sewa Lapangan</Link>
+            <Link href="/riwayat" onClick={() => setIsMenuOpen(false)} className="block text-sm font-medium text-gray-300 hover:text-[#EAD0B3]">Riwayat Lapangan</Link>
           </div>
           
           {!user ? (
