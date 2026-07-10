@@ -9,12 +9,20 @@ export default function Hero() {
   const { user } = useAuth();
 
   return (
-    /* Gunakan bg-[url('/nama-file-kamu.jpg')] 
-       Pastikan nama filenya sama persis dengan yang ada di folder public 
-    */
-    <section className="relative w-full min-h-[600px] bg-[url('/lapangan.jpg')] bg-cover bg-center bg-no-repeat text-white overflow-hidden pb-16">
+    <section className="relative w-full min-h-[600px] text-white overflow-hidden pb-16">
       
-      {/* Overlay Gradient: Penting supaya teks putih tetap kontras dan mudah dibaca di atas foto */}
+      {/* Video Background */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover z-0"
+      >
+        <source src="/landingpage_video.mp4" type="video/mp4" />
+      </video>
+      
+      {/* Overlay Gradient: Penting supaya teks putih tetap kontras dan mudah dibaca di atas video */}
       <div className="absolute inset-0 bg-gradient-to-r from-[#1B3627]/90 via-[#1B3627]/60 to-transparent z-0"></div>
 
       <div className="relative max-w-7xl mx-auto px-6 pt-32 pb-20 flex flex-col md:flex-row items-center justify-between z-10">
