@@ -17,9 +17,21 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Jika jwt_token tidak ada DAN path termasuk dalam daftar protected routes -> redirect ke /login
+  // Jika jwt_token tidak ada
   if (!token) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    // Pengecualian: Izinkan pengunjung (belum login) mengakses dashboard, riwayat, dan lapangan 
+    // karena komponen-komponen tersebut sudah punya UX/UI khusus (empty state) untuk user yang belum login.
+    if (
+      pathname === '/dashboard' || 
+      pathname.startsWith('/lapangan') || 
+      pathname.startsWith('/booking') || 
+      pathname === '/riwayat'
+    ) {
+      // biarkan lewat
+    } else {
+      // Selain route pengecualian di atas, redirect ke login
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
   }
 
   // Jika path dimulai dengan /admin DAN user_role bukan "admin" -> redirect ke /dashboard

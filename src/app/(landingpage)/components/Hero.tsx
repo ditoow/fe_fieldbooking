@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useAuth } from "@/lib/context/AuthContext";
+import { motion } from "framer-motion";
 
 export default function Hero() {
   const { user } = useAuth();
@@ -17,7 +18,12 @@ export default function Hero() {
       <div className="absolute inset-0 bg-gradient-to-r from-[#1B3627]/90 via-[#1B3627]/60 to-transparent z-0"></div>
 
       <div className="relative max-w-7xl mx-auto px-6 pt-32 pb-20 flex flex-col md:flex-row items-center justify-between z-10">
-        <div className="md:w-1/2 space-y-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="md:w-1/2 space-y-6"
+        >
           <h1 className="text-5xl font-bold leading-tight">
             Booking Lapangan <br /> Olahraga Kampus, <br />
             <span className="text-[#EAD0B3]">Lebih Mudah.</span>
@@ -35,10 +41,15 @@ export default function Hero() {
               LIHAT JADWAL
             </Link>
           </div>
-        </div>
+        </motion.div>
 
         {/* Floating Card: Arena Futsal Pro */}
-        <div className="md:w-1/2 mt-12 md:mt-0 flex justify-end">
+        <motion.div 
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
+          className="md:w-1/2 mt-12 md:mt-0 flex justify-end"
+        >
           <div className="bg-white text-[#1B3627] p-4 rounded-lg shadow-2xl rotate-3 transform hover:rotate-0 transition duration-300 w-72">
             <img 
               src="/lapangan.jpg" 
@@ -56,7 +67,7 @@ export default function Hero() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

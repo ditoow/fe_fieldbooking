@@ -1,5 +1,8 @@
+"use client";
+
 import React from 'react';
 import { UserPlus, Search, FileText, CheckCircle } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function Steps() {
   const steps = [
@@ -13,19 +16,41 @@ export default function Steps() {
     <section id="pesan-lapangan" className="bg-white py-24">
       <div className="max-w-6xl mx-auto px-6 text-center">
         <p className="text-xs text-gray-500 uppercase tracking-widest mb-2">Alur Booking</p>
-        <h2 className="text-3xl font-bold text-[#1B3627] mb-16">4 LANGKAH MUDAH MENUJU LAPANGAN</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
+        <motion.h2 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-3xl font-bold text-[#1B3627] mb-16"
+        >
+          4 LANGKAH MUDAH MENUJU LAPANGAN
+        </motion.h2>
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+          variants={{
+            visible: { transition: { staggerChildren: 0.15 } }
+          }}
+          className="grid grid-cols-1 md:grid-cols-4 gap-8 relative"
+        >
           <div className="hidden md:block absolute top-8 left-[12%] right-[12%] h-[1px] bg-gray-200 z-0"></div>
           {steps.map((step, index) => (
-            <div key={index} className="relative z-10 flex flex-col items-center">
+            <motion.div 
+              key={index} 
+              variants={{
+                hidden: { opacity: 0, y: 30 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+              }}
+              className="relative z-10 flex flex-col items-center"
+            >
               <div className="w-16 h-16 bg-[#1B3627] rounded-full flex items-center justify-center text-[#EAD0B3] mb-4 shadow-md">
                 {step.icon}
               </div>
               <h4 className="font-bold text-[#1B3627] mb-2">{step.title}</h4>
               <p className="text-xs text-gray-500 px-4">{step.desc}</p>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

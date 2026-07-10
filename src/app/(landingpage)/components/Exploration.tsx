@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { getAllFields } from "@/lib/api/field";
+import { motion } from "framer-motion";
 
 const fallbackImage = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=600";
 
@@ -45,7 +46,13 @@ export default function Exploration() {
 
   return (
     <section id="fasilitas" className="max-w-7xl mx-auto px-6 py-24">
-      <div className="flex justify-between items-end mb-10">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.6 }}
+        className="flex justify-between items-end mb-10"
+      >
         <div>
           <p className="text-xs text-gray-500 uppercase tracking-widest mb-2">Fasilitas Udinus</p>
           <h2 className="text-3xl font-bold text-[#1B3627]">EKSPLORASI LAPANGAN</h2>
@@ -53,9 +60,17 @@ export default function Exploration() {
         <Link href="/dashboard" className="text-sm font-semibold text-[#1B3627] flex items-center hover:underline">
           LIHAT SEMUA LAPANGAN <ArrowRight className="w-4 h-4 ml-1" />
         </Link>
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <motion.div 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={{
+          visible: { transition: { staggerChildren: 0.15 } }
+        }}
+        className="grid grid-cols-1 md:grid-cols-3 gap-6"
+      >
         {loading ? (
           <div className="col-span-full flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 text-[#1B3627] animate-spin" />
@@ -66,7 +81,14 @@ export default function Exploration() {
           </div>
         ) : (
           courts.slice(0, 3).map((court) => (
-            <Link key={court.id} href={`/lapangan/${court.id}`} className="relative group overflow-hidden rounded bg-[#1B3627] text-white aspect-[4/5] shadow-lg block">
+            <motion.div 
+              key={court.id}
+              variants={{
+                hidden: { opacity: 0, scale: 0.9 },
+                visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } }
+              }}
+            >
+              <Link href={`/lapangan/${court.id}`} className="relative group overflow-hidden rounded bg-[#1B3627] text-white aspect-[4/5] shadow-lg block">
               <img
                 src={court.image_url}
                 alt={court.name}
@@ -89,10 +111,11 @@ export default function Exploration() {
                   LIHAT JADWAL <ArrowRight className="w-4 h-4 ml-2" />
                 </span>
               </div>
-            </Link>
+              </Link>
+            </motion.div>
           ))
         )}
-      </div>
+      </motion.div>
     </section>
   );
 }
