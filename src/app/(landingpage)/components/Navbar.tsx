@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Leaf, Menu, X } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
 
@@ -26,7 +27,7 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex-1 flex items-center">
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition shrink-0">
-              <span className="font-bold text-lg tracking-wide">Practive</span>
+              <Image src="/logo.png" alt="Practive Logo" width={120} height={40} className="object-contain" />
             </Link>
           </div>
 

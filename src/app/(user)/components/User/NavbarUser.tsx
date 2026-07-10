@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Leaf,
@@ -226,7 +227,7 @@ export default function NavbarUser() {
               href="/"
               className="flex items-center gap-2 hover:opacity-80 transition shrink-0"
             >
-              <span className="font-bold text-lg tracking-wide">Practive</span>
+              <Image src="/logo.png" alt="Practive Logo" width={120} height={40} className="object-contain" />
             </Link>
           </div>
 
