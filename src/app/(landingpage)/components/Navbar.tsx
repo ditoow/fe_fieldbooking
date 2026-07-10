@@ -27,7 +27,8 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex-1 flex items-center">
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition shrink-0">
-              <img src="/logo.png?v=3" alt="Pivactive Logo" width={120} height={40} className="object-contain" />
+              <img src="/logo.png?v=3" alt="Pivactive Logo" className="h-8 w-auto object-contain" />
+              <span className="font-bold text-2xl tracking-wide">Pivactive</span>
             </Link>
           </div>
 
