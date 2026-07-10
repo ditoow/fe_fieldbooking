@@ -62,15 +62,7 @@ export default function Exploration() {
         </Link>
       </motion.div>
 
-      <motion.div 
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
-        variants={{
-          visible: { transition: { staggerChildren: 0.15 } }
-        }}
-        className="grid grid-cols-1 md:grid-cols-3 gap-6"
-      >
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {loading ? (
           <div className="col-span-full flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 text-[#1B3627] animate-spin" />
@@ -80,13 +72,13 @@ export default function Exploration() {
             Belum ada lapangan tersedia
           </div>
         ) : (
-          courts.slice(0, 3).map((court) => (
+          courts.slice(0, 3).map((court, index) => (
             <motion.div 
               key={court.id}
-              variants={{
-                hidden: { opacity: 0, scale: 0.9 },
-                visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } }
-              }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: index * 0.15 }}
             >
               <Link href={`/lapangan/${court.id}`} className="relative group overflow-hidden rounded bg-[#1B3627] text-white aspect-[4/5] shadow-lg block">
               <img
@@ -115,7 +107,7 @@ export default function Exploration() {
             </motion.div>
           ))
         )}
-      </motion.div>
+      </div>
     </section>
   );
 }
