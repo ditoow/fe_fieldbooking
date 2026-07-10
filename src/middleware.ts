@@ -7,6 +7,16 @@ export function middleware(request: NextRequest) {
   const userRole = request.cookies.get('user_role')?.value;
   const { pathname } = request.nextUrl;
 
+  // Jika admin mencoba mengakses landing page, redirect ke dashboard admin
+  if (pathname === '/' && userRole === 'admin') {
+    return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+  }
+
+  // Jika route adalah landing page (public), biarkan lewat tanpa cek token
+  if (pathname === '/') {
+    return NextResponse.next();
+  }
+
   // Jika jwt_token tidak ada DAN path termasuk dalam daftar protected routes -> redirect ke /login
   if (!token) {
     return NextResponse.redirect(new URL('/login', request.url));
@@ -37,6 +47,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    '/',
     '/admin/:path*',
     '/dashboard',
     '/pembayaran',
