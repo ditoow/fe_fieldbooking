@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import Cookies from "js-cookie";
 
 export interface UserSessionData {
     id: string | number;
@@ -56,6 +57,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const logoutContext = () => {
         localStorage.removeItem("jwt_token");
         localStorage.removeItem("user_session");
+        Cookies.remove("jwt_token");
+        Cookies.remove("user_role");
         setToken(null);
         setUser(null);
     };
