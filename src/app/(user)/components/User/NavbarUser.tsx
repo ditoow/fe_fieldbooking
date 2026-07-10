@@ -227,7 +227,7 @@ export default function NavbarUser() {
               href="/"
               className="flex items-center gap-2 hover:opacity-80 transition shrink-0"
             >
-              <img src="/logo.png?v=2" alt="Pivactive Logo" width={120} height={40} className="object-contain" />
+              <img src="/logo.png?v=3" alt="Pivactive Logo" width={120} height={40} className="object-contain" />
             </Link>
           </div>
 
