@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
+  console.log('🔥 MIDDLEWARE JALAN:', request.nextUrl.pathname);
   const token = request.cookies.get('jwt_token')?.value;
   const userRole = request.cookies.get('user_role')?.value;
   const { pathname } = request.nextUrl;
@@ -17,7 +18,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Jika path TERMASUK salah satu dari user routes, DAN user_role adalah "admin" -> redirect ke /admin/dashboard
-  const isUserRoute = 
+  const isUserRoute =
     pathname === '/dashboard' ||
     pathname === '/pembayaran' ||
     pathname === '/riwayat' ||
