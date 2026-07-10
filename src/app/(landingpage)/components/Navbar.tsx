@@ -26,8 +26,7 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex-1 flex items-center">
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition shrink-0">
-              <Leaf className="w-5 h-5 text-[#8CB954]" />
-              <span className="font-bold text-lg tracking-wide">MyUGO</span>
+              <span className="font-bold text-lg tracking-wide">Practive</span>
             </Link>
           </div>
 
