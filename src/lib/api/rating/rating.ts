@@ -1,12 +1,14 @@
 import api from '../../api';
 
 export interface SubmitRatingPayload {
+  booking_id?: number;
   rating: number;
   review?: string;
 }
 
 export async function submitRating(bookingId: number, payload: SubmitRatingPayload) {
-  const res = await api.post(`/bookings/${bookingId}/rating`, payload);
+  const finalPayload = { ...payload, booking_id: bookingId };
+  const res = await api.post(`/bookings/${bookingId}/rating`, finalPayload);
   return res.data;
 }
 
