@@ -227,8 +227,8 @@ export default function NavbarUser() {
               href="/"
               className="flex items-center gap-2 hover:opacity-80 transition shrink-0"
             >
-              <Leaf className="w-6 h-6 text-[#8CB954]" />
-              <span className="font-bold text-2xl tracking-wide">MyUGO</span>
+              <img src="/logo.png?v=3" alt="Pivactive Logo" className="h-8 w-auto object-contain" />
+              <span className="font-bold text-2xl tracking-wide">Pivactive</span>
             </Link>
           </div>
 
@@ -294,7 +294,7 @@ export default function NavbarUser() {
                     className="flex items-center gap-3 pl-4 border-l border-white/10 group"
                   >
                     <p className="text-xs font-bold uppercase tracking-tighter group-hover:text-[#E5C3A6] transition">
-                      {user?.name || "User MyUGO"}
+                      {user?.name || "User Pivactive"}
                     </p>
                     <div
                       className={`w-8 h-8 rounded-full bg-[#E5C3A6] flex items-center justify-center text-[#1B3627] font-bold border-2 transition-all ${showProfile ? "border-white" : "border-[#1B3627]"}`}
@@ -310,7 +310,7 @@ export default function NavbarUser() {
                           Akun Saya
                         </p>
                         <p className="font-bold text-sm truncate">
-                          {user?.name || "User MyUGO"}
+                          {user?.name || "User Pivactive"}
                         </p>
                         <p className="text-[10px] text-[#8CB954] font-bold uppercase">
                           {userRole}
@@ -426,7 +426,7 @@ export default function NavbarUser() {
                 </div>
                 <div>
                   <p className="text-sm font-bold uppercase text-white">
-                    {user?.name || "User MyUGO"}
+                    {user?.name || "User Pivactive"}
                   </p>
                   <p className="text-[10px] text-[#8CB954] font-bold uppercase tracking-wider">
                     {userRole}

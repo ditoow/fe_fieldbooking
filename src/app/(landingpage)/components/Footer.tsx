@@ -11,7 +11,7 @@ export default function Footer() {
 
                     {/* Kolom 1: Brand */}
                     <div className="space-y-4">
-                        <span className="font-bold text-xl tracking-wide">MyUGO</span>
+                        <span className="font-bold text-xl tracking-wide">Pivactive</span>
                         <p className="text-sm text-gray-400 leading-relaxed max-w-xs">
                             Platform manajemen pemesanan fasilitas olahraga modern yang dirancang untuk kemudahan dan efisiensi komunitas kampus.
                         </p>
@@ -55,7 +55,7 @@ export default function Footer() {
 
                 {/* Bottom Bar */}
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-gray-500">
-                    <p>© 2026 MyUGO. Seluruh hak cipta dilindungi.</p>
+                    <p>© 2026 Pivactive. Seluruh hak cipta dilindungi.</p>
                     <div className="flex gap-6">
                         <span>V 2.1.0</span>
                         <span>System Status: <span className="text-green-400">Online</span></span>

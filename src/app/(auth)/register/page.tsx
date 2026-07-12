@@ -67,8 +67,8 @@ export default function RegisterPage() {
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
           <Link href="/" className="flex items-center gap-2 z-10 hover:opacity-80 transition w-fit">
-            <Leaf className="w-5 h-5 text-[#8CB954]" />
-            <span className="font-bold text-lg tracking-wide">MyUGO</span>
+            <img src="/logo.png?v=3" alt="Pivactive Logo" className="h-8 w-auto object-contain" />
+            <span className="font-bold text-lg tracking-wide">Pivactive</span>
           </Link>
         </motion.div>
         <motion.div 
@@ -77,7 +77,7 @@ export default function RegisterPage() {
           transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
           className="z-10 mt-12 flex-1 flex flex-col justify-center"
         >
-          <h1 className="text-4xl lg:text-5xl font-semibold leading-tight mb-6">Bergabung <br /> dengan MyUGO</h1>
+          <h1 className="text-4xl lg:text-5xl font-semibold leading-tight mb-6">Bergabung <br /> dengan Pivactive</h1>
           <p className="text-sm text-gray-300 leading-relaxed mb-10 max-w-sm">Masuki galeri botani fasilitas olahraga premium UDINUS.</p>
         </motion.div>
       </div>

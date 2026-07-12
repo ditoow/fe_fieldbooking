@@ -267,7 +267,7 @@ function InvoiceContent() {
           </h1>
           <p className="text-gray-500 text-sm leading-relaxed max-w-md">
             Silakan pindai kode QR di samping menggunakan aplikasi perbankan
-            atau e-wallet pilihan Anda untuk mengonfirmasi pesanan MyUGO Anda.
+            atau e-wallet pilihan Anda untuk mengonfirmasi pesanan Pivactive Anda.
           </p>
         </div>
 

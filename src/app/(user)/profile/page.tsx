@@ -129,7 +129,7 @@ export default function ProfilePage() {
                 </div>
                 
                 <div className="text-center sm:text-left space-y-1">
-                    <h1 className="text-xl md:text-2xl font-black tracking-tight">{userData.nama || "User MyUGO"}</h1>
+                    <h1 className="text-xl md:text-2xl font-black tracking-tight">{userData.nama || "User Pivactive"}</h1>
                     <p className="text-xs text-[#8CB954] font-bold uppercase tracking-widest">
                         {userData.role} {userData.nim && `• ${userData.nim}`}
                     </p>

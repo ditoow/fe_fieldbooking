@@ -64,8 +64,8 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
           <Menu className="w-6 h-6" />
         </button>
         <Link href="/admin/dashboard" className="flex items-center gap-2 group hover:opacity-80 transition w-fit">
-          <Leaf className="w-6 h-6 text-[#8CB954]" />
-          <span className="font-bold text-xl tracking-wide text-white">MyUGO</span>
+          <img src="/logo.png?v=3" alt="Pivactive Logo" className="h-8 w-auto object-contain" />
+          <span className="font-bold text-xl tracking-wide text-white">Pivactive</span>
         </Link>
       </div>
 

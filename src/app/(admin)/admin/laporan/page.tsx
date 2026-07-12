@@ -489,7 +489,7 @@ function LaporanPage() {
               {/* Header Document */}
               <div className="flex justify-between items-start mb-8">
                 <div>
-                  <h1 className="text-2xl font-bold text-[#1C2B1E] tracking-tight mb-1">MyUGO</h1>
+                  <h1 className="text-2xl font-bold text-[#1C2B1E] tracking-tight mb-1">Pivactive</h1>
                   <p className="font-bold text-sm text-gray-800">UNIVERSITAS DIAN NUSWANTORO</p>
                   <p className="text-xs text-gray-600 mt-0.5">Jl. Imam Bonjol No.207, Semarang</p>
                 </div>

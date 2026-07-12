@@ -62,8 +62,8 @@ export default function LoginPage() {
                     transition={{ duration: 0.6, ease: "easeOut" }}
                 >
                     <Link href="/" className="flex items-center gap-2 z-10 hover:opacity-80 transition w-fit">
-                        <Leaf className="w-5 h-5 text-[#8CB954]" />
-                        <span className="font-bold text-lg tracking-wide">MyUGO</span>
+                        <img src="/logo.png?v=3" alt="Pivactive Logo" className="h-8 w-auto object-contain" />
+                        <span className="font-bold text-lg tracking-wide">Pivactive</span>
                     </Link>
                 </motion.div>
                 <motion.div 
