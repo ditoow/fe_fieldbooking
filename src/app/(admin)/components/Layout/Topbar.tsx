@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Box, Menu, Loader2, Check } from 'lucide-react';
+import { Bell, Leaf, Menu, Loader2, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -63,14 +63,9 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
         >
           <Menu className="w-6 h-6" />
         </button>
-        <Link href="/admin/dashboard" className="flex items-center gap-3 group">
-          <div className="w-8 h-8 bg-ugo-primary rounded flex items-center justify-center hidden sm:flex group-hover:bg-ugo-primary/90 transition-colors">
-            <Box className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h1 className="text-white font-bold text-lg leading-tight group-hover:text-gray-200 transition-colors">Beranda Admin</h1>
-            <p className="text-white/60 text-[10px] uppercase font-semibold tracking-wider group-hover:text-white/80 transition-colors">Manajemen Fasilitas</p>
-          </div>
+        <Link href="/admin/dashboard" className="flex items-center gap-2 group hover:opacity-80 transition w-fit">
+          <Leaf className="w-6 h-6 text-[#8CB954]" />
+          <span className="font-bold text-xl tracking-wide text-white">MyUGO</span>
         </Link>
       </div>
 

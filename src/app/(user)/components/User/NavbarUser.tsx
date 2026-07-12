@@ -227,8 +227,8 @@ export default function NavbarUser() {
               href="/"
               className="flex items-center gap-2 hover:opacity-80 transition shrink-0"
             >
-              <img src="/logo.png?v=3" alt="Pivactive Logo" className="h-8 w-auto object-contain" />
-              <span className="font-bold text-2xl tracking-wide">Pivactive</span>
+              <Leaf className="w-6 h-6 text-[#8CB954]" />
+              <span className="font-bold text-2xl tracking-wide">MyUGO</span>
             </Link>
           </div>
 
