@@ -55,14 +55,8 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
 
   return (
     <header className="h-[70px] bg-ugo-sidebar w-full fixed top-0 left-0 z-30 flex items-center justify-between px-8 border-b-[3px] border-[#0EA5E9]">
-      {/* Left: Logo & Mobile Menu */}
+      {/* Left: Logo */}
       <div className="flex items-center gap-3">
-        <button
-          className="md:hidden p-1 -ml-2 text-white hover:bg-white/10 rounded-md"
-          onClick={onMenuClick}
-        >
-          <Menu className="w-6 h-6" />
-        </button>
         <Link href="/admin/dashboard" className="flex items-center gap-2 group hover:opacity-80 transition w-fit">
           <img src="/logo.png?v=3" alt="Pivactive Logo" className="h-8 w-auto object-contain" />
           <span className="font-bold text-xl tracking-wide text-white">Pivactive</span>
@@ -70,7 +64,7 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
       </div>
 
       {/* Right: Actions */}
-      <div className="flex items-center gap-6 relative">
+      <div className="flex items-center gap-4 md:gap-6 relative">
         {/* Notification Bell */}
         <div className="relative">
           <button
@@ -123,7 +117,7 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
         </div>
 
         {/* Avatar */}
-        <div className="relative">
+        <div className="relative hidden md:block">
           <button
             onClick={() => setShowProfile(!showProfile)}
             className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-sm"
@@ -156,6 +150,14 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
             </div>
           )}
         </div>
+
+        {/* Mobile Menu */}
+        <button
+          className="md:hidden p-1 text-white hover:bg-white/10 rounded-md ml-1"
+          onClick={onMenuClick}
+        >
+          <Menu className="w-6 h-6" />
+        </button>
       </div>
     </header>
   );
