@@ -42,7 +42,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 console.error("Gagal memuat session user:", err);
                 localStorage.removeItem("jwt_token");
                 localStorage.removeItem("user_session");
+                Cookies.remove("jwt_token");
+                Cookies.remove("user_role");
             }
+        } else {
+            Cookies.remove("jwt_token");
+            Cookies.remove("user_role");
         }
         setLoading(false);
     }, []);
