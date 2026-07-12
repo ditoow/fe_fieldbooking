@@ -17,6 +17,18 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Jika user mencoba mengakses login/register tapi sudah login, redirect
+  if (pathname === '/login' || pathname === '/register') {
+    if (token) {
+      if (userRole === 'admin') {
+        return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+      } else {
+        return NextResponse.redirect(new URL('/dashboard', request.url));
+      }
+    }
+    return NextResponse.next();
+  }
+
   // Jika jwt_token tidak ada
   if (!token) {
     // Pengecualian: Izinkan pengunjung (belum login) mengakses dashboard, riwayat, dan lapangan 
@@ -69,5 +81,7 @@ export const config = {
     '/verifikasi-pending',
     '/lapangan/:path*',
     '/booking/:path*',
+    '/login',
+    '/register',
   ],
 };
