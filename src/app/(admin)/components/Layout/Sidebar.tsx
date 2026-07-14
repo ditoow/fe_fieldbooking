@@ -116,7 +116,11 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean, onClose?: () =>
     <aside className={`w-[220px] bg-ugo-sidebar h-[calc(100vh-70px)] fixed left-0 top-[70px] flex flex-col justify-between py-6 px-4 z-20 overflow-y-auto transition-transform duration-300 md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       <div>
         {/* Profile Mobile Only */}
-        <div className="md:hidden flex items-center gap-3 mb-6 pb-6 border-b border-white/10">
+        <Link 
+          href="/admin/profile"
+          onClick={onClose}
+          className="md:hidden flex items-center gap-3 mb-6 pb-6 border-b border-white/10 hover:opacity-80 transition-opacity cursor-pointer"
+        >
           <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-sm shrink-0 bg-gray-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -125,13 +129,13 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean, onClose?: () =>
               className="w-full h-full object-cover"
             />
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col overflow-hidden">
             <span className="text-white font-bold text-sm truncate">{user?.name || 'Admin User'}</span>
             <span className="text-ugo-primary text-[10px] uppercase font-bold tracking-wider">
               {user?.roles?.[0]?.name ? user.roles[0].name.toUpperCase() : 'ADMINISTRATOR'}
             </span>
           </div>
-        </div>
+        </Link>
 
         <nav className="flex flex-col gap-2">
           {navItems.map(renderNavItem)}
