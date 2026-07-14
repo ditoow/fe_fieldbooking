@@ -98,9 +98,9 @@ export default function UserDashboard() {
                     <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-6 leading-tight">
                         BOOKING FASILITAS<br />GOR UDINUS
                     </h1>
-                    <button className="bg-[#E5C3A6] hover:bg-[#d5b090] text-[#1B3627] font-bold py-3.5 px-8 rounded-xl transition-colors">
+                    <a href="#fasilitas" className="inline-block bg-[#E5C3A6] hover:bg-[#d5b090] text-[#1B3627] font-bold py-3.5 px-8 rounded-xl transition-colors">
                         Cari Fasilitas Sekarang
-                    </button>
+                    </a>
                 </div>
             </section>
 
